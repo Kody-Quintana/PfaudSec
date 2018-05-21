@@ -1,0 +1,76 @@
+\documentclass[14pt]{article}
+
+%\usepackage[]{minted}
+%\usepackage[utf8]{inputenc}
+%\usepackage[english]{babel}
+\usepackage{tcolorbox}
+\usepackage[letterpaper]{geometry}
+\usepackage{times}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage[abspath]{currfile}
+\usepackage{xstring,ifthen}
+\usepackage{graphicx}
+\pagestyle{fancy}
+\setlength\headheight{56pt}
+
+\lhead{\includegraphics[width=5cm]{logo.png}}
+
+\rhead{Pfaudler Inc.\\
+P.O. Box 23600, Rochester, NY 14692-3600\\
+Telephone: 1-585-235-1000\\
+site: www.pfaudler.com}
+
+\setlength{\baselineskip}{2em}
+\setlength{\parindent}{4em}
+\setlength{\parskip}{2em}
+
+\begin{document}
+\begin{flushleft}
+
+
+%----Upper folder name finder-----%
+\newcounter{columnnumber}
+\newcommand{\getcolumnnumber}[1]
+{
+	\IfSubStr{#1}{/}
+		{\StrCount{#1}{/}[\tmp]\setcounter{columnnumber}{\tmp}\stepcounter{columnnumber}}
+			{\setcounter{columnnumber}{1}}
+\addtocounter{columnnumber}{-2}
+}
+\getcolumnnumber{\currfileabsdir}
+\StrBehind[\thecolumnnumber]{\currfileabsdir}{/}[\monum]
+%---------------------------------%
+
+
+
+\LARGE
+\textbf{MO Number: }
+\StrBefore{\monum}{/}\\
+\textbf{Serial Number: }\\
+\textbf{Customer: }\\
+\textbf{Equipment: }
+
+\Large
+
+Dear Sirs:
+
+We are sending the Data Book of the equipment in reference containing:
+\begin{itemize}
+\item drawing
+\item nameplate copy
+\item quality control reports
+\item test materials
+\end{itemize}
+
+In case you need more documents, please feel free to contact us,
+
+\Large
+\null\hfill
+\begin{tabular}{l@{}}
+  Sincerely, \\[5\normalbaselineskip]
+  Name J.\ Lname
+\end{tabular}
+
+\end{flushleft}
+\end{document}
