@@ -1,12 +1,12 @@
 \documentclass[14pt]{article}
-
+\usepackage{lastpage}
+\usepackage{xspace}
 \usepackage{datatool}
 \DTLsetseparator{ = }% Set the separator between the columns. Could be
 % anything you like. Whitespaces are not trimmed, so you have to set
 %them as part of the separator.
-%\usepackage[OT1]{fontenc} 
 \usepackage{fontspec}
-%\setmainfont{Pfaudler}
+
 \setmainfont[
   Path          = ./,
   Ligatures     = TeX,
@@ -15,15 +15,7 @@
   BoldFont      = font/TTF/Pfaudler-Bold.ttf,
   ItalicFont    = font/TTF/Pfaudler-BookItalic.ttf
 ]{Pfaudler}
-%\newfontfamily\CalibriLight[
-%  Path          = \currfileabsdir,
-%  Ligatures     = TeX,
-%  UprightFont   = calibri/Calibri_Light.ttf,
-%  ItalicFont    = calibri/Calibri_Light_Italic.ttf
-%]{Calibri_Light}
-%\usepackage[]{minted}
-%\usepackage[utf8]{inputenc}
-%\usepackage[english]{babel}
+
 \usepackage{pdfpages}
 \usepackage{tcolorbox}
 \usepackage[letterpaper]{geometry}
@@ -31,12 +23,23 @@
 \geometry{top=0.9in, bottom=0.9in, left=0.9in, right=0.9in}
 %\usepackage{times}
 \usepackage{titlesec}
+
+
+
+
+%-----Header Formatting-----%
 \usepackage{fancyhdr}
 \pagestyle{fancy}
-
 \fancypagestyle{style1}{
 \fancyhf{}
-\fancyhead[R]{\includegraphics[width=5cm]{logo.png}}
+\fancyhead[L]{\includegraphics[width=5cm]{logo.png}}
+\fancyhead[R]{
+%Pfaudler Inc.\\
+P.O. Box 23600\\
+Rochester, NY 14692-3600\\
+Telephone: 1-585-235-1000\\
+Site: www.pfaudler.com}
+
 \fancyfoot[R]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}
 }
@@ -48,38 +51,39 @@
 \textbf{Serial Number: }\jobinfofill{serial},
 \textbf{Customer: }\jobinfofill{customer},
 \textbf{Equipment: }\jobinfofill{equipment}}
-
-\fancyfoot[R]{\thepage}
+\fancyfoot[R]{\textbf{Data Book: }\thepage\xspace of \pageref{LastPage}}
 \renewcommand{\headrulewidth}{1pt}
 }
+%---------------------------%
+
+
 
 \usepackage[abspath]{currfile}
 \usepackage{xstring,ifthen}
 \usepackage{graphicx}
 \usepackage{titletoc}
 \setlength\headheight{57pt}
-%\fancyhf{} % sets both header and footer to nothing
-%\renewcommand{\headrulewidth}{0pt}
 
 
 
-
-
-
+%-----Table of Contents Formatting-----%
 \titlecontents{section}
-[1em]
-{\hangindent1em}
+[1.5em]
+{}
 {\contentslabel{2.3em}}
 {}
 {\titlerule*[0.7pc]{.}\contentspage}
+%--------------------------------------%
+
+
 
 \usepackage[linktoc=all,
             colorlinks=true,
             linkcolor=black,
             urlcolor=black,
             citecolor=black,
-            pdfauthor={},
-            pdftitle={},
+            pdfauthor={Pfaudler Inc.},
+            pdftitle={Data Book},
             pdfsubject={},
             pdfkeywords={},
             pdfproducer={},
@@ -88,6 +92,8 @@
 
 \setcounter{tocdepth}{2}
 \setcounter{secnumdepth}{1}
+
+
 
 %-----data file variable maker-----%
 \DTLloaddb[noheader, keys={thekey,thevalue}]{jobinfo}{jobinfo.dat}
@@ -98,11 +104,12 @@
 
 %\setlength{\baselineskip}{2em}
 %\setlength{\parindent}{4em}
-\setlength{\parskip}{2em}
+\setlength{\parskip}{1em}
+%\linespread{1.5}
+
 
 \titleformat{\section}{}{}{0pt}{}
-%\titleformat{\section}
-%  {}{}{1em}{}
+
 
 %-----Page embedder-----%
 \newcommand\addpage[1]{%
@@ -116,16 +123,16 @@
 % this is for the folder method \StrBefore{\monum}{/}\\
 
 
+
+
+%%%%%--BEGIN-DOCUMENT--%%%%%
 \begin{document}
 \begin{flushleft}
 
 
 \pagestyle{style1}
-\vspace{0cm}\hspace{-5pt}{\fontsize{60}{60}\selectfont Data Book}
+\vspace{0cm}\hspace{-5pt}{\fontsize{60}{60}\selectfont \textbf{Data Book}}
 
-%-----upper left header logo-----%
-
-%\begin{adjustwidth}{0.5cm}{0.5cm}
 \begin{minipage}{0.6\textwidth}
 \LARGE
 \vspace{0cm}\hspace{-5pt}\begin{tabular}{lr}
@@ -137,13 +144,7 @@
 \end{tabular}
 \end{minipage}
 
-%Pfaudler Inc.\\
-%P.O. Box 23600\\
-%Rochester, NY 14692-3600\\
-%1-585-235-1000\\
-%www.pfaudler.com
 
-%---------------------------------%
 
 
 
@@ -163,40 +164,26 @@
 
 
 
-
-
-
-
-%\LARGE
-%\hspace{-5pt}\begin{tabular}{lr}
-%\textbf{MO Number: }&\jobinfofill{mo}\\
-%% this is for the folder method \StrBefore{\monum}{/}\\
-%\textbf{Serial Number: }&\jobinfofill{serial}\\
-%\textbf{Customer: }&\jobinfofill{customer}\\
-%\textbf{Equipment: }&\jobinfofill{equipment}
-%\end{tabular}
-
-
+\vspace{12pt}
 \Large
 Dear Sirs:
 
-We are sending the Data Book of the equipment in reference containing:
+We are sending the Data Book of the \jobinfofill{equipment} in reference containing:
 
 
+
+%-----Table of Contents-----%
 \startcontents[section]
 \begin{center}
-%\begin{minipage}{0.9\textwidth}
+\setlength{\parskip}{0.5em}
 \printcontents[section]{}{1}{}
-%\end{minipage}
+\setlength{\parskip}{1em}
 \end{center}
-%\begin{itemize}
-%\item drawing
-%\item nameplate copy
-%\item quality control reports
-%\item test materials
-%\end{itemize}
+%---------------------------%
 
-In case you need more documents, please feel free to contact us,
+
+
+If you would like to request additional documents, please feel free to contact us.
 
 \Large
 \null\hfill
@@ -204,6 +191,10 @@ In case you need more documents, please feel free to contact us,
   Sincerely, \\[5\normalbaselineskip]
   Name J.\ Lname
 \end{tabular}
+
+
+
+%-----Begin Embedded Documents-----%
 \newpage
 \pagestyle{style2}
 \setlength\headheight{12pt}
@@ -211,7 +202,9 @@ In case you need more documents, please feel free to contact us,
 \addpage{testinsert.pdf}
 \addpage{testinsert.pdf}
 \addpage{test2.pdf}
+%----------------------------------%
 
-%\end{adjustwidth}
+
+
 \end{flushleft}
 \end{document}
