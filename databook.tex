@@ -27,17 +27,43 @@
 \usepackage{pdfpages}
 \usepackage{tcolorbox}
 \usepackage[letterpaper]{geometry}
+
+\geometry{top=0.9in, bottom=0.9in, left=0.9in, right=0.9in}
 %\usepackage{times}
 \usepackage{titlesec}
 \usepackage{fancyhdr}
+\pagestyle{fancy}
+
+\fancypagestyle{style1}{
+\fancyhf{}
+\fancyhead[R]{\includegraphics[width=5cm]{logo.png}}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+}
+
+\fancypagestyle{style2}{
+\fancyhf{}
+\fancyhead[C]{%
+\textbf{MO Number: }\jobinfofill{mo},
+\textbf{Serial Number: }\jobinfofill{serial},
+\textbf{Customer: }\jobinfofill{customer},
+\textbf{Equipment: }\jobinfofill{equipment}}
+
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{1pt}
+}
+
 \usepackage[abspath]{currfile}
 \usepackage{xstring,ifthen}
 \usepackage{graphicx}
 \usepackage{titletoc}
-\pagestyle{fancy}
-\setlength\headheight{151pt}
-\fancyhf{} % sets both header and footer to nothing
-\renewcommand{\headrulewidth}{0pt}
+\setlength\headheight{57pt}
+%\fancyhf{} % sets both header and footer to nothing
+%\renewcommand{\headrulewidth}{0pt}
+
+
+
+
 
 
 \titlecontents{section}
@@ -58,7 +84,7 @@
             pdfkeywords={},
             pdfproducer={},
             pdfcreator={}]{hyperref}
-
+\usepackage{changepage}
 
 \setcounter{tocdepth}{2}
 \setcounter{secnumdepth}{1}
@@ -68,34 +94,10 @@
 \newcommand{\jobinfofill}[1]{\DTLfetch{jobinfo}{thekey}{#1}{thevalue}}
 %----------------------------------%
 
-%-----upper left header logo-----%
-\lhead{\LARGE\hspace{-5pt}\begin{tabular}{lr}
-\textbf{MO Number: }&\jobinfofill{mo}\\
-% this is for the folder method \StrBefore{\monum}{/}\\
-\textbf{Serial Number: }&\jobinfofill{serial}\\
-\textbf{Customer: }&\jobinfofill{customer}\\
-\textbf{Equipment: }&\jobinfofill{equipment}
-\end{tabular}
-}
-%--------------------------------%
 
 
-
-%-----upper right header info-----%
-\rhead{
-\begin{minipage}{0.3\textwidth}
-\includegraphics[width=5cm]{logo.png}\\
-Pfaudler Inc.\\
-P.O. Box 23600, Rochester, NY 14692-3600\\
-1-585-235-1000\\
-www.pfaudler.com
-\end{minipage}
-}
-%---------------------------------%
-
-
-\setlength{\baselineskip}{2em}
-\setlength{\parindent}{4em}
+%\setlength{\baselineskip}{2em}
+%\setlength{\parindent}{4em}
 \setlength{\parskip}{2em}
 
 \titleformat{\section}{}{}{0pt}{}
@@ -111,8 +113,38 @@ www.pfaudler.com
 
 
 
+% this is for the folder method \StrBefore{\monum}{/}\\
+
+
 \begin{document}
 \begin{flushleft}
+
+
+\pagestyle{style1}
+\vspace{0cm}\hspace{-5pt}{\fontsize{60}{60}\selectfont Data Book}
+
+%-----upper left header logo-----%
+
+%\begin{adjustwidth}{0.5cm}{0.5cm}
+\begin{minipage}{0.6\textwidth}
+\LARGE
+\vspace{0cm}\hspace{-5pt}\begin{tabular}{lr}
+\noindent
+\textbf{MO Number: }&\jobinfofill{mo}\\
+\textbf{Serial Number: }&\jobinfofill{serial}\\
+\textbf{Customer: }&\jobinfofill{customer}\\
+\textbf{Equipment: }&\jobinfofill{equipment}
+\end{tabular}
+\end{minipage}
+
+%Pfaudler Inc.\\
+%P.O. Box 23600\\
+%Rochester, NY 14692-3600\\
+%1-585-235-1000\\
+%www.pfaudler.com
+
+%---------------------------------%
+
 
 
 
@@ -144,6 +176,7 @@ www.pfaudler.com
 %\textbf{Equipment: }&\jobinfofill{equipment}
 %\end{tabular}
 
+
 \Large
 Dear Sirs:
 
@@ -151,8 +184,11 @@ We are sending the Data Book of the equipment in reference containing:
 
 
 \startcontents[section]
+\begin{center}
+%\begin{minipage}{0.9\textwidth}
 \printcontents[section]{}{1}{}
-
+%\end{minipage}
+\end{center}
 %\begin{itemize}
 %\item drawing
 %\item nameplate copy
@@ -168,13 +204,14 @@ In case you need more documents, please feel free to contact us,
   Sincerely, \\[5\normalbaselineskip]
   Name J.\ Lname
 \end{tabular}
-
-
+\newpage
+\pagestyle{style2}
+\setlength\headheight{12pt}
 \addpage{testinsert.pdf}
 \addpage{testinsert.pdf}
 \addpage{testinsert.pdf}
-\addpage{testinsert.pdf}
+\addpage{test2.pdf}
 
-
+%\end{adjustwidth}
 \end{flushleft}
 \end{document}
