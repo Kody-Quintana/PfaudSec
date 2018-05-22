@@ -6,7 +6,21 @@
 %them as part of the separator.
 %\usepackage[OT1]{fontenc} 
 \usepackage{fontspec}
-\setmainfont{Campton}
+%\setmainfont{Pfaudler}
+\setmainfont[
+  Path          = ./,
+  Ligatures     = TeX,
+  UprightFont   = font/TTF/Pfaudler-Book.ttf,
+  BoldItalicFont= font/TTF/Pfaudler-BoldItalic.ttf,
+  BoldFont      = font/TTF/Pfaudler-Bold.ttf,
+  ItalicFont    = font/TTF/Pfaudler-BookItalic.ttf
+]{Pfaudler}
+%\newfontfamily\CalibriLight[
+%  Path          = \currfileabsdir,
+%  Ligatures     = TeX,
+%  UprightFont   = calibri/Calibri_Light.ttf,
+%  ItalicFont    = calibri/Calibri_Light_Italic.ttf
+%]{Calibri_Light}
 %\usepackage[]{minted}
 %\usepackage[utf8]{inputenc}
 %\usepackage[english]{babel}
