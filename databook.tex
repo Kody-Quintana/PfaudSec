@@ -1,95 +1,10 @@
-\documentclass[14pt]{article}
-\usepackage{lastpage}
-\usepackage{xspace}
-\usepackage{datatool}
-\DTLsetseparator{ = }% Set the separator between the columns. Could be
-% anything you like. Whitespaces are not trimmed, so you have to set
-%them as part of the separator.
-\usepackage{fontspec}
-
-\setmainfont[
-  Path          = ./,
-  Ligatures     = TeX,
-  UprightFont   = font/TTF/Pfaudler-Book.ttf,
-  BoldItalicFont= font/TTF/Pfaudler-BoldItalic.ttf,
-  BoldFont      = font/TTF/Pfaudler-Bold.ttf,
-  ItalicFont    = font/TTF/Pfaudler-BookItalic.ttf
-]{Pfaudler}
-
-\usepackage{pdfpages}
-\usepackage{tcolorbox}
-\usepackage[letterpaper]{geometry}
-
-\geometry{top=0.9in, bottom=0.9in, left=0.9in, right=0.9in}
-%\usepackage{times}
-\usepackage{titlesec}
-
-
-
-
-%-----Header Formatting-----%
-\usepackage{fancyhdr}
-\pagestyle{fancy}
-\fancypagestyle{style1}{
-\fancyhf{}
-
-\fancyhead[L]{\includegraphics[width=5cm]{logo.png}}
-
-\fancyhead[R]{
-%Pfaudler Inc.\\
-P.O. Box 23600\\
-Rochester, NY 14692-3600\\
-Telephone: 1-585-235-1000\\
-Site: www.pfaudler.com}
-
-\fancyfoot[R]{\thepage}
-
-\renewcommand{\headrulewidth}{0.4pt}
-}
-
-\fancypagestyle{style2}{
-\fancyhf{}
-\fancyhead[C]{%
-\textbf{MO Number: }\jobinfofill{mo},
-\textbf{Serial Number: }\jobinfofill{serial},
-\textbf{Customer: }\jobinfofill{customer},
-\textbf{Equipment: }\jobinfofill{equipment}}
-\fancyfoot[R]{\textbf{Data Book: }\thepage\xspace of \pageref{LastPage}}
-\renewcommand{\headrulewidth}{1pt}
-}
-
-\setlength\headheight{57pt}
-%---------------------------%
-
-
-
-\usepackage[abspath]{currfile}
-\usepackage{xstring,ifthen}
-\usepackage{graphicx}
-\usepackage{titletoc}
-
-
-
-%-----Table of Contents Formatting-----%
-\titlecontents{section}
-[1.5em]
-{}
-{\contentslabel{2.3em}}
-{}
-{\titlerule*[0.7pc]{.}\contentspage}
-
-
-\titlecontents{subsection}
-[4em]
-{\hangindent1em}
-{\contentslabel{2.3em}}
-{}
-{\titlerule*[0.7pc]{.}\contentspage}
-%--------------------------------------%
-
-
-
-\usepackage[linktoc=all,
+\documentclass{article}
+\usepackage{lastpage}                   %for identifying last page
+\usepackage{xspace}                     %to force add a space
+\usepackage[abspath]{currfile}          %to find path to this file
+\usepackage{xstring,ifthen}             %to manipulate strings
+\usepackage{graphicx}                   %to add images
+\usepackage[linktoc=all,                %for clickable links and pdf metadata
             colorlinks=true,
             linkcolor=black,
             urlcolor=black,
@@ -100,72 +15,26 @@ Site: www.pfaudler.com}
             pdfkeywords={},
             pdfproducer={},
             pdfcreator={}]{hyperref}
-\usepackage{changepage}
-
-\setcounter{tocdepth}{2}
-\setcounter{secnumdepth}{1}
 
 
 
-%-----data file variable maker-----%
-\DTLloaddb[noheader, keys={thekey,thevalue}]{jobinfo}{jobinfo.dat}
-\newcommand{\jobinfofill}[1]{\DTLfetch{jobinfo}{thekey}{#1}{thevalue}}
-%----------------------------------%
-
-
-
-%\setlength{\baselineskip}{2em}
-%\setlength{\parindent}{4em}
-\setlength{\parskip}{1em}
-%\linespread{1.5}
-
-
-%\titleformat{\section}{}{}{0pt}{}
-
-
-%-----Page embedder-----%
-\newcommand\addpage[1]{%
-	\StrBefore[1]{#1}{.}[\temp]
-	\includepdf[pages=-,pagecommand=\newpage\phantomsection\addcontentsline{toc}{subsection}{\temp}]{#1}}
-	%\phantomsection\newpage\addcontentsline{toc}{section}{\temp}
-\newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{\textbf{\arabic{section}.\xspace } {#1}}}
-%-----------------------%
-
-
-
-% this is for the folder method \StrBefore{\monum}{/}\\
-
-
-
-
-%%%%%--BEGIN-DOCUMENT--%%%%%
-\begin{document}
-\begin{flushleft}
-
-
-\pagestyle{style1}
-\vspace{0cm}\hspace{-5pt}{\fontsize{60}{60}\selectfont \textbf{Data Book}}
-
-\begin{minipage}{0.6\textwidth}
-\LARGE
-\vspace{0cm}\hspace{-5pt}\begin{tabular}{lr}
-\noindent
-\textbf{MO Number: }&\jobinfofill{mo}\\
-\textbf{Serial Number: }&\jobinfofill{serial}\\
-\textbf{Customer: }&\jobinfofill{customer}\\
-\textbf{Equipment: }&\jobinfofill{equipment}
-\end{tabular}
-\end{minipage}
-
-
-
+%-----Font configuration-----%
+\usepackage{fontspec}
+\setmainfont[
+  Path          = ./,
+  Ligatures     = TeX,
+  UprightFont   = font/TTF/Pfaudler-Book.ttf,
+  BoldItalicFont= font/TTF/Pfaudler-BoldItalic.ttf,
+  BoldFont      = font/TTF/Pfaudler-Bold.ttf,
+  ItalicFont    = font/TTF/Pfaudler-BookItalic.ttf
+]{Pfaudler}
+%----------------------------%
 
 
 
 %-----Upper folder name finder-----%
 \newcounter{columnnumber}
-\newcommand{\getcolumnnumber}[1]
-{
+\newcommand{\getcolumnnumber}[1]{
 	\IfSubStr{#1}{/}
 		{\StrCount{#1}{/}[\tmp]\setcounter{columnnumber}{\tmp}\stepcounter{columnnumber}}
 			{\setcounter{columnnumber}{1}}
@@ -177,11 +46,126 @@ Site: www.pfaudler.com}
 
 
 
-\vspace{12pt}
-\Large
-%Dear Sirs:
+%-----Margin formatting-----%
+\usepackage[letterpaper]{geometry}
+\geometry{top=0.9in, bottom=0.9in, left=0.9in, right=0.9in}
+%---------------------------%
 
-%We are sending the Data Book of the \jobinfofill{equipment} in reference containing:
+
+
+%-------------Header Formatting-------------%
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+%--First page header style--%
+\fancypagestyle{style1}{
+\fancyhf{}
+\fancyhead[L]{\includegraphics[width=5cm]{logo.png}}
+\fancyhead[R]{
+P.O. Box 23600\\
+Rochester, NY 14692-3600\\
+Telephone: 1-585-235-1000\\
+Site: www.pfaudler.com}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}}
+
+%--Embedded documents overlay header--%
+\fancypagestyle{style2}{
+\fancyhf{}
+\fancyhead[C]{%
+\textbf{Order Number: }\jobinfofill{mo},
+\textbf{Serial Number: }\jobinfofill{serial},
+\textbf{Customer: }\jobinfofill{customer},
+\textbf{Equipment: }\jobinfofill{equipment}}
+\fancyfoot[R]{\textbf{Data Book: }\thepage\xspace of \pageref{LastPage}}
+\renewcommand{\headrulewidth}{1pt}}
+
+%-------------------------------------------%
+
+
+
+%-----Table of Contents Formatting-----%
+\usepackage{titletoc}
+
+%--section toc format--%
+\titlecontents{section}
+[1.5em]
+{}
+{\contentslabel{2.3em}}
+{}
+{\titlerule*[0.7pc]{.}\contentspage}
+
+%--subsecion toc format--%
+\titlecontents{subsection}
+[4em]
+{\hangindent1em}
+{\contentslabel{2.3em}}
+{}
+{\titlerule*[0.7pc]{.}\contentspage}
+%--------------------------------------%
+
+
+
+%-----External job info (jobinfo.dat)-----%
+\usepackage{datatool}
+\DTLsetseparator{ = }
+\DTLloaddb[noheader, keys={thekey,thevalue}]{jobinfo}{jobinfo.dat}
+\newcommand{\jobinfofill}[1]{\DTLfetch{jobinfo}{thekey}{#1}{thevalue}}
+%-----------------------------------------%
+
+
+
+\setlength{\parskip}{1em}
+\setlength\headheight{57pt}
+
+
+%-------------Page embedder-------------%
+\usepackage{pdfpages}
+
+%--newcommand for sections--%
+\newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{\textbf{\arabic{section}.\xspace } {#1}}}
+
+%--newcommand for subsections--%
+\newcommand\addpage[1]{%
+	\StrBefore[1]{#1}{.}[\temp]
+	\includepdf[pages=-,pagecommand=\newpage\phantomsection\addcontentsline{toc}{subsection}{\temp}]{#1}}
+%----------------------------------------%
+
+
+
+% this is for the folder method \StrBefore{\monum}{/}\\
+
+
+
+%%%%%                                                                                                       %%%%%
+%%%%%  ____                   _             _____                                                      _    %%%%%
+%%%%% |  _ \                 (_)           |  __ \                                                    | |   %%%%%
+%%%%% | |_) |   ___    __ _   _   _ __     | |  | |   ___     ___   _   _   _ __ ___     ___   _ __   | |_  %%%%%
+%%%%% |  _ <   / _ \  / _` | | | | '_ \    | |  | |  / _ \   / __| | | | | | '_ ` _ \   / _ \ | '_ \  | __| %%%%%
+%%%%% | |_) | |  __/ | (_| | | | | | | |   | |__| | | (_) | | (__  | |_| | | | | | | | |  __/ | | | | | |_  %%%%%
+%%%%% |____/   \___|  \__, | |_| |_| |_|   |_____/   \___/   \___|  \__,_| |_| |_| |_|  \___| |_| |_|  \__| %%%%%
+%%%%%                  __/ |                                                                                %%%%%
+%%%%%                 |___/                                                                                 %%%%%
+
+\begin{document}
+\begin{flushleft}
+
+
+\pagestyle{style1}
+\hspace{-2pt}{\fontsize{60}{60}\selectfont \textbf{Data Book}}
+
+\LARGE
+\hspace{-6pt}\begin{tabular}{lr}
+\noindent
+\textbf{Order Number: }&\jobinfofill{mo}\\
+\textbf{Serial Number: }&\jobinfofill{serial}\\
+\textbf{Customer: }&\jobinfofill{customer}\\
+\textbf{Equipment: }&\jobinfofill{equipment}
+\end{tabular}
+
+
+\vspace{12pt}
+\large
 This document contains the following for the \jobinfofill{equipment} in reference:
 
 
@@ -199,7 +183,7 @@ This document contains the following for the \jobinfofill{equipment} in referenc
 
 If you would like to request additional documents, please feel free to contact us.
 
-\Large
+\large
 \null\hfill
 \begin{tabular}{l@{}}
   Sincerely, \\[5\normalbaselineskip]
@@ -212,7 +196,7 @@ If you would like to request additional documents, please feel free to contact u
 \newpage
 \pagestyle{style2}
 \setlength\headheight{12pt}
-\include{embedlist}
+\include{embedlist} %Embeds documents listed in embedlist.tex
 %----------------------------------%
 
 
