@@ -1,10 +1,10 @@
 \documentclass{article}
-\usepackage{lastpage}                   %for identifying last page
-\usepackage{xspace}                     %to force add a space
-\usepackage[abspath]{currfile}          %to find path to this file
-\usepackage{xstring,ifthen}             %to manipulate strings
-\usepackage{graphicx}                   %to add images
-\usepackage[linktoc=all,                %for clickable links and pdf metadata
+\usepackage{lastpage}           %for identifying last page
+\usepackage{xspace}             %to force add a space
+\usepackage[abspath]{currfile}  %to find path to this file
+\usepackage{xstring,ifthen}     %to manipulate strings
+\usepackage{graphicx}           %to add images
+\usepackage[linktoc=all,        %for clickable links and pdf metadata
             colorlinks=true,
             linkcolor=black,
             urlcolor=black,
@@ -29,20 +29,6 @@
   ItalicFont    = font/TTF/Pfaudler-BookItalic.ttf
 ]{Pfaudler}
 %----------------------------%
-
-
-
-%-----Upper folder name finder-----%
-\newcounter{columnnumber}
-\newcommand{\getcolumnnumber}[1]{
-	\IfSubStr{#1}{/}
-		{\StrCount{#1}{/}[\tmp]\setcounter{columnnumber}{\tmp}\stepcounter{columnnumber}}
-			{\setcounter{columnnumber}{1}}
-\addtocounter{columnnumber}{-2}
-}
-\getcolumnnumber{\currfileabsdir}
-\StrBehind[\thecolumnnumber]{\currfileabsdir}{/}[\monum]
-%----------------------------------%
 
 
 
@@ -119,21 +105,18 @@ Site: www.pfaudler.com}
 \setlength\headheight{57pt}
 
 
+
 %-------------Page embedder-------------%
 \usepackage{pdfpages}
 
 %--newcommand for sections--%
-\newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{\textbf{\arabic{section}.\xspace } {#1}}}
+\newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
 
 %--newcommand for subsections--%
 \newcommand\addpage[1]{%
 	\StrBefore[1]{#1}{.}[\temp]
 	\includepdf[pages=-,pagecommand=\newpage\phantomsection\addcontentsline{toc}{subsection}{\temp}]{#1}}
-%----------------------------------------%
-
-
-
-% this is for the folder method \StrBefore{\monum}{/}\\
+%---------------------------------------%
 
 
 
@@ -147,22 +130,22 @@ Site: www.pfaudler.com}
 %%%%%                  __/ |                                                                                %%%%%
 %%%%%                 |___/                                                                                 %%%%%
 
+
+
 \begin{document}
 \begin{flushleft}
-
-
 \pagestyle{style1}
-\hspace{-2pt}{\fontsize{60}{60}\selectfont \textbf{Data Book}}
+
+\hspace{-2pt}\fontsize{60}{60}\selectfont\textbf{Data Book}
 
 \LARGE
-\hspace{-6pt}\begin{tabular}{lr}
+\begin{tabular}{@{}lr}
 \noindent
 \textbf{Order Number: }&\jobinfofill{mo}\\
 \textbf{Serial Number: }&\jobinfofill{serial}\\
 \textbf{Customer: }&\jobinfofill{customer}\\
 \textbf{Equipment: }&\jobinfofill{equipment}
 \end{tabular}
-
 
 \vspace{12pt}
 \large
