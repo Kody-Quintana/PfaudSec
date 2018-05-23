@@ -32,7 +32,9 @@
 \pagestyle{fancy}
 \fancypagestyle{style1}{
 \fancyhf{}
+
 \fancyhead[L]{\includegraphics[width=5cm]{logo.png}}
+
 \fancyhead[R]{
 %Pfaudler Inc.\\
 P.O. Box 23600\\
@@ -41,6 +43,7 @@ Telephone: 1-585-235-1000\\
 Site: www.pfaudler.com}
 
 \fancyfoot[R]{\thepage}
+
 \renewcommand{\headrulewidth}{0.4pt}
 }
 
@@ -54,6 +57,8 @@ Site: www.pfaudler.com}
 \fancyfoot[R]{\textbf{Data Book: }\thepage\xspace of \pageref{LastPage}}
 \renewcommand{\headrulewidth}{1pt}
 }
+
+\setlength\headheight{57pt}
 %---------------------------%
 
 
@@ -62,7 +67,6 @@ Site: www.pfaudler.com}
 \usepackage{xstring,ifthen}
 \usepackage{graphicx}
 \usepackage{titletoc}
-\setlength\headheight{57pt}
 
 
 
@@ -70,6 +74,14 @@ Site: www.pfaudler.com}
 \titlecontents{section}
 [1.5em]
 {}
+{\contentslabel{2.3em}}
+{}
+{\titlerule*[0.7pc]{.}\contentspage}
+
+
+\titlecontents{subsection}
+[4em]
+{\hangindent1em}
 {\contentslabel{2.3em}}
 {}
 {\titlerule*[0.7pc]{.}\contentspage}
@@ -108,14 +120,15 @@ Site: www.pfaudler.com}
 %\linespread{1.5}
 
 
-\titleformat{\section}{}{}{0pt}{}
+%\titleformat{\section}{}{}{0pt}{}
 
 
 %-----Page embedder-----%
 \newcommand\addpage[1]{%
 	\StrBefore[1]{#1}{.}[\temp]
-	\includepdf[pages=-,pagecommand=\newpage\phantomsection\addcontentsline{toc}{section}{\temp}]{#1}}
+	\includepdf[pages=-,pagecommand=\newpage\phantomsection\addcontentsline{toc}{subsection}{\temp}]{#1}}
 	%\phantomsection\newpage\addcontentsline{toc}{section}{\temp}
+\newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{\textbf{\arabic{section}.\xspace } {#1}}}
 %-----------------------%
 
 
@@ -166,9 +179,10 @@ Site: www.pfaudler.com}
 
 \vspace{12pt}
 \Large
-Dear Sirs:
+%Dear Sirs:
 
-We are sending the Data Book of the \jobinfofill{equipment} in reference containing:
+%We are sending the Data Book of the \jobinfofill{equipment} in reference containing:
+This document contains the following for the \jobinfofill{equipment} in reference:
 
 
 
@@ -198,10 +212,7 @@ If you would like to request additional documents, please feel free to contact u
 \newpage
 \pagestyle{style2}
 \setlength\headheight{12pt}
-\addpage{testinsert.pdf}
-\addpage{testinsert.pdf}
-\addpage{testinsert.pdf}
-\addpage{test2.pdf}
+\include{embedlist}
 %----------------------------------%
 
 
