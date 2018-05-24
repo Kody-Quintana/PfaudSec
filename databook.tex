@@ -1,10 +1,12 @@
 \documentclass{article}
-\usepackage{lastpage}           %for identifying last page
-\usepackage{xspace}             %to force add a space
-\usepackage[abspath]{currfile}  %to find path to this file
-\usepackage{xstring,ifthen}     %to manipulate strings
-\usepackage{graphicx}           %to add images
-\usepackage[linktoc=all,        %for clickable links and pdf metadata
+\usepackage{lastpage}           %-to identify last page
+\usepackage{xspace}             %-to force add a space
+\usepackage[abspath]{currfile}  %-to find path to this file
+\usepackage{xstring,ifthen}     %-to manipulate strings
+\usepackage{graphicx}           %-to add images
+\usepackage{tikz}               %-to create Pfaudler logo
+	\usetikzlibrary{shapes.geometric} %-for creating hexagon
+\usepackage[linktoc=all,        %-for clickable links and pdf metadata
             colorlinks=true,
             linkcolor=black,
             urlcolor=black,
@@ -15,12 +17,6 @@
             pdfkeywords={},
             pdfproducer={},
             pdfcreator={}]{hyperref}
-
-
-
-\usepackage{tikz}
-\usetikzlibrary{shapes.geometric}
-\usetikzlibrary{positioning}
 
 %-----Font configuration-----%
 \usepackage{fontspec}
@@ -50,17 +46,9 @@
 
 
 
-
-%---------------------------------Header Formatting---------------------------------%
-\usepackage{fancyhdr}
-\pagestyle{fancy}
-
-%--First page header style--%
-\fancypagestyle{style1}{
-\fancyhf{}
-\fancyhead[L]{
-%
-%-----Pfaudler logo begin-----%
+%--------------Pfaudler logo (invoke with \pflogo)---------------%
+%--(Must be contained in one paragraph for use in the header)--%
+\newcommand\pflogo{%
 \begin{tikzpicture}
 \node [right,scale=1,inner sep=1pt,outer sep=0pt, text=pfblue]
 at (0,0) {\fontsize{10.8}{5}\selectfont{%
@@ -92,10 +80,19 @@ r}%
 		fill = pfblue,
 		text = white] 
 (hexagon){\large\textbf{Pf}};
-\end{tikzpicture}%
-%-----Pfaudler logo end-----%
-}
+\end{tikzpicture}}
+%----------------------------------------------------------------%
 
+
+
+%---------------------------------Header Formatting---------------------------------%
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+%--First page header style--%
+\fancypagestyle{style1}{
+\fancyhf{}
+\fancyhead[L]{\pflogo}
 \fancyhead[R]{
 P.O. Box 23600\\
 Rochester, NY 14692-3600\\
@@ -118,7 +115,8 @@ Site: www.pfaudler.com}
 
 
 
-%-----Table of Contents Formatting-----%
+%----------Table of Contents Formatting----------%
+%--(compiler must be ran twice to update TOC--%
 \usepackage{titletoc}
 
 %--section toc format--%
@@ -136,13 +134,13 @@ Site: www.pfaudler.com}
 {\contentslabel{2.3em}}
 {}
 {\titlerule*[0.7pc]{.}\contentspage}
-%--------------------------------------%
+%------------------------------------------------%
 
 
 
 %-----External job info (jobinfo.dat)-----%
 \usepackage{datatool}
-\DTLsetseparator{ = }
+\DTLsetseparator{ = } %-Spaces must be included
 \DTLloaddb[noheader, keys={thekey,thevalue}]{jobinfo}{jobinfo.dat}
 \newcommand{\jobinfofill}[1]{\DTLfetch{jobinfo}{thekey}{#1}{thevalue}}
 %-----------------------------------------%
@@ -162,7 +160,7 @@ Site: www.pfaudler.com}
 
 %--newcommand for subsections--%
 \newcommand\addpage[1]{%
-	\StrBefore[1]{#1}{.}[\temp]
+	\StrBefore[1]{#1}{.}[\temp] %-Display name must be stored in \temp because of expansion behavior in \includepdf
 	\includepdf[pages=-,pagecommand=\newpage\phantomsection\addcontentsline{toc}{subsection}{\temp}]{#1}}
 %---------------------------------------%
 
@@ -207,6 +205,7 @@ This document contains the following for the \jobinfofill{equipment} in referenc
 \setlength{\parskip}{1em}
 \end{center}
 %---------------------------%
+
 
 If you would like to request additional documents, please feel free to contact us.
 
