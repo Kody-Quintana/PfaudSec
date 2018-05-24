@@ -18,15 +18,19 @@
 
 
 
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{positioning}
+
 %-----Font configuration-----%
 \usepackage{fontspec}
 \setmainfont[
   Path          = ./,
   Ligatures     = TeX,
-  UprightFont   = font/TTF/Pfaudler-Book.ttf,
-  BoldItalicFont= font/TTF/Pfaudler-BoldItalic.ttf,
-  BoldFont      = font/TTF/Pfaudler-Bold.ttf,
-  ItalicFont    = font/TTF/Pfaudler-BookItalic.ttf
+  UprightFont   = font/OTF/Pfaudler-Book.otf,
+  BoldItalicFont= font/OTF/Pfaudler-BoldItalic.otf,
+  BoldFont      = font/OTF/Pfaudler-Bold.otf,
+  ItalicFont    = font/OTF/Pfaudler-BookItalic.otf
 ]{Pfaudler}
 %----------------------------%
 
@@ -37,7 +41,8 @@
 \geometry{top=0.9in, bottom=0.9in, left=0.9in, right=0.9in}
 %---------------------------%
 
-
+\definecolor{pfblue}{RGB}{52,134,199}
+\definecolor{pfgrey}{RGB}{125,125,130}
 
 %-------------Header Formatting-------------%
 \usepackage{fancyhdr}
@@ -46,7 +51,20 @@
 %--First page header style--%
 \fancypagestyle{style1}{
 \fancyhf{}
-\fancyhead[L]{\includegraphics[width=5cm]{logo.png}}
+\fancyhead[L]{
+\begin{tikzpicture}
+\node [right,scale=1,inner sep=1pt,outer sep=0pt, text=pfblue]at (0,0) {\fontsize{10.8}{5}\selectfont{Defining the Standard}};
+\node [right,scale=1,inner sep=0pt,outer sep=0pt, text=pfgrey]at (0,0.75) {\addfontfeature{LetterSpace=0.0}\fontsize{30}{0}\selectfont{\textbf{P{\kern 0.5pt}f{\kern-0.5pt}a{\kern-1.5pt}u{\kern-1pt}d{\kern-1pt}l{\kern-1pt}e{\kern-1pt}r}}};
+\path (4.65,1.27) node [regular polygon,
+		regular polygon sides=6,
+		rounded corners=1.5pt,
+		fill,
+		inner sep=1.7pt,
+		fill = pfblue,
+		text = white] 
+(hexagon){\large\textbf{Pf}};
+\end{tikzpicture}
+}
 \fancyhead[R]{
 P.O. Box 23600\\
 Rochester, NY 14692-3600\\
@@ -138,6 +156,11 @@ Site: www.pfaudler.com}
 
 \hspace{-2pt}\fontsize{60}{60}\selectfont\textbf{Data Book}
 
+\normalsize
+
+
+
+
 \LARGE
 \begin{tabular}{@{}lr}
 \noindent
@@ -152,7 +175,11 @@ Site: www.pfaudler.com}
 This document contains the following for the \jobinfofill{equipment} in reference:
 
 
+%\includegraphics[width=5cm]{logo.png}\\
 
+
+
+\large
 %-----Table of Contents-----%
 \startcontents[section]
 \begin{center}
