@@ -18,6 +18,8 @@
             pdfproducer={},
             pdfcreator={}]{hyperref}
 
+
+
 %-----Font configuration-----%
 \usepackage{fontspec}
 \setmainfont[
@@ -47,8 +49,9 @@
 
 
 %--------------Pfaudler logo (invoke with \pflogo)---------------%
-%--(Must be contained in one paragraph for use in the header)--%
+%---(Must be contained in one paragraph for use in the header)---%
 \newcommand\pflogo{%
+\raisebox{-9pt}{%
 \begin{tikzpicture}
 \node [right,scale=1,inner sep=1pt,outer sep=0pt, text=pfblue]
 at (0,0) {\fontsize{10.8}{5}\selectfont{%
@@ -64,7 +67,7 @@ at (0,0.75) {\addfontfeature{LetterSpace=0.0}\fontsize{30}{0}\selectfont{%
 P{\kern 0.5pt}%
 f{\kern-0.5pt}%
 a{\kern-1.5pt}%
-u{\kern-1pt}%
+u{\kern-1.0pt}%
 d{\kern-1.5pt}%
 l{\kern-1.0pt}%
 e{\kern-0.7pt}%
@@ -72,15 +75,14 @@ r}%
 }};
 %
 %--Pf hexagon--%
-\path (4.70,1.27) node [regular polygon,
+\path (4.70,1.32) node [regular polygon,
 		regular polygon sides=6,
-		rounded corners=1.8pt,
-		fill,
-		inner sep=1.7pt,
-		fill = pfblue,
-		text = white] 
-(hexagon){\large\textbf{Pf}};
-\end{tikzpicture}}
+		rounded corners=1.5pt,
+		inner sep=8.8pt,
+		fill = pfblue](hexagon){};
+%--Pf hexagon text--%
+\node [text=white, scale=1.1] at (4.70,1.32) {\large{\textbf{Pf}}};
+\end{tikzpicture}}}
 %----------------------------------------------------------------%
 
 
@@ -94,10 +96,12 @@ r}%
 \fancyhf{}
 \fancyhead[L]{\pflogo}
 \fancyhead[R]{
-P.O. Box 23600\\
-Rochester, NY 14692-3600\\
-Telephone: 1-585-235-1000\\
-Site: www.pfaudler.com}
+P.O. Box 23600, Rochester, NY 14692-3600\\
+1000 West Ave. Rochester, NY 14611 USA\\
+\begin{tabular}{@{}l r@{}}
+Telephone:&\href{tel:5852351000}{1-585-235-1000}\\
+Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
+\end{tabular}}
 \fancyfoot[R]{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}}
 
@@ -115,8 +119,8 @@ Site: www.pfaudler.com}
 
 
 
-%----------Table of Contents Formatting----------%
-%--(compiler must be ran twice to update TOC--%
+%-----------Table of Contents Formatting-----------%
+%----(compiler must be ran twice to update TOC)----%
 \usepackage{titletoc}
 
 %--section toc format--%
@@ -134,7 +138,7 @@ Site: www.pfaudler.com}
 {\contentslabel{2.3em}}
 {}
 {\titlerule*[0.7pc]{.}\contentspage}
-%------------------------------------------------%
+%--------------------------------------------------%
 
 
 
@@ -148,7 +152,7 @@ Site: www.pfaudler.com}
 
 
 \setlength{\parskip}{1em}
-\setlength\headheight{58pt}
+\setlength\headheight{62pt}
 
 
 
