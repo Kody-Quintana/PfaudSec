@@ -1,6 +1,13 @@
+
 *
+!*/
+!*.ui
+!*.py
+!*.ini
 !*.tex
 !*.pdf
 !*.gitignore
 !*.dat
 !*.png
+!*.ui
+!*.py

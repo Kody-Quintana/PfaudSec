@@ -41,10 +41,17 @@
 \geometry{top=0.9in, bottom=0.9in, left=0.9in, right=0.9in}
 %---------------------------%
 
+
+
+%-----Pfaudler colorscheme-----%
 \definecolor{pfblue}{RGB}{52,134,199}
 \definecolor{pfgrey}{RGB}{125,125,130}
+%------------------------------%
 
-%-------------Header Formatting-------------%
+
+
+
+%---------------------------------Header Formatting---------------------------------%
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 
@@ -52,19 +59,43 @@
 \fancypagestyle{style1}{
 \fancyhf{}
 \fancyhead[L]{
+%
+%-----Pfaudler logo begin-----%
 \begin{tikzpicture}
-\node [right,scale=1,inner sep=1pt,outer sep=0pt, text=pfblue]at (0,0) {\fontsize{10.8}{5}\selectfont{Defining the Standard}};
-\node [right,scale=1,inner sep=0pt,outer sep=0pt, text=pfgrey]at (0,0.75) {\addfontfeature{LetterSpace=0.0}\fontsize{30}{0}\selectfont{\textbf{P{\kern 0.5pt}f{\kern-0.5pt}a{\kern-1.5pt}u{\kern-1pt}d{\kern-1pt}l{\kern-1pt}e{\kern-1pt}r}}};
-\path (4.65,1.27) node [regular polygon,
+\node [right,scale=1,inner sep=1pt,outer sep=0pt, text=pfblue]
+at (0,0) {\fontsize{10.8}{5}\selectfont{%
+%
+%--Strapline--%
+Defining the Standard}};
+%
+\node [right,scale=1,inner sep=0pt,outer sep=0pt, text=pfgrey]
+at (0,0.75) {\addfontfeature{LetterSpace=0.0}\fontsize{30}{0}\selectfont{%
+%
+%--Manually kerned Main text--%
+\textbf{%
+P{\kern 0.5pt}%
+f{\kern-0.5pt}%
+a{\kern-1.5pt}%
+u{\kern-1pt}%
+d{\kern-1.5pt}%
+l{\kern-1.0pt}%
+e{\kern-0.7pt}%
+r}%
+}};
+%
+%--Pf hexagon--%
+\path (4.70,1.27) node [regular polygon,
 		regular polygon sides=6,
-		rounded corners=1.5pt,
+		rounded corners=1.8pt,
 		fill,
 		inner sep=1.7pt,
 		fill = pfblue,
 		text = white] 
 (hexagon){\large\textbf{Pf}};
-\end{tikzpicture}
+\end{tikzpicture}%
+%-----Pfaudler logo end-----%
 }
+
 \fancyhead[R]{
 P.O. Box 23600\\
 Rochester, NY 14692-3600\\
@@ -83,8 +114,7 @@ Site: www.pfaudler.com}
 \textbf{Equipment: }\jobinfofill{equipment}}
 \fancyfoot[R]{\textbf{Data Book: }\thepage\xspace of \pageref{LastPage}}
 \renewcommand{\headrulewidth}{1pt}}
-
-%-------------------------------------------%
+%-----------------------------------------------------------------------------------%
 
 
 
@@ -120,7 +150,7 @@ Site: www.pfaudler.com}
 
 
 \setlength{\parskip}{1em}
-\setlength\headheight{57pt}
+\setlength\headheight{58pt}
 
 
 
@@ -156,11 +186,6 @@ Site: www.pfaudler.com}
 
 \hspace{-2pt}\fontsize{60}{60}\selectfont\textbf{Data Book}
 
-\normalsize
-
-
-
-
 \LARGE
 \begin{tabular}{@{}lr}
 \noindent
@@ -174,12 +199,6 @@ Site: www.pfaudler.com}
 \large
 This document contains the following for the \jobinfofill{equipment} in reference:
 
-
-%\includegraphics[width=5cm]{logo.png}\\
-
-
-
-\large
 %-----Table of Contents-----%
 \startcontents[section]
 \begin{center}
@@ -189,11 +208,8 @@ This document contains the following for the \jobinfofill{equipment} in referenc
 \end{center}
 %---------------------------%
 
-
-
 If you would like to request additional documents, please feel free to contact us.
 
-\large
 \null\hfill
 \begin{tabular}{l@{}}
   Sincerely, \\[5\normalbaselineskip]
