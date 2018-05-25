@@ -1,4 +1,5 @@
 \documentclass{article}
+\usepackage{grffile}
 \usepackage{lastpage}           %-to identify last page
 \usepackage{xspace}             %-to force add a space
 \usepackage[abspath]{currfile}  %-to find path to this file
@@ -165,7 +166,11 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 %--newcommand for subsections--%
 \newcommand\addpage[1]{%
 	\StrBefore[1]{#1}{.}[\temp] %-Display name must be stored in \temp because of expansion behavior in \includepdf
-	\includepdf[pages=-,pagecommand=\newpage\phantomsection\addcontentsline{toc}{subsection}{\temp}]{#1}}
+
+
+	\includepdf[pages=-,addtotoc={1,subsection,1,\temp,\temp},pagecommand=\phantomsection]{#1}}
+	%\includepdf[pages=-,addtotoc={1,subsection,1,\temp,\temp}pagecommand=\thispagestyle{style2}]{#1}}
+
 %---------------------------------------%
 
 
@@ -202,6 +207,8 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 This document contains the following for the \jobinfofill{equipment} in reference:
 
 %-----Table of Contents-----%
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{-2}
 \startcontents[section]
 \begin{center}
 \setlength{\parskip}{0.5em}

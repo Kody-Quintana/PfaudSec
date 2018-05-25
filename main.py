@@ -29,6 +29,7 @@ def GetFileList(ext,dir):
 def PdfRename():
     global nested_list_sections
     global embed_list
+
     for l in range(len(config.sections())): 
         # -1 from actual length but configparser makes a DEFAULT section that is not used so the -1 is fine
         nested_list_sections.append([])
@@ -47,12 +48,18 @@ def PdfRename():
                 
     for i in nested_list_sections:
         print(i)
+
     for i in range(len(nested_list_sections)):
         if nested_list_sections[i]:
             embed_list.append(r'\addsection{' + str(config.sections()[i]) + '}')
             for k in nested_list_sections[i]:
                 embed_list.append(r'\addpage{' + k + '}')
-            
+    
+    with open(work_dir + '/embedlist.tex', 'w') as embed_list_file:
+        for i in embed_list:
+            embed_list_file.write('%s\n' % i)
+    embed_list_file.close()
+
 PdfRename()
 for i in embed_list:
     print(i)
