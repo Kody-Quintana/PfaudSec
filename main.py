@@ -70,7 +70,10 @@ def TemplateStage(src,dest):
         os.mkdir(dest)
     
     #os.mkdir(dest + '/font/')
-    shutil.copytree(template_dir + '/font/',dest + '/font/')
+    try:
+        shutil.copytree(template_dir + '/font/',dest + '/font/')
+    except:
+        pass
 
     for i in os.listdir(src):
         if i.endswith('.tex'):
@@ -95,7 +98,7 @@ def folder_check(folder):
     if not os.path.exists(folder):
         os.mkdir(folder)
 
-#TemplateStage(template_dir, work_dir)
+TemplateStage(template_dir, work_dir)
 #EmbedStage(grab_dir, work_dir)
 #
 #print(grab_dir,work_dir)
