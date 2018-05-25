@@ -2,6 +2,9 @@ import os
 import shutil
 import configparser
 
+embed_list = []
+nested_list_sections = []
+
 config = configparser.ConfigParser()
 config.read('sections_config.ini')
 print(config.sections())
@@ -24,8 +27,8 @@ def GetFileList(ext,dir):
     return list
 
 def PdfRename():
-    nested_list_sections = []
-
+    global nested_list_sections
+    global embed_list
     for l in range(len(config.sections())): 
         # -1 from actual length but configparser makes a DEFAULT section that is not used so the -1 is fine
         nested_list_sections.append([])
@@ -34,19 +37,25 @@ def PdfRename():
         if (' ' in k):
             id = k.split(' ')[1].replace('.pdf','')
             if id[0].isdigit():
-                print('is is valid')
 
-                print (id[0])
-                print (k + ' is ' + id)
+                section_num = int(id[0]) - 1
                 shutil.copy(grab_dir + '/' + k, work_dir)
-                print(config[config.sections()[int(id[0]) -1]][id])
-                os.rename(work_dir + '/' + k, work_dir + '/' + (config[config.sections()[int(id[0]) -1]][id]))
-                #nested_list_sections[int(id[0]) - 1].append((str(config.sections()[int(id[0])]) + '.pdf'))
+                new_name = (config[config.sections()[section_num]][id]) + '.pdf' 
+                new_full_name = work_dir + '/' + (config[config.sections()[section_num]][id]) + '.pdf' 
+                os.rename(work_dir + '/' + k, new_full_name)
+                nested_list_sections[section_num].append(new_name)
                 
     for i in nested_list_sections:
         print(i)
+    for i in range(len(nested_list_sections)):
+        if nested_list_sections[i]:
+            embed_list.append(r'\addsection{' + str(config.sections()[i]) + '}')
+            for k in nested_list_sections[i]:
+                embed_list.append(r'\addpage{' + k + '}')
+            
 PdfRename()
-
+for i in embed_list:
+    print(i)
 
 def TemplateStage(src,dest):
     
