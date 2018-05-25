@@ -7,6 +7,20 @@
 \usepackage{graphicx}           %-to add images
 \usepackage{tikz}               %-to create Pfaudler logo
 	\usetikzlibrary{shapes.geometric} %-for creating hexagon
+
+\tikzset{
+ hex/.style={
+   regular polygon,
+   regular polygon sides=6,
+   minimum size=2cm,
+   fill=green!30
+   },
+ pent/.style={
+   hex,
+   regular polygon sides=5
+ }
+}
+
 \usepackage[linktoc=all,        %-for clickable links and pdf metadata
             colorlinks=true,
             linkcolor=black,
@@ -192,7 +206,18 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 \pagestyle{style1}
 
 \hspace{-2pt}\fontsize{60}{60}\selectfont\textbf{Data Book}
+\normalsize
 
+\hspace{13cm}\begin{tikzpicture}[overlay]
+\node [hex,rounded corners=2pt, fill=black] (inner) {};
+\path (inner.center) node[text=white]{\huge\textbf{Pf}};
+\path (inner.center) ++({360/6*(1-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\textbf{Quality}}; %1
+%\path (inner.center) ++({360/6*(2-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\huge\textbf{2}}; %2
+%\path (inner.center) ++({360/6*(3-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\huge\textbf{3}}; %3
+\path (inner.center) ++({360/6*(4-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\textbf{Compliance}}; %4
+\path (inner.center) ++({360/6*(5-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\textbf{Something}}; %5
+\path (inner.center) ++({360/6*(6-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\textbf{Assurance}}; %6
+\end{tikzpicture}
 \LARGE
 \begin{tabular}{@{}lr}
 \noindent
@@ -201,6 +226,9 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 \textbf{Customer: }&\jobinfofill{customer}\\
 \textbf{Equipment: }&\jobinfofill{equipment}
 \end{tabular}
+
+
+
 
 \vspace{12pt}
 \large
