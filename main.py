@@ -26,7 +26,8 @@ def GetFileList(ext,dir):
 def PdfRename():
     nested_list_sections = []
 
-    for l in range(len(config.sections())):
+    for l in range(len(config.sections())): 
+        # -1 from actual length but configparser makes a DEFAULT section that is not used so the -1 is fine
         nested_list_sections.append([])
 
     for i, k in enumerate((GetFileList('pdf',grab_dir))):
@@ -37,8 +38,13 @@ def PdfRename():
 
                 print (id[0])
                 print (k + ' is ' + id)
-    print(nested_list_sections)
-
+                shutil.copy(grab_dir + '/' + k, work_dir)
+                print(config[config.sections()[int(id[0]) -1]][id])
+                os.rename(work_dir + '/' + k, work_dir + '/' + (config[config.sections()[int(id[0]) -1]][id]))
+                #nested_list_sections[int(id[0]) - 1].append((str(config.sections()[int(id[0])]) + '.pdf'))
+                
+    for i in nested_list_sections:
+        print(i)
 PdfRename()
 
 
