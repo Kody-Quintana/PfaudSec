@@ -1,12 +1,46 @@
 import os
 import shutil
+import configparser
 
+config = configparser.ConfigParser()
+config.read('sections_config.ini')
+print(config.sections())
 
+for i, k in enumerate(config):
+
+    print ('i is: ' + str(i))
+    print ('k is: ' + str(k))
 
 work_dir = './work'
 output_dir = './output'
 grab_dir = './tempemb'
 template_dir = './TeX'
+
+def GetFileList(ext,dir):
+    list = []
+    for i in os.listdir(dir):
+        if i.endswith(ext):
+            list.append(i)
+    return list
+
+def PdfRename():
+    nested_list_sections = []
+
+    for l in range(len(config.sections())):
+        nested_list_sections.append([])
+
+    for i, k in enumerate((GetFileList('pdf',grab_dir))):
+        if (' ' in k):
+            id = k.split(' ')[1].replace('.pdf','')
+            if id[0].isdigit():
+                print('is is valid')
+
+                print (id[0])
+                print (k + ' is ' + id)
+    print(nested_list_sections)
+
+PdfRename()
+
 
 def TemplateStage(src,dest):
     
@@ -39,8 +73,9 @@ def folder_check(folder):
     if not os.path.exists(folder):
         os.mkdir(folder)
 
-TemplateStage(template_dir, work_dir)
-EmbedStage(grab_dir, work_dir)
+#TemplateStage(template_dir, work_dir)
+#EmbedStage(grab_dir, work_dir)
+#
+#print(grab_dir,work_dir)
 
-print(grab_dir,work_dir)
 
