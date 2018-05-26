@@ -12,8 +12,7 @@
  hex/.style={
    regular polygon,
    regular polygon sides=6,
-   minimum size=2cm,
-   fill=green!30
+   minimum size=2.5cm,
    },
  pent/.style={
    hex,
@@ -166,7 +165,7 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 
 
 
-\setlength{\parskip}{1em}
+\setlength{\parskip}{0em}
 \setlength\headheight{62pt}
 
 
@@ -180,13 +179,14 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 %--newcommand for subsections--%
 \newcommand\addpage[1]{%
 	\StrBefore[1]{#1}{.}[\temp] %-Display name must be stored in \temp because of expansion behavior in \includepdf
+	\StrSubstitute{\temp}{-}{ }[\temp]
 
 
 	\includepdf[pages=-,addtotoc={1,subsection,1,\temp,\temp},pagecommand=\phantomsection]{#1}}
 	%\includepdf[pages=-,addtotoc={1,subsection,1,\temp,\temp}pagecommand=\thispagestyle{style2}]{#1}}
 
 %---------------------------------------%
-
+\setboolean{@twoside}{false}
 
 
 %%%%%                                                                                                       %%%%%
@@ -205,18 +205,17 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 \begin{flushleft}
 \pagestyle{style1}
 
-\hspace{-2pt}\fontsize{60}{60}\selectfont\textbf{Data Book}
+\hspace{-2pt}\fontsize{60}{60}\selectfont\textbf{Data Book}\\
 \normalsize
-
-\hspace{13cm}\begin{tikzpicture}[overlay]
-\node [hex,rounded corners=2pt, fill=black] (inner) {};
-\path (inner.center) node[text=white]{\huge\textbf{Pf}};
-\path (inner.center) ++({360/6*(1-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\textbf{Quality}}; %1
-%\path (inner.center) ++({360/6*(2-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\huge\textbf{2}}; %2
-%\path (inner.center) ++({360/6*(3-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\huge\textbf{3}}; %3
-\path (inner.center) ++({360/6*(4-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\textbf{Compliance}}; %4
-\path (inner.center) ++({360/6*(5-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\textbf{Something}}; %5
-\path (inner.center) ++({360/6*(6-0.5)}:2cm)  node[hex,fill=black,rounded corners=2pt]{} node[text=white]{\textbf{Assurance}}; %6
+\hspace{13cm}\begin{tikzpicture}[overlay,scale=1.2]
+\node [hex,rounded corners=3pt, fill=black] (inner) {};
+\path (inner.center) node[text=white]{\fontsize{27}{27}\selectfont\textbf{Pf}};
+\path (inner.center) ++({360/6*(1-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\Large\textbf{Quality}}; %1
+%\path (inner.center) ++({360/6*(2-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\huge\textbf{2}}; %2
+%\path (inner.center) ++({360/6*(3-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\huge\textbf{3}}; %3
+%\path (inner.center) ++({360/6*(4-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\textbf{Trusted}}; %4
+%\path (inner.center) ++({360/6*(5-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\textbf{Dynamic}}; %5
+\path (inner.center) ++({360/6*(6-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\normalsize\textbf{Assurance}}; %6
 \end{tikzpicture}
 \LARGE
 \begin{tabular}{@{}lr}
