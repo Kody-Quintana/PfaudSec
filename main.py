@@ -8,6 +8,7 @@ nested_list_sections = []
 config = configparser.ConfigParser()
 config.read('sections_config.ini')
 print(config.sections())
+#config_nospace = 
 
 for i, k in enumerate(config):
 
@@ -41,8 +42,8 @@ def PdfRename():
 
                 section_num = int(id[0]) - 1
                 shutil.copy(grab_dir + '/' + k, work_dir)
-                new_name = (config[config.sections()[section_num]][id]) + '.pdf' 
-                new_full_name = work_dir + '/' + (config[config.sections()[section_num]][id]) + '.pdf' 
+                new_name = (config[config.sections()[section_num]][id]).replace(' ','!') + '.pdf' 
+                new_full_name = work_dir + '/' + (config[config.sections()[section_num]][id]).replace(' ','!') + '.pdf' 
                 os.rename(work_dir + '/' + k, new_full_name)
                 nested_list_sections[section_num].append(new_name)
                 
