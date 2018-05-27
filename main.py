@@ -5,20 +5,20 @@ import configparser
 embed_list = []
 nested_list_sections = []
 
-config = configparser.ConfigParser()
-config.read('sections_config.ini')
-print(config.sections())
-#config_nospace = 
 
-for i, k in enumerate(config):
-
-    print ('i is: ' + str(i))
-    print ('k is: ' + str(k))
-
+config_file = 'sections_config.ini'
 work_dir = './work'
 output_dir = './output'
 grab_dir = './tempemb'
 template_dir = './TeX'
+
+config = configparser.ConfigParser()
+config.read(config_file)
+print('\nLoaded sections from ' + str(config_file) + ':')
+for i in config.sections():
+    print('Section: ' + str(i))
+print('\n')
+
 
 def GetFileList(ext,dir):
     list = []
@@ -37,13 +37,18 @@ def PdfRename():
 
     for i, k in enumerate((GetFileList('pdf',grab_dir))):
         if (' ' in k):
-            id = k.split(' ')[1].replace('.pdf','')
-            if id[0].isdigit():
 
-                section_num = int(id[0]) - 1
+            #Splits document shorthand, removes leading 0s so that 2.1 is same as 2.01
+            doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
+            doc_id = doc_id_stage[0] + '.' + doc_id_stage[1].lstrip('0')
+            
+            if doc_id[0].isdigit():
+
+                section_num = int(doc_id[0]) - 1
                 shutil.copy(grab_dir + '/' + k, work_dir)
-                new_name = (config[config.sections()[section_num]][id]).replace(' ','!') + '.pdf' 
-                new_full_name = work_dir + '/' + (config[config.sections()[section_num]][id]).replace(' ','!') + '.pdf' 
+                doc_section = (config[config.sections()[section_num]][doc_id])
+                new_name = doc_section.replace(' ','!') + '.pdf' 
+                new_full_name = work_dir + '/' + new_name
                 os.rename(work_dir + '/' + k, new_full_name)
                 nested_list_sections[section_num].append(new_name)
                 
@@ -61,7 +66,6 @@ def PdfRename():
             embed_list_file.write('%s\n' % i)
     embed_list_file.close()
 
-PdfRename()
 for i in embed_list:
     print(i)
 
@@ -70,7 +74,6 @@ def TemplateStage(src,dest):
     if not os.path.exists(dest):
         os.mkdir(dest)
     
-    #os.mkdir(dest + '/font/')
     try:
         shutil.copytree(template_dir + '/font/',dest + '/font/')
     except:
@@ -99,6 +102,7 @@ def folder_check(folder):
     if not os.path.exists(folder):
         os.mkdir(folder)
 
+PdfRename()
 TemplateStage(template_dir, work_dir)
 #EmbedStage(grab_dir, work_dir)
 #
