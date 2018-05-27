@@ -5,20 +5,11 @@
 \usepackage[abspath]{currfile}  %-to find path to this file
 \usepackage{xstring,ifthen}     %-to manipulate strings
 \usepackage{graphicx}           %-to add images
+\usepackage{tabularx}
 \usepackage{tikz}               %-to create Pfaudler logo
 	\usetikzlibrary{shapes.geometric} %-for creating hexagon
 
-\tikzset{
- hex/.style={
-   regular polygon,
-   regular polygon sides=6,
-   minimum size=2.5cm,
-   },
- pent/.style={
-   hex,
-   regular polygon sides=5
- }
-}
+\tikzset{hex/.style={fill=black,rounded corners=3pt,regular polygon,regular polygon sides=6,minimum size=2.5cm}}
 
 \usepackage[linktoc=all,        %-for clickable links and pdf metadata
             colorlinks=true,
@@ -165,7 +156,7 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 
 
 
-\setlength{\parskip}{0em}
+\setlength{\parskip}{0pt}
 \setlength\headheight{62pt}
 
 
@@ -189,6 +180,12 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 \setboolean{@twoside}{false}
 
 
+\makeatletter
+\renewcommand{\contentspage}[1][\thecontentspage]{\hb@xt@\@pnumwidth{#1\hfil}\hspace*{-\@pnumwidth}}
+\renewcommand{\@pnumwidth}{3em}
+\makeatother
+
+
 %%%%%                                                                                                       %%%%%
 %%%%%  ____                   _             _____                                                      _    %%%%%
 %%%%% |  _ \                 (_)           |  __ \                                                    | |   %%%%%
@@ -200,34 +197,35 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 %%%%%                 |___/                                                                                 %%%%%
 
 
-
 \begin{document}
 \begin{flushleft}
 \pagestyle{style1}
 
+\begin{tabularx}{1\textwidth}{@{}l lb{3cm}@{}}
 \hspace{-2pt}\fontsize{60}{60}\selectfont\textbf{Data Book}\\
-\normalsize
-\hspace{13cm}\begin{tikzpicture}[overlay,scale=1.2]
-\node [hex,rounded corners=3pt, fill=black] (inner) {};
-\path (inner.center) node[text=white]{\fontsize{27}{27}\selectfont\textbf{Pf}};
-\path (inner.center) ++({360/6*(1-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\Large\textbf{Quality}}; %1
-%\path (inner.center) ++({360/6*(2-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\huge\textbf{2}}; %2
-%\path (inner.center) ++({360/6*(3-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\huge\textbf{3}}; %3
-%\path (inner.center) ++({360/6*(4-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\textbf{Trusted}}; %4
-%\path (inner.center) ++({360/6*(5-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\textbf{Dynamic}}; %5
-\path (inner.center) ++({360/6*(6-0.5)}:2cm)  node[hex,fill=black,rounded corners=3pt]{} node[text=white]{\normalsize\textbf{Assurance}}; %6
-\end{tikzpicture}
+{}\\
+
+
+
 \LARGE
 \begin{tabular}{@{}lr}
-\noindent
 \textbf{Order Number: }&\jobinfofill{mo}\\
 \textbf{Serial Number: }&\jobinfofill{serial}\\
 \textbf{Customer: }&\jobinfofill{customer}\\
-\textbf{Equipment: }&\jobinfofill{equipment}
+\textbf{Equipment: }&\jobinfofill{equipment}\\
 \end{tabular}
 
+&
 
-
+\raisebox{1cm}{
+\hspace{1.4cm}\begin{tikzpicture}[scale=1.2,overlay]
+\node [hex] (inner) {};
+\path (inner.center) node[text=white]{\fontsize{27}{27}\selectfont\textbf{Pf}};
+\path (inner.center) ++({360/6*(1-0.5)}:2cm)  node[hex]{} node[text=white]{\Large\textbf{Quality}}; %1
+\path (inner.center) ++({360/6*(6-0.5)}:2cm)  node[hex]{} node[text=white]{\normalsize\textbf{Assurance}}; %6
+\end{tikzpicture}
+}
+\end{tabularx}
 
 \vspace{12pt}
 \large
