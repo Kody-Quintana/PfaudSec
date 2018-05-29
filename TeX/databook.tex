@@ -59,13 +59,13 @@
 \raisebox{-9pt}{%
 \begin{tikzpicture}
 \node [right,scale=1,inner sep=1pt,outer sep=0pt, text=pfblue]
-at (0,0) {\fontsize{10.65}{5}\selectfont{%
+at (0,0) {\fontsize{10.73}{5}\selectfont{%
 %
 %--Strapline--%
 Defining the Standard}};
 %
 \node [right,scale=1,inner sep=0pt,outer sep=0pt, text=pfgrey]
-at (0.01,0.73) {\addfontfeature{LetterSpace=0.0}\fontsize{30}{0}\selectfont{%
+at (0.01,0.70) {\addfontfeature{LetterSpace=0.0}\fontsize{30}{0}\selectfont{%
 %
 %--Manually kerned Main text--%
 \textbf{%
@@ -113,12 +113,6 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 %--Embedded documents overlay header--%
 \fancypagestyle{style2}{
 \fancyhf{}
-\fancyhead[C]{}
-%\fancyhead[C]{%
-%\textbf{Order Number: }\jobinfofill{mo},
-%\textbf{Serial Number: }\jobinfofill{serial},
-%\textbf{Customer: }\jobinfofill{customer},
-%\textbf{Equipment: }\jobinfofill{equipment}}
 \fancyfoot[R]{\textbf{Data Book: }\thepage\xspace of \pageref{LastPage}}
 \renewcommand{\headrulewidth}{1pt}}
 %-----------------------------------------------------------------------------------%
@@ -243,12 +237,13 @@ This document contains the following for the \jobinfofill{equipment} in referenc
 %---------------------------%
 
 
-If you would like to request additional documents, please feel free to contact us.
+If you would like to request additional documents, please feel free to contact us.\\[2\normalbaselineskip]
 
-\null\hfill
-\begin{tabular}{l@{}}
-  Sincerely, \\[5\normalbaselineskip]
-  FName Lname
+
+\hspace{4in}\begin{tabular}{l@{}}
+  Sincerely, \\[1\normalbaselineskip]
+  \textbf{Pfaudler Rochester}\\
+\today
 \end{tabular}
 
 
