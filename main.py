@@ -1,140 +1,212 @@
+import sys
 import subprocess
+from PyQt4 import QtCore, QtGui, uic
 import tempfile
 import os
 import shutil
 import configparser
+import PfaudUI
 
-embed_list = []
-nested_list_sections = []
 
-config_file = 'sections_config.ini'
-#xelatex_path = 'xelatex'
-xelatex_path = input('Enter path to xelatex: ')
-#work_dir = './work'
-output_dir = './output'
-grab_dir = './tempemb'
-template_dir = './TeX'
 
-#change to contextlib later
 
-def resource_path(relative_path):
-    #Get absolute path to resource, works for dev and for PyInstaller
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
+class MyWindow(QtGui.QDialog):
+    def __init__(self):
+        super(MyWindow, self).__init__()
 
-    return os.path.join(base_path, relative_path)
+        self.ui = Ui_MyWindow()
+        self.ui.setupUi(self)
 
-with tempfile.TemporaryDirectory() as work_dir:
+        # go on setting up your handlers like:
+        # self.ui.okButton.clicked.connect(function_name)
+        # etc...
 
-    config = configparser.ConfigParser()
-    config.read(config_file)
-    print('\nLoaded sections from ' + str(config_file) + ':')
-    for i in config.sections():
-        print('Section: ' + str(i))
-    print('\n')
+
+class DataBook(object):
+
+    def __init__(self):
+        self.embed_list = []
+        self.nested_list_sections = []
+        
+        self.config_file = 'sections_config.ini'
+        self.xelatex_path = 'xelatex'
+        #self.xelatex_path = input('Enter path to xelatex: ')
+        #work_dir = './work'
+        self.output_dir = './output'
+        self.grab_dir = './tempemb'
+        self.template_dir = './TeX'
+        self.data_book_run()
     
+    #change to contextlib later
     
-    def get_file_list(ext,dir):
-        list = []
-        for i in os.listdir(dir):
-            if i.endswith(ext):
-                list.append(i)
-        return list
+    def resource_path(self,relative_path):
+        #Get absolute path to resource, works for dev and for PyInstaller
+        try:
+            # PyInstaller creates a temp folder and stores path in _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
     
-    def pdf_rename():
-        global nested_list_sections
-        global embed_list
-    
-        for l in range(len(config.sections())): 
-            # -1 from actual length but configparser makes a DEFAULT section that is not used so the -1 is fine
-            nested_list_sections.append([])
-    
-        for i, k in enumerate((get_file_list('pdf',grab_dir))):
-            if (' ' in k):
-    
-                #Splits document shorthand, removes leading 0s so that 2.1 is same as 2.01
-                doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
-                doc_id = doc_id_stage[0] + '.' + doc_id_stage[1].lstrip('0')
+        return os.path.join(base_path, relative_path)
+
+    def data_book_run(self):
+
+        with tempfile.TemporaryDirectory() as self.work_dir:
+        
+            self.config = configparser.ConfigParser()
+            self.config.read(self.config_file)
+            print('\nLoaded sections from ' + str(self.config_file) + ':')
+            for i in self.config.sections():
+                print('Section: ' + str(i))
+            print('\n')
+            
+            
+            def get_file_list(self,ext,dir):
+                self.list = []
+                for i in os.listdir(dir):
+                    if i.endswith(ext):
+                        self.list.append(i)
+                return self.list
+            
+            def pdf_rename(self):
+                self.nested_list_sections
+                self.embed_list
+            
+                for l in range(len(self.config.sections())): 
+                    # -1 from actual length but configparser makes a DEFAULT section that is not used so the -1 is fine
+                    self.nested_list_sections.append([])
+            
+                for i, k in enumerate((get_file_list(self,'pdf',self.grab_dir))):
+                    if (' ' in k):
+            
+                        #Splits document shorthand, removes leading 0s so that 2.1 is same as 2.01
+                        self.doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
+                        self.doc_id = self.doc_id_stage[0] + '.' + self.doc_id_stage[1].lstrip('0')
+                        
+                        if self.doc_id[0].isdigit():
+            
+                            self.section_num = int(self.doc_id[0]) - 1
+                            shutil.copy(self.grab_dir + '/' + k, self.work_dir)
+                            self.doc_section = (self.config[self.config.sections()[self.section_num]][self.doc_id])
+                            self.new_name = self.doc_section.replace(' ','!') + '.pdf' 
+                            self.new_full_name = self.work_dir + '/' + self.new_name
+                            os.rename(self.work_dir + '/' + k, self.new_full_name)
+                            self.nested_list_sections[self.section_num].append(self.new_name)
+                            
+                for i in self.nested_list_sections:
+                    print(i)
+            
+                for i in range(len(self.nested_list_sections)):
+                    if self.nested_list_sections[i]:
+                        self.embed_list.append(r'\addsection{' + str(self.config.sections()[i]) + '}')
+                        for k in self.nested_list_sections[i]:
+                            self.embed_list.append(r'\addpage{' + k + '}')
                 
-                if doc_id[0].isdigit():
-    
-                    section_num = int(doc_id[0]) - 1
-                    shutil.copy(grab_dir + '/' + k, work_dir)
-                    doc_section = (config[config.sections()[section_num]][doc_id])
-                    new_name = doc_section.replace(' ','!') + '.pdf' 
-                    new_full_name = work_dir + '/' + new_name
-                    os.rename(work_dir + '/' + k, new_full_name)
-                    nested_list_sections[section_num].append(new_name)
-                    
-        for i in nested_list_sections:
-            print(i)
-    
-        for i in range(len(nested_list_sections)):
-            if nested_list_sections[i]:
-                embed_list.append(r'\addsection{' + str(config.sections()[i]) + '}')
-                for k in nested_list_sections[i]:
-                    embed_list.append(r'\addpage{' + k + '}')
-        
-        with open(work_dir + '/embedlist.tex', 'w') as embed_list_file:
-            for i in embed_list:
-                embed_list_file.write('%s\n' % i)
-        embed_list_file.close()
-    
-    for i in embed_list:
-        print(i)
-    
-    def template_stage(src,dest):
-        
-        folder_check(dest)
-        print('\nWorking directory: ' + str(work_dir))
-    
-        shutil.copytree(template_dir + '/font/',dest + '/font/')
-    
-        for i in os.listdir(src):
-            if i.endswith('.tex'):
-                shutil.copy(src + '/' + i,dest)
-
-    
-    def embed_stage(src,dest):
-    
-        folder_check(dest) 
-        for i in os.listdir(src):
-            if i.endswith('.pdf'):
-                shutil.copy(src + '/' + i,dest)
-                print (i)    
-    
-    
-    def compile_TeX(path,texfile):
-        for _ in range(2):
-            p = subprocess.Popen([path, '-recorder', texfile], cwd=work_dir)
-            p.wait()
-
-    
-    def folder_check(folder):
-        if not os.path.exists(folder):
-            os.mkdir(folder)
-
-   
-    def job_info():
-        data_file = ['mo = 1234567', 'serial = 12345', 'equipment = RA-24 thing', 'customer = SomeCorp']
-
-        with open(work_dir + '/jobinfo.dat', 'w') as job_info_file:
-            for i in data_file:
-                job_info_file.write('%s\n' % i)
-        job_info_file.close()
+                with open(self.work_dir + '/embedlist.tex', 'w') as self.embed_list_file:
+                    for i in self.embed_list:
+                        self.embed_list_file.write('%s\n' % i)
+                self.embed_list_file.close()
+            
+            for i in self.embed_list:
+                print(i)
+            
+            def template_stage(self,src,dest):
+                
+                folder_check(self,dest)
+                print('\nWorking directory: ' + str(self.work_dir))
+            
+                shutil.copytree(self.template_dir + '/font/',dest + '/font/')
+            
+                for i in os.listdir(src):
+                    if i.endswith('.tex'):
+                        shutil.copy(src + '/' + i,dest)
+            
+            
+            def embed_stage(self,src,dest):
+            
+                folder_check(self,dest) 
+                for i in os.listdir(src):
+                    if i.endswith('.pdf'):
+                        shutil.copy(src + '/' + i,dest)
+                        print (i)    
+            
+            
+            def compile_TeX(self,path,texfile):
+                for _ in range(2):
+                    p = subprocess.Popen([path, '-recorder', texfile], cwd=self.work_dir)
+                    p.wait()
+            
+            
+            def folder_check(self,folder):
+                if not os.path.exists(folder):
+                    os.mkdir(folder)
+            
+            
+            def job_info(self):
+                self.data_file = ['mo = 1234567', 'serial = 12345', 'equipment = RA-24 thing', 'customer = SomeCorp']
+            
+                with open(self.work_dir + '/jobinfo.dat', 'w') as self.job_info_file:
+                    for i in self.data_file:
+                        self.job_info_file.write('%s\n' % i)
+                self.job_info_file.close()
+            
+            
+            def output_pdf(self,output_path):
+                folder_check(self,output_path)
+                print('\nOutput directory: ' + str(output_path))
+                shutil.copy(self.work_dir + '/databook.pdf', output_path)
+            
+            
+            template_stage(self, self.template_dir, self.work_dir)
+            pdf_rename(self)
+            job_info(self)
+            compile_TeX(self, self.xelatex_path, 'databook') 
+            output_pdf(self, self.output_dir)
 
 
-    def output_pdf(output_path):
-        folder_check(output_path)
-        print('\nOutput directory: ' + str(output_path))
-        shutil.copy(work_dir + '/databook.pdf', output_path)
+
+class EmittingStream(QtCore.QObject):
+
+    textWritten = QtCore.pyqtSignal(str)
+
+    def write(self, text):
+        self.textWritten.emit(str(text))
+
+class EmittingStream(QtCore.QObject):
+
+    textWritten = QtCore.pyqtSignal(str)
+
+    def write(self, text):
+        self.textWritten.emit(str(text))
+
+class Interface(PfaudUI.Ui_MainWindow):
+    def __init__(self):
+        super().setupUi(MainWindow)
+
+        sys.stdout = EmittingStream(textWritten=self.normalOutputWritten)
+    
+    def __del__(self):
+        # Restore sys.stdout
+        sys.stdout = sys.__stdout__
+    
+    def normalOutputWritten(self, text):
+        """Append text to the QTextEdit."""
+        # Maybe QTextEdit.append() works as well, but this is how I do it:
+        cursor = self.textEdit.textCursor()
+        cursor.movePosition(QtGui.QTextCursor.End)
+        cursor.insertText(text)
+        self.textEdit.setTextCursor(cursor)
+        self.textEdit.ensureCursorVisible()
+    
 
 
-    template_stage(template_dir, work_dir)
-    pdf_rename()
-    job_info()
-    compile_TeX(xelatex_path,'databook') 
-    output_pdf(output_dir)
+
+app = QtGui.QApplication(sys.argv)
+MainWindow = QtGui.QMainWindow()
+ui = Interface()
+MainWindow.show()
+#print('text')
+data_book = DataBook()
+sys.exit(app.exec_())
+
+
