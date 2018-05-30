@@ -197,17 +197,30 @@ class Interface(redirect.MainWindow):
         self.grab_sel.clicked.connect(self.get_grab_dir)
         self.output_sel.clicked.connect(self.get_output_dir)
         
+        pal = QtGui.QPalette()
+        bgc = QtGui.QColor(255, 255, 255)
+        pf_blue = QtGui.QColor(58, 135, 197)
+        pf_grey = QtGui.QColor(125, 125, 130)
+        pal.setColor(QtGui.QPalette.Base, bgc)
+        textc = QtGui.QColor(0,0,0)
+        pal.setColor(QtGui.QPalette.Text, textc)
+        self.outputbox.setPalette(pal)
+        self.outputbox_2.setPalette(pal)
 
         font_instance = QtGui.QFontDatabase
         PfFont = font_instance.addApplicationFont("TeX/font/TTF/Pfaudler-Book.ttf")
         pf_font_family = font_instance.applicationFontFamilies(PfFont)[0]
         pf_font = QtGui.QFont(pf_font_family)
 
+        PfFontBold = font_instance.addApplicationFont("TeX/font/TTF/Pfaudler-Bold.ttf")
+        pf_font_family_bold = font_instance.applicationFontFamilies(PfFontBold)[0]
+        pf_font_bold = QtGui.QFont(pf_font_family_bold)
+
+        self.setFont(pf_font_bold)
         self.outputbox.setFont(pf_font)
         self.outputbox_2.setFont(pf_font)
-        #self.file = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+
         self.process.finished.connect(lambda: self.compile_tex2('xelatex', work_dir))
-    
         self.process2.finished.connect(lambda: self.latex_btn_render_reenable())
 
 
