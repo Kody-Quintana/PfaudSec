@@ -74,7 +74,10 @@ class DataBook(object):
             for l in range(len(self.config.sections())): 
                 # -1 from actual length but configparser makes a DEFAULT section that is not used so the -1 is fine
                 self.nested_list_sections.append([])
-        
+            
+            def pdf_skip(self,skipped_pdf):
+                pronk('\nSkipping PDF file: "' + str(skipped_pdf) + '" (is name malformed?)')
+
             for i, k in enumerate((get_file_list(self,'pdf',self.grab_dir))):
                 if (' ' in k):
         
@@ -92,14 +95,16 @@ class DataBook(object):
                             self.new_full_name = work_dir + '/' + self.new_name
                             os.rename(work_dir + '/' + k, self.new_full_name)
                             self.nested_list_sections[self.section_num].append(self.new_name)
+                        else:
+                            pdf_skip(self,k)
 
                     #This should catch and skip anything not matching an entry in sections_config.ini
                     except(IndexError):
-                        pronk('\nSkipping PDF file: "' + str(k) + '" (is name malformed?)')
+                        pdf_skip(self,k)
 
                 #for catching PDF files that dont have a space in their name
                 else:
-                    pronk('\nSkipping PDF file: "' + str(k) + '" (is name malformed?)')
+                    pdf_skip(self,k)
 
             pronk('\nLoading documents found in:\n"' + str(self.grab_dir) + '"\n\nFound:')
             for i in self.nested_list_sections:
@@ -201,7 +206,8 @@ class Interface(redirect.MainWindow):
         self.latex_render.clicked.connect(lambda: self.latex_btn_render())
         self.grab_sel.clicked.connect(self.get_grab_dir)
         self.output_sel.clicked.connect(self.get_output_dir)
-        
+
+
         pal = QtGui.QPalette()
         bgc = QtGui.QColor(255, 255, 255)
         pf_blue = QtGui.QColor(58, 135, 197)

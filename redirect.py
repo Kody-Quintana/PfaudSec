@@ -12,6 +12,16 @@ class MainWindow(QtGui.QMainWindow):
 
         QtGui.QWidget.__init__(self)
         uic.loadUi('redirect.ui', self)
+
+        #Allow copy/paste on job info line edits
+        self.job_entry_1.setDragEnabled(True)
+        self.job_entry_1.setReadOnly(False)
+        self.job_entry_2.setDragEnabled(True)
+        self.job_entry_2.setDragEnabled(True)
+        self.job_entry_3.setDragEnabled(True)
+        self.job_entry_3.setReadOnly(False)
+        self.job_entry_4.setReadOnly(False)
+        self.job_entry_4.setReadOnly(False)
         
         #First LaTeX run
         self.process = QtCore.QProcess(self)
