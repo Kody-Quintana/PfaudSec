@@ -58,10 +58,10 @@ class DataBook(object):
         global work_dir 
         self.config = configparser.ConfigParser()
         self.config.read(self.config_file)
-        pronk('\nLoaded sections from ' + str(self.config_file) + ':\n')
+        pronk('Starting PfaudSec DataBook compiler.\nLoaded sections from ' + str(self.config_file) + ':\n')
         for i in self.config.sections():
             pronk('Section: ' + str(i))
-        pronk('\n')
+        pronk('')
         
         
         def get_file_list(self,ext,dir):
@@ -99,7 +99,7 @@ class DataBook(object):
                     except(IndexError):
                         pronk('\nSkipping PDF file: "' + str(k) + '" (is name malformed?)\n')
                     
-                        
+            pronk('\nLoading documents found in:\n"' + str(self.grab_dir) + '"\n\nFound:')
             for i in self.nested_list_sections:
                 pronk(str(i).replace('!', ' '))
         
@@ -120,7 +120,7 @@ class DataBook(object):
         def template_stage(self,src,dest):
             
             folder_check(self,dest)
-            pronk('Working directory: ' + str(work_dir) + '\n')
+            pronk('Working directory: ' + str(work_dir))
         
             try:
                 shutil.copytree(self.template_dir + '/font/',dest + '/font/')
@@ -174,7 +174,7 @@ class DataBook(object):
         global work_dir
         global output_dir
         self.folder_check(output_dir)
-        pronk('\ndatabook.pdf copied to: ' + str(output_dir))
+        pronk('\ndatabook.pdf copied to: ' + str(output_dir) + '\n\n\n\n')
         shutil.copy(work_dir + '/databook.pdf', output_dir)
         shutil.rmtree(work_dir)
         self.reset()
