@@ -11,6 +11,9 @@ import redirect
 def pronk(text):
     win.main_append(str(text) + '\n')
 
+work_dir = tempfile.mkdtemp(prefix='PfaudSec_')
+
+output_dir = './output'
 
 class DataBook(object):
     
@@ -21,11 +24,13 @@ class DataBook(object):
         self.config_file = 'sections_config.ini'
         self.xelatex_path = 'xelatex'
         #self.xelatex_path = input('Enter path to xelatex: ')
-        self.work_dir = './work'
-        self.output_dir = './output'
+        #work_dir = './work'
         self.grab_dir = './tempemb'
         self.template_dir = './TeX'
     
+    def reset(self):
+        self.embed_list = []
+        self.nested_list_sections = []
 
 
 # Implement later if pyinstaller is used
@@ -41,7 +46,7 @@ class DataBook(object):
 
     def data_book_run(self):
 
-        
+        global work_dir 
         self.config = configparser.ConfigParser()
         self.config.read(self.config_file)
         pronk('\nLoaded sections from ' + str(self.config_file) + ':')
@@ -73,11 +78,11 @@ class DataBook(object):
                     if self.doc_id[0].isdigit():
         
                         self.section_num = int(self.doc_id[0]) - 1
-                        shutil.copy(self.grab_dir + '/' + k, self.work_dir)
+                        shutil.copy(self.grab_dir + '/' + k, work_dir)
                         self.doc_section = (self.config[self.config.sections()[self.section_num]][self.doc_id])
                         self.new_name = self.doc_section.replace(' ','!') + '.pdf' 
-                        self.new_full_name = self.work_dir + '/' + self.new_name
-                        os.rename(self.work_dir + '/' + k, self.new_full_name)
+                        self.new_full_name = work_dir + '/' + self.new_name
+                        os.rename(work_dir + '/' + k, self.new_full_name)
                         self.nested_list_sections[self.section_num].append(self.new_name)
                         
             for i in self.nested_list_sections:
@@ -89,7 +94,7 @@ class DataBook(object):
                     for k in self.nested_list_sections[i]:
                         self.embed_list.append(r'\addpage{' + k + '}')
             
-            with open(self.work_dir + '/embedlist.tex', 'w') as self.embed_list_file:
+            with open(work_dir + '/embedlist.tex', 'w') as self.embed_list_file:
                 for i in self.embed_list:
                     self.embed_list_file.write('%s\n' % i)
             self.embed_list_file.close()
@@ -100,7 +105,7 @@ class DataBook(object):
         def template_stage(self,src,dest):
             
             folder_check(self,dest)
-            pronk('\nWorking directory: ' + str(self.work_dir))
+            pronk('\nWorking directory: ' + str(work_dir))
         
             try:
                 shutil.copytree(self.template_dir + '/font/',dest + '/font/')
@@ -123,12 +128,12 @@ class DataBook(object):
         
         def compile_TeX(self,path,texfile):
             #for _ in range(2):
-                #p = subprocess.Popen([path, '-recorder', texfile], cwd=self.work_dir, stdout=subprocess.PIPE)
+                #p = subprocess.Popen([path, '-recorder', texfile], cwd=work_dir, stdout=subprocess.PIPE)
                 #for line in p.stdout.readlines():
                 #    pronk(line)
                 #    sys.stdout.flush()
                 #p.wait()
-            win.compile_tex('xelatex', str(self.work_dir))
+            win.compile_tex('xelatex', str(work_dir))
         
         
         def folder_check(self,folder):
@@ -139,37 +144,48 @@ class DataBook(object):
         def job_info(self):
             self.data_file = ['mo = 1234567', 'serial = 12345', 'equipment = RA-24 thing', 'customer = SomeCorp']
         
-            with open(self.work_dir + '/jobinfo.dat', 'w') as self.job_info_file:
+            with open(work_dir + '/jobinfo.dat', 'w') as self.job_info_file:
                 for i in self.data_file:
                     self.job_info_file.write('%s\n' % i)
             self.job_info_file.close()
         
         
-        def output_pdf(self,output_path):
-            folder_check(self,output_path)
-            pronk('\nOutput directory: ' + str(output_path))
-            shutil.copy(self.work_dir + '/databook.pdf', output_path)
         
-        
-        template_stage(self, self.template_dir, self.work_dir)
+        template_stage(self, self.template_dir, work_dir)
         pdf_rename(self)
         job_info(self)
         compile_TeX(self, self.xelatex_path, 'databook') 
         #output_pdf(self, self.output_dir)
 
+    def folder_check(self,folder):
+        if not os.path.exists(folder):
+            os.mkdir(folder)
 
-
+    def output_pdf(self):
+        global work_dir
+        global output_dir
+        self.folder_check(output_dir)
+        pronk('\nOutput directory: ' + str(output_dir))
+        shutil.copy(work_dir + '/databook.pdf', output_dir)
+        shutil.rmtree(work_dir)
+        self.reset()
+        #win.outputbox_2.clear()
 
 class Interface(redirect.MainWindow):
     def __init__(self):
+
+        global work_dir
         super().__init__()
+
         self.latex_render.clicked.connect(lambda: self.latex_btn_render())
     
+        self.process.finished.connect(lambda: self.compile_tex2('xelatex', work_dir))
     
         self.process2.finished.connect(lambda: self.latex_btn_render_reenable())
 
     def latex_btn_render_reenable(self):
         self.latex_render.setEnabled(True)
+        data_book.output_pdf()
 
     def latex_btn_render(self):
         self.latex_render.setEnabled(False)
@@ -178,6 +194,9 @@ class Interface(redirect.MainWindow):
 app = QtGui.QApplication(sys.argv)
 win = Interface()
 win.show()
+#QtGui.QFontDatabase.addApplicationFont("./TeX/font/TTF/Pfaudler-Book.ttf")
+#app.setFont()
+
 
 #win.compile_tex('xelatex', './')
 data_book = DataBook()
