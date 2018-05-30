@@ -151,7 +151,10 @@ class DataBook(object):
         
         
         def job_info(self):
-            self.data_file = ['mo = 1234567', 'serial = 12345', 'equipment = RA-24 thing', 'customer = SomeCorp']
+            self.data_file = ['mo = ' + str(win.job_entry_1.text()), 
+                    'serial = ' + str(win.job_entry_2.text()), 
+                    'equipment = ' + str(win.job_entry_3.text()), 
+                    'customer = ' + str(win.job_entry_4.text())]
         
             with open(work_dir + '/jobinfo.dat', 'w') as self.job_info_file:
                 for i in self.data_file:
