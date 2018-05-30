@@ -32,8 +32,6 @@ class DataBook(object):
         
         self.config_file = 'sections_config.ini'
         self.xelatex_path = 'xelatex'
-        #self.xelatex_path = input('Enter path to xelatex: ')
-        #work_dir = './work'
         self.grab_dir = None
         self.template_dir = './TeX'
     
@@ -98,6 +96,8 @@ class DataBook(object):
                     #This should catch and skip anything not matching an entry in sections_config.ini
                     except(IndexError):
                         pronk('\nSkipping PDF file: "' + str(k) + '" (is name malformed?)')
+
+                #for catching PDF files that dont have a space in their name
                 else:
                     pronk('\nSkipping PDF file: "' + str(k) + '" (is name malformed?)')
 
@@ -258,17 +258,13 @@ win = Interface()
 win.show()
 
 
+#Global font size
 font = QtGui.QFont()
 font.setPointSize(17)
-#self.editor.setFont(font)
-
-#QtGui.QFontDatabase.addApplicationFont("./TeX/font/TTF/Pfaudler-Book.ttf")
 app.setFont(font)
 
 
-#win.compile_tex('xelatex', './')
 data_book = DataBook()
-#data_book.data_book_run()
 
 
 sys.exit(app.exec_())
