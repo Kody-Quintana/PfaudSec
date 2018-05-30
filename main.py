@@ -84,7 +84,7 @@ class DataBook(object):
                     try:
                         self.doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
                         self.doc_id = self.doc_id_stage[0] + '.' + self.doc_id_stage[1].lstrip('0')
-
+                        
                         if self.doc_id[0].isdigit():
         
                             self.section_num = int(self.doc_id[0]) - 1
@@ -97,8 +97,10 @@ class DataBook(object):
 
                     #This should catch and skip anything not matching an entry in sections_config.ini
                     except(IndexError):
-                        pronk('\nSkipping PDF file: "' + str(k) + '" (is name malformed?)\n')
-                    
+                        pronk('\nSkipping PDF file: "' + str(k) + '" (is name malformed?)')
+                else:
+                    pronk('\nSkipping PDF file: "' + str(k) + '" (is name malformed?)')
+
             pronk('\nLoading documents found in:\n"' + str(self.grab_dir) + '"\n\nFound:')
             for i in self.nested_list_sections:
                 pronk(str(i).replace('!', ' '))
@@ -153,8 +155,8 @@ class DataBook(object):
         def job_info(self):
             self.data_file = ['mo = ' + str(win.job_entry_1.text()), 
                     'serial = ' + str(win.job_entry_2.text()), 
-                    'equipment = ' + str(win.job_entry_3.text()), 
-                    'customer = ' + str(win.job_entry_4.text())]
+                    'customer = ' + str(win.job_entry_3.text()),
+                    'equipment = ' + str(win.job_entry_4.text())] 
         
             with open(work_dir + '/jobinfo.dat', 'w') as self.job_info_file:
                 for i in self.data_file:
