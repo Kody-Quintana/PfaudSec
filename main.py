@@ -13,7 +13,16 @@ def pronk(text):
 
 work_dir = tempfile.mkdtemp(prefix='PfaudSec_')
 
-output_dir = './output'
+output_dir = None
+
+
+class PfaudSecConfig(object):
+    def __init__(self):
+
+        self.config_file = 'PfaudSec_config.ini'
+        self.config = configparser.ConfigParser()
+        self.config.read(self.config_file)
+
 
 class DataBook(object):
     
@@ -25,7 +34,7 @@ class DataBook(object):
         self.xelatex_path = 'xelatex'
         #self.xelatex_path = input('Enter path to xelatex: ')
         #work_dir = './work'
-        self.grab_dir = './tempemb'
+        self.grab_dir = None
         self.template_dir = './TeX'
     
     def reset(self):
@@ -49,7 +58,7 @@ class DataBook(object):
         global work_dir 
         self.config = configparser.ConfigParser()
         self.config.read(self.config_file)
-        pronk('\nLoaded sections from ' + str(self.config_file) + ':')
+        pronk('\nLoaded sections from ' + str(self.config_file) + ':\n')
         for i in self.config.sections():
             pronk('Section: ' + str(i))
         pronk('\n')
@@ -60,7 +69,7 @@ class DataBook(object):
             for i in os.listdir(dir):
                 if i.endswith(ext):
                     self.list.append(i)
-            return self.list
+            return sorted(self.list)
         
         def pdf_rename(self):
         
@@ -72,21 +81,27 @@ class DataBook(object):
                 if (' ' in k):
         
                     #Splits document shorthand, removes leading 0s so that 2.1 is same as 2.01
-                    self.doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
-                    self.doc_id = self.doc_id_stage[0] + '.' + self.doc_id_stage[1].lstrip('0')
-                    
-                    if self.doc_id[0].isdigit():
+                    try:
+                        self.doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
+                        self.doc_id = self.doc_id_stage[0] + '.' + self.doc_id_stage[1].lstrip('0')
+
+                        if self.doc_id[0].isdigit():
         
-                        self.section_num = int(self.doc_id[0]) - 1
-                        shutil.copy(self.grab_dir + '/' + k, work_dir)
-                        self.doc_section = (self.config[self.config.sections()[self.section_num]][self.doc_id])
-                        self.new_name = self.doc_section.replace(' ','!') + '.pdf' 
-                        self.new_full_name = work_dir + '/' + self.new_name
-                        os.rename(work_dir + '/' + k, self.new_full_name)
-                        self.nested_list_sections[self.section_num].append(self.new_name)
+                            self.section_num = int(self.doc_id[0]) - 1
+                            shutil.copy(self.grab_dir + '/' + k, work_dir)
+                            self.doc_section = (self.config[self.config.sections()[self.section_num]][self.doc_id])
+                            self.new_name = self.doc_section.replace(' ','!') + '.pdf' 
+                            self.new_full_name = work_dir + '/' + self.new_name
+                            os.rename(work_dir + '/' + k, self.new_full_name)
+                            self.nested_list_sections[self.section_num].append(self.new_name)
+
+                    #This should catch and skip anything not matching an entry in sections_config.ini
+                    except(IndexError):
+                        pronk('\nSkipping PDF file: "' + str(k) + '" (is name malformed?)\n')
+                    
                         
             for i in self.nested_list_sections:
-                pronk(i)
+                pronk(str(i).replace('!', ' '))
         
             for i in range(len(self.nested_list_sections)):
                 if self.nested_list_sections[i]:
@@ -105,7 +120,7 @@ class DataBook(object):
         def template_stage(self,src,dest):
             
             folder_check(self,dest)
-            pronk('\nWorking directory: ' + str(work_dir))
+            pronk('Working directory: ' + str(work_dir) + '\n')
         
             try:
                 shutil.copytree(self.template_dir + '/font/',dest + '/font/')
@@ -127,12 +142,6 @@ class DataBook(object):
         
         
         def compile_TeX(self,path,texfile):
-            #for _ in range(2):
-                #p = subprocess.Popen([path, '-recorder', texfile], cwd=work_dir, stdout=subprocess.PIPE)
-                #for line in p.stdout.readlines():
-                #    pronk(line)
-                #    sys.stdout.flush()
-                #p.wait()
             win.compile_tex('xelatex', str(work_dir))
         
         
@@ -154,7 +163,7 @@ class DataBook(object):
         template_stage(self, self.template_dir, work_dir)
         pdf_rename(self)
         job_info(self)
-        compile_TeX(self, self.xelatex_path, 'databook') 
+        win.compile_tex(self.xelatex_path, work_dir) 
         #output_pdf(self, self.output_dir)
 
     def folder_check(self,folder):
@@ -165,11 +174,18 @@ class DataBook(object):
         global work_dir
         global output_dir
         self.folder_check(output_dir)
-        pronk('\nOutput directory: ' + str(output_dir))
+        pronk('\ndatabook.pdf copied to: ' + str(output_dir))
         shutil.copy(work_dir + '/databook.pdf', output_dir)
         shutil.rmtree(work_dir)
         self.reset()
         #win.outputbox_2.clear()
+
+        #change to checkbox for open after compile option
+        if True:
+            if os.name == "nt":
+                os.filestart(output_dir + '/databook.pdf')
+            elif os.name == "posix":
+                os.system("/usr/bin/xdg-open " + output_dir + '/databook.pdf')  
 
 class Interface(redirect.MainWindow):
     def __init__(self):
@@ -178,10 +194,29 @@ class Interface(redirect.MainWindow):
         super().__init__()
 
         self.latex_render.clicked.connect(lambda: self.latex_btn_render())
+        self.grab_sel.clicked.connect(self.get_grab_dir)
+        self.output_sel.clicked.connect(self.get_output_dir)
     
+        #self.file = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
         self.process.finished.connect(lambda: self.compile_tex2('xelatex', work_dir))
     
         self.process2.finished.connect(lambda: self.latex_btn_render_reenable())
+
+
+    def get_output_dir(self):
+        global output_dir
+        file = str(QtGui.QFileDialog.getExistingDirectory(self, "Select PDF Output Directory"))
+        if file:
+            output_dir = file
+            self.output_display.clear()
+            self.output_display.append(str(file))
+
+    def get_grab_dir(self):
+        file = str(QtGui.QFileDialog.getExistingDirectory(self, "Select Job Documents Directory"))
+        if file:
+            data_book.grab_dir = file
+            self.grab_display.clear()
+            self.grab_display.append(str(file))
 
     def latex_btn_render_reenable(self):
         self.latex_render.setEnabled(True)
@@ -190,12 +225,19 @@ class Interface(redirect.MainWindow):
     def latex_btn_render(self):
         self.latex_render.setEnabled(False)
         data_book.data_book_run()
+    
 
 app = QtGui.QApplication(sys.argv)
 win = Interface()
 win.show()
+
+
+font = QtGui.QFont()
+font.setPointSize(17)
+#self.editor.setFont(font)
+
 #QtGui.QFontDatabase.addApplicationFont("./TeX/font/TTF/Pfaudler-Book.ttf")
-#app.setFont()
+app.setFont(font)
 
 
 #win.compile_tex('xelatex', './')

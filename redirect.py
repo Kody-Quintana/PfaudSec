@@ -8,22 +8,23 @@ def p(x):
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
         global work_dir
+        
 
         QtGui.QWidget.__init__(self)
         uic.loadUi('redirect.ui', self)
-
-        print('Connecting process')
+        
+        #First LaTeX run
         self.process = QtCore.QProcess(self)
         self.process.readyReadStandardOutput.connect(self.stdoutReady)
         self.process.readyReadStandardError.connect(self.stderrReady)
         self.process.started.connect(lambda: self.clear())
-        #self.process.finished.connect(lambda: self.compile_tex2('xelatex', work_dir))
-        print('Starting process')
+        self.process.started.connect(lambda: p('LaTeX first compile start'))
 
+        #Second LaTeX run (to update table of contents)
         self.process2 = QtCore.QProcess(self)
         self.process2.readyReadStandardOutput.connect(self.stdoutReady2)
         self.process2.readyReadStandardError.connect(self.stderrReady2)
-        self.process2.started.connect(lambda: p('Started!'))
+        self.process2.started.connect(lambda: p('LaTeX second compile start'))
 
     def clear(self):
         self.outputbox.clear()
@@ -37,36 +38,31 @@ class MainWindow(QtGui.QMainWindow):
         self.process2.start(xelatex_path, ['databook'])
     
     def main_append(self, text):
+        #cursor = self.outputbox_2.textCursor()
+        #cursor.movePosition(cursor.End)
+        #cursor.insertText(text)
+
         cursor = self.outputbox_2.textCursor()
         cursor.movePosition(cursor.End)
         cursor.insertText(text)
-
-
-
-        #text = bytearray(self.process.readAllStandardOutput())
-        #text = text.decode("ascii")
-        #output = output[18:]
-
-
+        cursor.movePosition(cursor.End)
+        self.outputbox_2.verticalScrollBar().setSliderPosition(self.outputbox_2.verticalScrollBar().maximum())
 
     def append(self, text):
+        
         cursor = self.outputbox.textCursor()
         cursor.movePosition(cursor.End)
-        self.outputbox.append(text)
-
-        #self.outputbox.setFont(QtGui.QFont('Campton Book', 24))
-        #self.output.ensureCursorVisible()
-
+        cursor.insertText(text)
+        cursor.movePosition(cursor.End)
+        self.outputbox.verticalScrollBar().setSliderPosition(self.outputbox.verticalScrollBar().maximum())
 
     def stdoutReady(self):
 
         text = bytearray(self.process.readAllStandardOutput())
         text = text.decode("UTF-8")
-        #text = str(self.process.readAllStandardOutput())
         self.append(text)
 
     def stderrReady(self):
-        #text = str(self.process.readAllStandardError())
         text = bytearray(self.process.readAllStandardError())
         text = text.decode("UTF-8")
         self.append(text)
@@ -75,11 +71,9 @@ class MainWindow(QtGui.QMainWindow):
 
         text = bytearray(self.process2.readAllStandardOutput())
         text = text.decode("UTF-8")
-        #text = str(self.process2.readAllStandardOutput())
         self.append(text)
 
     def stderrReady2(self):
-        #text = str(self.process2.readAllStandardError())
         text = bytearray(self.process2.readAllStandardError())
         text = text.decode("UTF-8")
         self.append(text)
