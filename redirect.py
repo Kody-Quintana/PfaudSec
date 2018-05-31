@@ -15,17 +15,6 @@ class MainWindow(QtGui.QMainWindow):
         # out of the two required to update the table of contents
         self.proc_num = 0
 
-        #Colors
-        pal = QtGui.QPalette()
-        bgc = QtGui.QColor(255, 255, 255)
-        pf_blue = QtGui.QColor(58, 135, 197)
-        pf_grey = QtGui.QColor(125, 125, 130)
-        pal.setColor(QtGui.QPalette.Base, bgc)
-        textc = QtGui.QColor(0,0,0)
-        pal.setColor(QtGui.QPalette.Text, textc)
-        self.outputbox.setPalette(pal)
-        self.outputbox_2.setPalette(pal)
-
 
         #Font imports
         font_instance = QtGui.QFontDatabase
@@ -84,7 +73,7 @@ class MainWindow(QtGui.QMainWindow):
         self.outputbox.clear()
 
 
-    #xelatex path is a variable in the data_book class 
+    #xelatex path is passed from the data_book class
         #that is passed to this method
     #work_dir is global
     def compile_tex(self, xelatex_path, work_dir):
