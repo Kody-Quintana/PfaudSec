@@ -186,7 +186,7 @@ class DataBook(object):
         global work_dir
         global output_dir
         self.folder_check(output_dir)
-        pronk('\ndatabook.pdf copied to: ' + str(output_dir) + '\n\n\n\n')
+        pronk('\ndatabook.pdf copied to: ' + str(output_dir))
         shutil.copy(work_dir + '/databook.pdf', output_dir)
         shutil.rmtree(work_dir)
         self.reset()
@@ -224,14 +224,17 @@ class Interface(redirect.MainWindow):
     def latex_btn_render(self):
         #Will not render if job info LineEdits are empty
         if (str(win.job_entry_1.text()) != '')\
-                and (str(win.job_entry_2.text()) != '')\
-                and (str(win.job_entry_1.text()) != '')\
-                and (str(win.job_entry_1.text()) != ''):
+                and (str(self.job_entry_2.text()) != '')\
+                and (str(self.job_entry_3.text()) != '')\
+                and (str(self.job_entry_4.text()) != '')\
+                and (str(self.output_display.toPlainText()) != '')\
+                and (str(self.grab_display.toPlainText()) != ''):
 
             self.latex_render.setEnabled(False)
+            pronk('\n\n\n\n')
             data_book.data_book_run()
         else:
-            pronk('Missing Job Info')
+            pronk('Missing one or more fields')
 
     #Button function: folder select for output
     def get_output_dir(self):
@@ -262,6 +265,8 @@ win.show()
 font = QtGui.QFont()
 font.setPointSize(17)
 app.setFont(font)
+
+
 
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
 

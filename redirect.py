@@ -35,11 +35,13 @@ class MainWindow(QtGui.QMainWindow):
 
         PfFontBold = font_instance.addApplicationFont("TeX/font/TTF/Pfaudler-Bold.ttf")
         pf_font_family_bold = font_instance.applicationFontFamilies(PfFontBold)[0]
+        pf_font_bold_large = QtGui.QFont(pf_font_family_bold,50)
         pf_font_bold = QtGui.QFont(pf_font_family_bold)
 
         #self.setFont(pf_font_bold)
         self.outputbox.setFont(pf_font)
         self.outputbox_2.setFont(pf_font)
+        self.label.setFont(pf_font_bold_large)
 
 
         #Allow copy/paste on job info line edits
