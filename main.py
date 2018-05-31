@@ -6,6 +6,7 @@ import os
 import shutil
 import configparser
 import redirect #name of interface file
+import qdarkstyle
 
 
 # This replaces print() to output python related messages to a QTextEdit from redirect.py
@@ -261,6 +262,8 @@ win.show()
 font = QtGui.QFont()
 font.setPointSize(17)
 app.setFont(font)
+
+app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
 
 data_book = DataBook()
 

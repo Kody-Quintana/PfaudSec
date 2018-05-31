@@ -37,7 +37,7 @@ class MainWindow(QtGui.QMainWindow):
         pf_font_family_bold = font_instance.applicationFontFamilies(PfFontBold)[0]
         pf_font_bold = QtGui.QFont(pf_font_family_bold)
 
-        self.setFont(pf_font_bold)
+        #self.setFont(pf_font_bold)
         self.outputbox.setFont(pf_font)
         self.outputbox_2.setFont(pf_font)
 
