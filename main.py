@@ -151,7 +151,7 @@ class DataBook(object):
         
         
         def compile_TeX(self,path,texfile):
-            win.compile_tex('xelatex', str(work_dir))
+            win.compile_tex(data_book.xelatex_path, str(work_dir))
         
         
         def folder_check(self,folder):
@@ -213,14 +213,32 @@ class Interface(redirect.MainWindow):
         self.output_sel.clicked.connect(self.get_output_dir)
 
         self.process_0.finished.connect(\
-                lambda: self.compile_tex2('xelatex', work_dir))
+                lambda: self.compile_tex2(data_book.xelatex_path, work_dir))
         self.process_1.finished.connect(\
                 lambda: self.latex_btn_render_reenable())
+
+        QtGui.QShortcut(QtGui.QKeySequence("Return"), self, \
+                lambda: self.enter_key())
+                #lambda: self.latex_render.click()) #Return is regular enter key
+        QtGui.QShortcut(QtGui.QKeySequence("Enter"), self, \
+                lambda: self.enter_key())
+                #lambda: self.latex_render.click()) #Enter is the one on the numpad
+    
+
+    def enter_key(self):
+        if self.grab_sel.hasFocus():
+            self.grab_sel.click()
+            #pronk('it works')
+        elif self.output_sel.hasFocus():
+            self.output_sel.click()
+        else:
+            self.latex_render.click()
 
     def latex_btn_render_reenable(self):
         self.latex_render.setEnabled(True)
         data_book.output_pdf()
-    
+   
+
     def latex_btn_render(self):
         #Will not render if job info LineEdits are empty
         if (str(win.job_entry_1.text()) != '')\

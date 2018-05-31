@@ -10,7 +10,15 @@ class MainWindow(QtGui.QMainWindow):
         QtGui.QWidget.__init__(self)
         uic.loadUi('redirect.ui', self)
         
-
+        self.setWindowState(QtCore.Qt.WindowMaximized)       
+        self.outputbox.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.outputbox_2.setFocusPolicy(QtCore.Qt.NoFocus)
+        #self.grab_sel.setFocusPolicy(QtCore.Qt.NoFocus)
+        #self.output_sel.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.grab_display.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.output_display.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.latex_render.setFocusPolicy(QtCore.Qt.NoFocus)
+        #self.job_entry_1.clearFocus()
         # This var is to see which LaTeX QProcess is running
         # out of the two required to update the table of contents
         self.proc_num = 0
