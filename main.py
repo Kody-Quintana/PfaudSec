@@ -5,24 +5,17 @@ import tempfile
 import os
 import shutil
 import configparser
-import redirect
+import redirect #name of interface file
 
 
+# This replaces print() to output python related messages to a QTextEdit from redirect.py
 def pronk(text):
     win.main_append(str(text) + '\n')
 
+#Global tempory working directory for XeLaTeX to use
 work_dir = tempfile.mkdtemp(prefix='PfaudSec_')
 
 output_dir = None
-
-
-class PfaudSecConfig(object):
-    def __init__(self):
-
-        self.config_file = 'PfaudSec_config.ini'
-        self.config = configparser.ConfigParser()
-        self.config.read(self.config_file)
-
 
 class DataBook(object):
     
@@ -31,10 +24,16 @@ class DataBook(object):
         self.nested_list_sections = []
         
         self.config_file = 'sections_config.ini'
-        self.xelatex_path = 'xelatex'
         self.grab_dir = None
         self.template_dir = './TeX'
-    
+        self.xelatex_config()
+
+    def xelatex_config(self):
+        self.xelatex_config_file = 'PfaudSec_config.ini'
+        self.xelatex_config = configparser.ConfigParser()
+        self.xelatex_config.read(self.config_file)
+        self.xelatex_path = 'xelatex'
+
     def reset(self):
         self.embed_list = []
         self.nested_list_sections = []
@@ -56,7 +55,8 @@ class DataBook(object):
         global work_dir 
         self.config = configparser.ConfigParser()
         self.config.read(self.config_file)
-        pronk('Starting PfaudSec DataBook compiler.\nLoaded sections from ' + str(self.config_file) + ':\n')
+        pronk('Starting PfaudSec DataBook compiler.\nLoaded sections from '\
+                + str(self.config_file) + ':\n')
         for i in self.config.sections():
             pronk('Section: ' + str(i))
         pronk('')
@@ -90,7 +90,8 @@ class DataBook(object):
         
                             self.section_num = int(self.doc_id[0]) - 1
                             shutil.copy(self.grab_dir + '/' + k, work_dir)
-                            self.doc_section = (self.config[self.config.sections()[self.section_num]][self.doc_id])
+                            self.doc_section = (self.config[self.config.sections()\
+                                    [self.section_num]][self.doc_id])
                             self.new_name = self.doc_section.replace(' ','!') + '.pdf' 
                             self.new_full_name = work_dir + '/' + self.new_name
                             os.rename(work_dir + '/' + k, self.new_full_name)
@@ -197,6 +198,9 @@ class DataBook(object):
             elif os.name == "posix":
                 os.system("/usr/bin/xdg-open " + output_dir + '/databook.pdf')  
 
+# pyqt interface
+# inherits from redirect.py, 
+# the methods below need to be here to reference the data_book class
 class Interface(redirect.MainWindow):
     def __init__(self):
 
@@ -207,35 +211,46 @@ class Interface(redirect.MainWindow):
         self.grab_sel.clicked.connect(self.get_grab_dir)
         self.output_sel.clicked.connect(self.get_output_dir)
 
+        self.process_0.finished.connect(\
+                lambda: self.compile_tex2('xelatex', work_dir))
+        self.process_1.finished.connect(\
+                lambda: self.latex_btn_render_reenable())
 
+    def latex_btn_render_reenable(self):
+        self.latex_render.setEnabled(True)
+        data_book.output_pdf()
+    
+    def latex_btn_render(self):
+        #Will not render if job info LineEdits are empty
+        if (str(win.job_entry_1.text()) != '')\
+                and (str(win.job_entry_2.text()) != '')\
+                and (str(win.job_entry_1.text()) != '')\
+                and (str(win.job_entry_1.text()) != ''):
 
-        self.process_0.finished.connect(lambda: self.compile_tex2('xelatex', work_dir))
-        self.process_1.finished.connect(lambda: self.latex_btn_render_reenable())
+            self.latex_render.setEnabled(False)
+            data_book.data_book_run()
+        else:
+            pronk('Missing Job Info')
 
-
+    #Button function: folder select for output
     def get_output_dir(self):
         global output_dir
-        file = str(QtGui.QFileDialog.getExistingDirectory(self, "Select PDF Output Directory"))
+        file = str(QtGui.QFileDialog.getExistingDirectory(\
+                self, "Select PDF Output Directory"))
         if file:
             output_dir = file
             self.output_display.clear()
             self.output_display.append(str(file))
 
+
+    #Button function: folder select for grab dir
     def get_grab_dir(self):
-        file = str(QtGui.QFileDialog.getExistingDirectory(self, "Select Job Documents Directory"))
+        file = str(QtGui.QFileDialog.getExistingDirectory(\
+                self, "Select Job Documents Directory"))
         if file:
             data_book.grab_dir = file
             self.grab_display.clear()
             self.grab_display.append(str(file))
-
-    def latex_btn_render_reenable(self):
-        self.latex_render.setEnabled(True)
-        data_book.output_pdf()
-
-    def latex_btn_render(self):
-        self.latex_render.setEnabled(False)
-        data_book.data_book_run()
-    
 
 app = QtGui.QApplication(sys.argv)
 win = Interface()
@@ -247,9 +262,7 @@ font = QtGui.QFont()
 font.setPointSize(17)
 app.setFont(font)
 
-
 data_book = DataBook()
-
 
 sys.exit(app.exec_())
 
