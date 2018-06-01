@@ -102,23 +102,23 @@ class DataBook(object):
                             pdf_skip(self,k)
 
                     #This should catch and skip anything not matching an entry in sections_config.ini
-                    except(IndexError):
+                    except(IndexError,KeyError):
                         pdf_skip(self,k)
 
                 #for catching PDF files that dont have a space in their name
                 else:
                     pdf_skip(self,k)
-
+            
             pronk('\nLoading documents found in:\n"' + str(self.grab_dir) + '"\n\nFound:')
             for i in self.nested_list_sections:
                 pronk(str(i).replace('!', ' '))
-        
+            pronk('embed list start') 
             for i in range(len(self.nested_list_sections)):
                 if self.nested_list_sections[i]:
                     self.embed_list.append(r'\addsection{' + str(self.config.sections()[i]) + '}')
                     for k in self.nested_list_sections[i]:
                         self.embed_list.append(r'\addpage{' + k + '}')
-            
+            pronk('embed list end')
             with open(work_dir + '/embedlist.tex', 'w') as self.embed_list_file:
                 for i in self.embed_list:
                     self.embed_list_file.write('%s\n' % i)
