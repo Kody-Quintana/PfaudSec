@@ -35,6 +35,11 @@ class DataBook(object):
         self.xelatex_config = configparser.ConfigParser()
         self.xelatex_config.read(self.config_file)
         self.xelatex_path = 'texlive/bin/win32/xelatex.exe'
+        if os.name == "nt":
+            self.xelatex_path = 'texlive/bin/win32/xelatex.exe'
+        elif os.name == "posix":
+            self.xelatex_path = 'xelatex'
+
 
     def reset(self):
         self.embed_list = []
