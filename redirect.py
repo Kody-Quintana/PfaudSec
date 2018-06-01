@@ -1,15 +1,20 @@
 import sys
+
 from PyQt5 import QtGui, QtCore, uic, QtWidgets
+import ui_redirect
 #from PyQt5.QtWidgets import QApplication
 def p(x):
     print(x)
 
-class MainWindow(QtWidgets.QMainWindow):#, UI.MainUI.Ui_MainWindow):
+class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.Ui_MainWindow):
     def __init__(self):
         
         QtWidgets.QWidget.__init__(self)
-        uic.loadUi('redirect.ui', self)
+        #uic.loadUi('redirect.ui', self)
         
+        #ui = Ui_MainWindow()
+        self.setupUi(self)
+
         self.setWindowState(QtCore.Qt.WindowMaximized)       
         self.outputbox.setFocusPolicy(QtCore.Qt.NoFocus)
         self.outputbox_2.setFocusPolicy(QtCore.Qt.NoFocus)
@@ -23,23 +28,24 @@ class MainWindow(QtWidgets.QMainWindow):#, UI.MainUI.Ui_MainWindow):
         # out of the two required to update the table of contents
         self.proc_num = 0
 
+        try:
+            #Font imports
+            font_instance = QtGui.QFontDatabase
+            PfFont = font_instance.addApplicationFont("TeX/font/TTF/Pfaudler-Book.ttf")
+            pf_font_family = font_instance.applicationFontFamilies(PfFont)[0]
+            pf_font = QtGui.QFont(pf_font_family)
 
-        #Font imports
-        font_instance = QtGui.QFontDatabase
-        PfFont = font_instance.addApplicationFont("TeX/font/TTF/Pfaudler-Book.ttf")
-        pf_font_family = font_instance.applicationFontFamilies(PfFont)[0]
-        pf_font = QtGui.QFont(pf_font_family)
+            PfFontBold = font_instance.addApplicationFont("TeX/font/TTF/Pfaudler-Bold.ttf")
+            pf_font_family_bold = font_instance.applicationFontFamilies(PfFontBold)[0]
+            pf_font_bold_large = QtGui.QFont(pf_font_family_bold,50)
+            pf_font_bold = QtGui.QFont(pf_font_family_bold)
 
-        PfFontBold = font_instance.addApplicationFont("TeX/font/TTF/Pfaudler-Bold.ttf")
-        pf_font_family_bold = font_instance.applicationFontFamilies(PfFontBold)[0]
-        pf_font_bold_large = QtGui.QFont(pf_font_family_bold,50)
-        pf_font_bold = QtGui.QFont(pf_font_family_bold)
-
-        #self.setFont(pf_font_bold)
-        self.outputbox.setFont(pf_font)
-        self.outputbox_2.setFont(pf_font)
-        self.label.setFont(pf_font_bold_large)
-
+            #self.setFont(pf_font_bold)
+            self.outputbox.setFont(pf_font)
+            self.outputbox_2.setFont(pf_font)
+            self.label.setFont(pf_font_bold_large)
+        except:
+            pass
 
         #Allow copy/paste on job info line edits
         self.job_entry_1.setDragEnabled(True)

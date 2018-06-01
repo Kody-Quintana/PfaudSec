@@ -27,14 +27,14 @@ class DataBook(object):
         
         self.config_file = 'sections_config.ini'
         self.grab_dir = None
-        self.template_dir = './TeX'
+        self.template_dir = 'TeX'
         self.xelatex_config()
 
     def xelatex_config(self):
         self.xelatex_config_file = 'PfaudSec_config.ini'
         self.xelatex_config = configparser.ConfigParser()
         self.xelatex_config.read(self.config_file)
-        self.xelatex_path = 'M:/texlive/bin/win32/xelatex.exe'
+        self.xelatex_path = 'texlive/bin/win32/xelatex.exe'
 
     def reset(self):
         self.embed_list = []
@@ -287,7 +287,6 @@ app.setFont(font)
 
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
-#app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
 
 data_book = DataBook()
 

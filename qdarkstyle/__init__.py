@@ -71,11 +71,7 @@ def _qt_wrapper_import(qt_api):
     loader = ""
 
     try:
-        if qt_api == 'PyQt' or qt_api == 'pyqt':
-            import PyQt4
-            qt_wrapper = 'PyQt4'
-            loader = load_stylesheet_pyqt()
-        elif qt_api == 'PyQt5' or qt_api == 'pyqt5':
+        if qt_api == 'PyQt5' or qt_api == 'pyqt5':
             import PyQt5
             qt_wrapper = 'PyQt5'
             loader = load_stylesheet_pyqt5()
@@ -188,7 +184,7 @@ def load_stylesheet(pyside=True):
 
     # Load the stylesheet content from resources
     if not pyside:
-        from PyQt4.QtCore import QFile, QTextStream
+        from PyQt5.QtCore import QFile, QTextStream
     else:
         from PySide.QtCore import QFile, QTextStream
 
