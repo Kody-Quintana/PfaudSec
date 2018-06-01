@@ -1,6 +1,7 @@
 import sys
 import subprocess
-from PyQt4 import QtCore, QtGui, uic
+from PyQt5 import QtCore, QtGui, uic, QtWidgets
+#from PyQt5.QtWidgets import QApplication
 import tempfile
 import os
 import shutil
@@ -33,7 +34,7 @@ class DataBook(object):
         self.xelatex_config_file = 'PfaudSec_config.ini'
         self.xelatex_config = configparser.ConfigParser()
         self.xelatex_config.read(self.config_file)
-        self.xelatex_path = 'xelatex'
+        self.xelatex_path = 'M:/texlive/bin/win32/xelatex.exe'
 
     def reset(self):
         self.embed_list = []
@@ -195,7 +196,7 @@ class DataBook(object):
         #change to checkbox for open after compile option
         if True:
             if os.name == "nt":
-                os.filestart(output_dir + '/databook.pdf')
+                os.startfile(output_dir + '/databook.pdf')
             elif os.name == "posix":
                 os.system("/usr/bin/xdg-open " + output_dir + '/databook.pdf')  
 
@@ -217,10 +218,10 @@ class Interface(redirect.MainWindow):
         self.process_1.finished.connect(\
                 lambda: self.latex_btn_render_reenable())
 
-        QtGui.QShortcut(QtGui.QKeySequence("Return"), self, \
+        QtWidgets.QShortcut(QtGui.QKeySequence("Return"), self, \
                 lambda: self.enter_key())
                 #lambda: self.latex_render.click()) #Return is regular enter key
-        QtGui.QShortcut(QtGui.QKeySequence("Enter"), self, \
+        QtWidgets.QShortcut(QtGui.QKeySequence("Enter"), self, \
                 lambda: self.enter_key())
                 #lambda: self.latex_render.click()) #Enter is the one on the numpad
     
@@ -257,7 +258,7 @@ class Interface(redirect.MainWindow):
     #Button function: folder select for output
     def get_output_dir(self):
         global output_dir
-        file = str(QtGui.QFileDialog.getExistingDirectory(\
+        file = str(QtWidgets.QFileDialog.getExistingDirectory(\
                 self, "Select PDF Output Directory"))
         if file:
             output_dir = file
@@ -267,14 +268,14 @@ class Interface(redirect.MainWindow):
 
     #Button function: folder select for grab dir
     def get_grab_dir(self):
-        file = str(QtGui.QFileDialog.getExistingDirectory(\
+        file = str(QtWidgets.QFileDialog.getExistingDirectory(\
                 self, "Select Job Documents Directory"))
         if file:
             data_book.grab_dir = file
             self.grab_display.clear()
             self.grab_display.append(str(file))
 
-app = QtGui.QApplication(sys.argv)
+app = QtWidgets.QApplication(sys.argv)
 win = Interface()
 win.show()
 
@@ -284,9 +285,9 @@ font = QtGui.QFont()
 font.setPointSize(17)
 app.setFont(font)
 
+app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
-
-app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
+#app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt())
 
 data_book = DataBook()
 

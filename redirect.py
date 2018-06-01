@@ -1,13 +1,13 @@
 import sys
-from PyQt4 import QtGui, QtCore, uic
-
+from PyQt5 import QtGui, QtCore, uic, QtWidgets
+#from PyQt5.QtWidgets import QApplication
 def p(x):
     print(x)
 
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):#, UI.MainUI.Ui_MainWindow):
     def __init__(self):
         
-        QtGui.QWidget.__init__(self)
+        QtWidgets.QWidget.__init__(self)
         uic.loadUi('redirect.ui', self)
         
         self.setWindowState(QtCore.Qt.WindowMaximized)       
