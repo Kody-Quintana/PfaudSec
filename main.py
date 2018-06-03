@@ -1,4 +1,5 @@
 import sys
+import re
 import subprocess
 from PyQt5 import QtCore, QtGui, uic, QtWidgets
 #from PyQt5.QtWidgets import QApplication
@@ -69,11 +70,24 @@ class DataBook(object):
         pronk('')
         
         
-        def get_file_list(self,ext,dir):
+        def get_file_list(self,dir):
+            doc_pattern = re.compile("([^\s]+ \d+\.\d+\.pdf)")
             self.list = []
             for i in os.listdir(dir):
-                if i.endswith(ext):
-                    self.list.append(i)
+                self.file_list_flag = 0
+                if doc_pattern.match(i):
+                    for j in self.config.sections():
+                        for (x,y) in self.config.items(j):
+                            if str(str(i).split(' ')[1]).upper() == str(x) + '.PDF':
+                                self.list.append(i)
+                                self.file_list_flag = 1
+                else:
+                    pronk('Skipping PDF file: "' + str(i) + '" (is name malformed?)')
+
+                if self.file_list_flag == 0: 
+                    pronk('Skipping PDF file: "' + str(i) + '" (is name malformed?)')
+
+
             return sorted(self.list)
         
         def pdf_rename(self):
@@ -85,34 +99,25 @@ class DataBook(object):
             def pdf_skip(self,skipped_pdf):
                 pronk('\nSkipping PDF file: "' + str(skipped_pdf) + '" (is name malformed?)')
 
-            for i, k in enumerate((get_file_list(self,'pdf',self.grab_dir))):
-                if (' ' in k):
+            for i, k in enumerate((get_file_list(self,self.grab_dir))):
         
-                    #Splits document shorthand, removes leading 0s so that 2.1 is same as 2.01
-                    try:
-                        self.doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
-                        self.doc_id = self.doc_id_stage[0] + '.' + self.doc_id_stage[1].lstrip('0')
-                        
-                        if self.doc_id[0].isdigit():
-        
-                            self.section_num = int(self.doc_id[0]) - 1
-                            shutil.copy(self.grab_dir + '/' + k, work_dir)
-                            self.doc_section = (self.config[self.config.sections()\
-                                    [self.section_num]][self.doc_id])
-                            self.new_name = self.doc_section.replace(' ','!') + '.pdf' 
-                            self.new_full_name = work_dir + '/' + self.new_name
-                            os.rename(work_dir + '/' + k, self.new_full_name)
-                            self.nested_list_sections[self.section_num].append(self.new_name)
-                        else:
-                            pdf_skip(self,k)
+                #Splits document shorthand, removes leading 0s so that 2.1 is same as 2.01
+                try:
+                    self.doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
+                    self.doc_id = self.doc_id_stage[0] + '.' + self.doc_id_stage[1].lstrip('0')
+                    self.section_num = int(self.doc_id[0]) - 1
+                    shutil.copy(self.grab_dir + '/' + k, work_dir)
+                    self.doc_section = (self.config[self.config.sections()\
+                            [self.section_num]][self.doc_id])
+                    self.new_name = self.doc_section.replace(' ','!') + '.pdf' 
+                    self.new_full_name = work_dir + '/' + self.new_name
+                    os.rename(work_dir + '/' + k, self.new_full_name)
+                    self.nested_list_sections[self.section_num].append(self.new_name)
 
-                    #This should catch and skip anything not matching an entry in sections_config.ini
-                    except(IndexError,KeyError):
-                        pdf_skip(self,k)
-
-                #for catching PDF files that dont have a space in their name
-                else:
+                #This should catch and skip anything not matching an entry in sections_config.ini
+                except(IndexError,KeyError):
                     pdf_skip(self,k)
+
             
             pronk('\nLoading documents found in:\n"' + str(self.grab_dir) + '"\n\nFound:')
             for i in self.nested_list_sections:
@@ -166,10 +171,10 @@ class DataBook(object):
         
         
         def job_info(self):
-            self.data_file = ['mo = ' + str(win.job_entry_1.text()), 
-                    'serial = ' + str(win.job_entry_2.text()), 
-                    'customer = ' + str(win.job_entry_3.text()),
-                    'equipment = ' + str(win.job_entry_4.text())] 
+            self.data_file = ['mo = ' + str(win.job_entry_1.text()).replace('\\',''), 
+                    'serial = ' + str(win.job_entry_2.text()).replace('\\',''),
+                    'customer = ' + str(win.job_entry_3.text()).replace('\\',''),
+                    'equipment = ' + str(win.job_entry_4.text()).replace('\\','')] 
         
             with open(work_dir + '/jobinfo.dat', 'w') as self.job_info_file:
                 for i in self.data_file:
