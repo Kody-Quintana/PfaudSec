@@ -67,7 +67,8 @@ class DataBook(object):
                 if doc_pattern.match(i):
                     for j in self.config.sections():
                         for (x,y) in self.config.items(j):
-                            if str(str(i).split(' ')[1]).upper() == str(x) + '.PDF':
+                            i_dot_split = str(str(i).split(' ')[1]).split('.')
+                            if str(i_dot_split[0]) + '.' + str(i_dot_split[1]).lstrip('0') == str(x):
                                 self.list.append(i)
                                 self.file_list_flag = 1
                     if self.file_list_flag == 0: 
@@ -103,7 +104,9 @@ class DataBook(object):
                     self.nested_list_sections[self.section_num].append(self.new_name)
 
                 #This should catch and skip anything not matching an entry in sections_config.ini
-                except(IndexError,KeyError):
+                except IndexError:
+                    pdf_skip(self,k)
+                except FileExistsError:
                     pdf_skip(self,k)
 
             
