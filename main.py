@@ -17,6 +17,7 @@ def pronk(text):
 #Global tempory working directory for XeLaTeX to use
 work_dir = tempfile.mkdtemp(prefix='PfaudSec_')
 
+grab_dir = ''
 output_dir = None
 
 class DataBook(object):
@@ -26,7 +27,6 @@ class DataBook(object):
         self.nested_list_sections = []
         
         self.config_file = 'sections_config.ini'
-        self.grab_dir = None
         self.template_dir = 'TeX'
         self.xelatex_config()
 
@@ -59,7 +59,8 @@ class DataBook(object):
         
         
         def get_file_list(self,dir):
-            pronk('\nLoading documents found in:\n"' + str(self.grab_dir) + '"\n')
+            global grab_dir
+            pronk('\nLoading documents found in:\n"' + str(grab_dir) + '"\n')
             doc_pattern = re.compile("([^\s]+ \d+\.\d+\.pdf)")
             self.list = []
             for i in os.listdir(dir):
@@ -80,6 +81,7 @@ class DataBook(object):
         
 
         def pdf_rename(self):
+            global grab_dir
         
             for l in range(len(self.config.sections())): 
                 # -1 from actual length but configparser makes a DEFAULT section that is not used so the -1 is fine
@@ -88,14 +90,14 @@ class DataBook(object):
             def pdf_skip(self,skipped_pdf):
                 pronk('\nSkipping PDF file: "' + str(skipped_pdf) + '" (is name malformed?)')
 
-            for i, k in enumerate((get_file_list(self,self.grab_dir))):
+            for i, k in enumerate((get_file_list(self,grab_dir))):
         
                 #Splits document shorthand, removes leading 0s so that 2.1 is same as 2.01
                 try:
                     self.doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
                     self.doc_id = self.doc_id_stage[0] + '.' + self.doc_id_stage[1].lstrip('0')
                     self.section_num = int(self.doc_id[0]) - 1
-                    shutil.copy(self.grab_dir + '/' + k, work_dir)
+                    shutil.copy(grab_dir + '/' + k, work_dir)
                     self.doc_section = (self.config[self.config.sections()\
                             [self.section_num]][self.doc_id])
                     self.new_name = self.doc_section.replace(' ','!') + '.pdf' 
@@ -184,19 +186,24 @@ class DataBook(object):
     def output_pdf(self):
         global work_dir
         global output_dir
-        self.folder_check(output_dir)
-        pronk('\ndatabook.pdf copied to: ' + str(output_dir))
-        shutil.copy(work_dir + '/databook.pdf', output_dir)
-        shutil.rmtree(work_dir)
-        self.reset()
-        #win.outputbox_2.clear()
 
-        #change to checkbox for open after compile option
-        if True:
-            if os.name == "nt":
-                os.startfile(output_dir + '/databook.pdf')
-            elif os.name == "posix":
-                os.system("/usr/bin/xdg-open " + output_dir + '/databook.pdf')  
+        try:
+
+            self.folder_check(str(output_dir))
+            pronk('\ndatabook.pdf copied to: ' + str(output_dir))
+            shutil.copy(work_dir + '/databook.pdf',str(output_dir))
+            shutil.rmtree(work_dir)
+            self.reset()
+            #win.outputbox_2.clear()
+
+            #change to checkbox for open after compile option
+            if True:
+                if os.name == "nt":
+                    os.startfile(output_dir + '/databook.pdf')
+                elif os.name == "posix":
+                    os.system("/usr/bin/xdg-open " + output_dir + '/databook.pdf')  
+        except:
+            pass
 
 # pyqt interface
 # inherits from redirect.py, 
@@ -206,6 +213,10 @@ class Interface(redirect.MainWindow):
 
         global work_dir
         super().__init__()
+        
+        
+        self.checkBox.stateChanged.connect(lambda: self.output_same_dir())
+        self.checkBox.setChecked(True)
 
         self.latex_render.clicked.connect(lambda: self.latex_btn_render())
         self.grab_sel.clicked.connect(self.get_grab_dir)
@@ -251,6 +262,19 @@ class Interface(redirect.MainWindow):
             data_book.data_book_run()
         else:
             pronk('Missing one or more fields')
+    
+
+    def output_same_dir(self):
+        global grab_dir
+        global output_dir
+        if self.checkBox.isChecked():
+            self.output_sel.setEnabled(False)
+            self.output_display.setText(self.grab_display.toPlainText())
+            if str(output_dir) != '':
+                output_dir = grab_dir
+
+        else:
+            self.output_sel.setEnabled(True)
 
     #Button function: folder select for output
     def get_output_dir(self):
@@ -265,12 +289,22 @@ class Interface(redirect.MainWindow):
 
     #Button function: folder select for grab dir
     def get_grab_dir(self):
+        global output_dir
+        global grab_dir
         file = str(QtWidgets.QFileDialog.getExistingDirectory(\
                 self, "Select Job Documents Directory"))
         if file:
-            data_book.grab_dir = file
+            grab_dir = file
             self.grab_display.clear()
             self.grab_display.append(str(file))
+
+            if win.checkBox.isChecked():
+                pronk(output_dir)
+                output_dir = file
+                pronk(output_dir)
+                self.output_display.clear()
+                self.output_display.append(str(file))
+        print(str(output_dir))
 
 app = QtWidgets.QApplication(sys.argv)
 win = Interface()

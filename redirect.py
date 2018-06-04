@@ -14,6 +14,9 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         
         #ui = Ui_MainWindow()
         self.setupUi(self)
+        self.checkBox.stateChanged.connect(lambda: self.output_same_dir())
+        self.checkBox.setChecked(True)
+
 
         self.setWindowState(QtCore.Qt.WindowMaximized)       
         self.outputbox.setFocusPolicy(QtCore.Qt.NoFocus)
@@ -75,6 +78,12 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         self.process_1.started.connect(lambda: p('LaTeX second compile start'))
         self.process_1.finished.connect(lambda: self.proc_num_reset())
     
+    def output_same_dir(self):
+        if self.checkBox.isChecked():
+            self.output_sel.setEnabled(False)
+            self.output_display.setText(self.grab_display.toPlainText())
+        else:
+            self.output_sel.setEnabled(True)
 
     def proc_num_increase(self):
         self.proc_num = 1
