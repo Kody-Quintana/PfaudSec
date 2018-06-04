@@ -24,6 +24,7 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         #self.grab_sel.setFocusPolicy(QtCore.Qt.NoFocus)
         #self.output_sel.setFocusPolicy(QtCore.Qt.NoFocus)
         self.grab_display.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.checkBox.setFocusPolicy(QtCore.Qt.NoFocus)
         self.output_display.setFocusPolicy(QtCore.Qt.NoFocus)
         #self.latex_render.setFocusPolicy(QtCore.Qt.NoFocus)
         #self.job_entry_1.clearFocus()
