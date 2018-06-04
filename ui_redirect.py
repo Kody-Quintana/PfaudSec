@@ -185,7 +185,7 @@ class Ui_MainWindow(object):
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
         self.menuBar = QtWidgets.QMenuBar(MainWindow)
-        self.menuBar.setGeometry(QtCore.QRect(0, 0, 1280, 17))
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 1280, 20))
         self.menuBar.setObjectName("menuBar")
         self.menuConfig = QtWidgets.QMenu(self.menuBar)
         self.menuConfig.setObjectName("menuConfig")
@@ -211,6 +211,17 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.grab_sel, self.output_sel)
+        MainWindow.setTabOrder(self.output_sel, self.job_entry_1)
+        MainWindow.setTabOrder(self.job_entry_1, self.job_entry_2)
+        MainWindow.setTabOrder(self.job_entry_2, self.job_entry_3)
+        MainWindow.setTabOrder(self.job_entry_3, self.job_entry_4)
+        MainWindow.setTabOrder(self.job_entry_4, self.latex_render)
+        MainWindow.setTabOrder(self.latex_render, self.outputbox)
+        MainWindow.setTabOrder(self.outputbox, self.outputbox_2)
+        MainWindow.setTabOrder(self.outputbox_2, self.output_display)
+        MainWindow.setTabOrder(self.output_display, self.checkBox)
+        MainWindow.setTabOrder(self.checkBox, self.grab_display)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate

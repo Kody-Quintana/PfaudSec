@@ -19,8 +19,8 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
 
 
         self.setWindowState(QtCore.Qt.WindowMaximized)       
-        self.outputbox.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.outputbox_2.setFocusPolicy(QtCore.Qt.NoFocus)
+        #self.outputbox.setFocusPolicy(QtCore.Qt.NoFocus)
+        #self.outputbox_2.setFocusPolicy(QtCore.Qt.NoFocus)
         #self.grab_sel.setFocusPolicy(QtCore.Qt.NoFocus)
         #self.output_sel.setFocusPolicy(QtCore.Qt.NoFocus)
         self.grab_display.setFocusPolicy(QtCore.Qt.NoFocus)

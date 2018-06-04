@@ -417,7 +417,7 @@
      <x>0</x>
      <y>0</y>
      <width>1280</width>
-     <height>17</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuConfig">
@@ -460,6 +460,20 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>grab_sel</tabstop>
+  <tabstop>output_sel</tabstop>
+  <tabstop>job_entry_1</tabstop>
+  <tabstop>job_entry_2</tabstop>
+  <tabstop>job_entry_3</tabstop>
+  <tabstop>job_entry_4</tabstop>
+  <tabstop>latex_render</tabstop>
+  <tabstop>outputbox</tabstop>
+  <tabstop>outputbox_2</tabstop>
+  <tabstop>output_display</tabstop>
+  <tabstop>checkBox</tabstop>
+  <tabstop>grab_display</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
