@@ -22,8 +22,9 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         #self.output_sel.setFocusPolicy(QtCore.Qt.NoFocus)
         self.grab_display.setFocusPolicy(QtCore.Qt.NoFocus)
         self.output_display.setFocusPolicy(QtCore.Qt.NoFocus)
-        self.latex_render.setFocusPolicy(QtCore.Qt.NoFocus)
+        #self.latex_render.setFocusPolicy(QtCore.Qt.NoFocus)
         #self.job_entry_1.clearFocus()
+
         # This var is to see which LaTeX QProcess is running
         # out of the two required to update the table of contents
         self.proc_num = 0

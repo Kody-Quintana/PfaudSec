@@ -2,7 +2,6 @@ import sys
 import re
 import subprocess
 from PyQt5 import QtCore, QtGui, uic, QtWidgets
-#from PyQt5.QtWidgets import QApplication
 import tempfile
 import os
 import shutil
@@ -47,17 +46,6 @@ class DataBook(object):
         self.nested_list_sections = []
 
 
-# Implement later if pyinstaller is used
-#    def resource_path(self,relative_path):
-#        #Get absolute path to resource, works for dev and for PyInstaller
-#        try:
-#            # PyInstaller creates a temp folder and stores path in _MEIPASS
-#            base_path = sys._MEIPASS
-#        except Exception:
-#            base_path = os.path.abspath(".")
-#    
-#        return os.path.join(base_path, relative_path)
-
     def data_book_run(self):
 
         global work_dir 
@@ -71,6 +59,7 @@ class DataBook(object):
         
         
         def get_file_list(self,dir):
+            pronk('\nLoading documents found in:\n"' + str(self.grab_dir) + '"\n')
             doc_pattern = re.compile("([^\s]+ \d+\.\d+\.pdf)")
             self.list = []
             for i in os.listdir(dir):
@@ -81,15 +70,14 @@ class DataBook(object):
                             if str(str(i).split(' ')[1]).upper() == str(x) + '.PDF':
                                 self.list.append(i)
                                 self.file_list_flag = 1
+                    if self.file_list_flag == 0: 
+                        pronk('Skipping PDF file: "' + str(i) + '" (name not in sections_config.ini)')
                 else:
-                    pronk('Skipping PDF file: "' + str(i) + '" (is name malformed?)')
-
-                if self.file_list_flag == 0: 
-                    pronk('Skipping PDF file: "' + str(i) + '" (is name malformed?)')
-
-
+                    if i.endswith('pdf'):
+                        pronk('Skipping PDF file: "' + str(i) + '" (is name malformed?)')
             return sorted(self.list)
         
+
         def pdf_rename(self):
         
             for l in range(len(self.config.sections())): 
@@ -119,16 +107,14 @@ class DataBook(object):
                     pdf_skip(self,k)
 
             
-            pronk('\nLoading documents found in:\n"' + str(self.grab_dir) + '"\n\nFound:')
+            pronk('\n\nFound:')
             for i in self.nested_list_sections:
                 pronk(str(i).replace('!', ' '))
-            pronk('embed list start') 
             for i in range(len(self.nested_list_sections)):
                 if self.nested_list_sections[i]:
                     self.embed_list.append(r'\addsection{' + str(self.config.sections()[i]) + '}')
                     for k in self.nested_list_sections[i]:
                         self.embed_list.append(r'\addpage{' + k + '}')
-            pronk('embed list end')
             with open(work_dir + '/embedlist.tex', 'w') as self.embed_list_file:
                 for i in self.embed_list:
                     self.embed_list_file.write('%s\n' % i)
@@ -187,7 +173,6 @@ class DataBook(object):
         pdf_rename(self)
         job_info(self)
         win.compile_tex(self.xelatex_path, work_dir) 
-        #output_pdf(self, self.output_dir)
 
     def folder_check(self,folder):
         if not os.path.exists(folder):
@@ -225,21 +210,20 @@ class Interface(redirect.MainWindow):
 
         self.process_0.finished.connect(\
                 lambda: self.compile_tex2(data_book.xelatex_path, work_dir))
+
         self.process_1.finished.connect(\
                 lambda: self.latex_btn_render_reenable())
 
         QtWidgets.QShortcut(QtGui.QKeySequence("Return"), self, \
                 lambda: self.enter_key())
-                #lambda: self.latex_render.click()) #Return is regular enter key
+
         QtWidgets.QShortcut(QtGui.QKeySequence("Enter"), self, \
                 lambda: self.enter_key())
-                #lambda: self.latex_render.click()) #Enter is the one on the numpad
     
 
     def enter_key(self):
         if self.grab_sel.hasFocus():
             self.grab_sel.click()
-            #pronk('it works')
         elif self.output_sel.hasFocus():
             self.output_sel.click()
         else:
