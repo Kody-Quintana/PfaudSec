@@ -114,7 +114,7 @@ class DataBook(object):
             
             pronk('\n\nFound:')
             for i in self.nested_list_sections:
-                pronk(str(i).replace('!', ' '))
+                pronk(str(i).replace('!', ' ').replace('.PDF', '').replace('.pdf', ''))
             for i in range(len(self.nested_list_sections)):
                 if self.nested_list_sections[i]:
                     self.embed_list.append(r'\addsection{' + str(self.config.sections()[i]) + '}')
@@ -222,6 +222,8 @@ class Interface(redirect.MainWindow):
         self.grab_sel.clicked.connect(self.get_grab_dir)
         self.output_sel.clicked.connect(self.get_output_dir)
 
+        self.actionSections_config.triggered.connect(self.edit_sections_config)
+
         self.process_0.finished.connect(\
                 lambda: self.compile_tex2(data_book.xelatex_path, work_dir))
 
@@ -235,6 +237,12 @@ class Interface(redirect.MainWindow):
                 lambda: self.enter_key())
     
 
+    def edit_sections_config(self):
+        if os.name == "nt":
+            os.startfile('sections_config.ini')
+        elif os.name == "posix":
+            os.system("/usr/bin/xdg-open " + 'sections_config.ini')  
+        
     def enter_key(self):
         if self.grab_sel.hasFocus():
             self.grab_sel.click()
@@ -299,9 +307,7 @@ class Interface(redirect.MainWindow):
             self.grab_display.append(str(file))
 
             if win.checkBox.isChecked():
-                pronk(output_dir)
                 output_dir = file
-                pronk(output_dir)
                 self.output_display.clear()
                 self.output_display.append(str(file))
         print(str(output_dir))
@@ -313,7 +319,7 @@ win.show()
 
 #Global font size
 font = QtGui.QFont()
-font.setPointSize(17)
+font.setPointSize(14)
 app.setFont(font)
 
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
