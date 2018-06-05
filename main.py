@@ -31,10 +31,9 @@ class DataBook(object):
         self.xelatex_config()
 
     def xelatex_config(self):
-        self.xelatex_config_file = 'PfaudSec_config.ini'
-        self.xelatex_config = configparser.ConfigParser()
-        self.xelatex_config.read(self.config_file)
-        self.xelatex_path = 'texlive/bin/win32/xelatex.exe'
+        #self.xelatex_config_file = 'PfaudSec_config.ini'
+        #self.xelatex_config = configparser.ConfigParser()
+        #self.xelatex_config.read(self.config_file)
         if os.name == "nt":
             self.xelatex_path = 'texlive/bin/win32/xelatex.exe'
         elif os.name == "posix":
@@ -223,6 +222,7 @@ class Interface(redirect.MainWindow):
         self.output_sel.clicked.connect(self.get_output_dir)
 
         self.actionSections_config.triggered.connect(self.edit_sections_config)
+        self.actionUser_Procedure.triggered.connect(self.open_procedure)
 
         self.process_0.finished.connect(\
                 lambda: self.compile_tex2(data_book.xelatex_path, work_dir))
@@ -236,6 +236,15 @@ class Interface(redirect.MainWindow):
         QtWidgets.QShortcut(QtGui.QKeySequence("Enter"), self, \
                 lambda: self.enter_key())
     
+
+    def open_procedure(self):
+        try:
+            if os.name == "nt":
+                os.startfile('user_procedure.pdf')
+            elif os.name == "posix":
+                os.system("/usr/bin/xdg-open " + 'user_procedure.pdf')  
+        except:
+            pronk('Can\'t find user_procedure.pdf')
 
     def edit_sections_config(self):
         if os.name == "nt":
@@ -317,8 +326,7 @@ with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
     app = QtWidgets.QApplication(sys.argv)
     win = Interface()
     win.show()
-    
-    
+
     #Global font size
     font = QtGui.QFont()
     font.setPointSize(14)
