@@ -191,7 +191,7 @@ class DataBook(object):
             self.folder_check(str(output_dir))
             pronk('\ndatabook.pdf copied to: ' + str(output_dir))
             shutil.copy(work_dir + '/databook.pdf',str(output_dir))
-            shutil.rmtree(work_dir)
+            #shutil.rmtree(work_dir)
             self.reset()
             #win.outputbox_2.clear()
 
@@ -214,10 +214,10 @@ class Interface(redirect.MainWindow):
         super().__init__()
         
         
-        self.checkBox.stateChanged.connect(lambda: self.output_same_dir())
+        self.checkBox.stateChanged.connect(self.output_same_dir)
         self.checkBox.setChecked(True)
 
-        self.latex_render.clicked.connect(lambda: self.latex_btn_render())
+        self.latex_render.clicked.connect(self.latex_btn_render)
         self.grab_sel.clicked.connect(self.get_grab_dir)
         self.output_sel.clicked.connect(self.get_output_dir)
 
@@ -227,8 +227,7 @@ class Interface(redirect.MainWindow):
         self.process_0.finished.connect(\
                 lambda: self.compile_tex2(data_book.xelatex_path, work_dir))
 
-        self.process_1.finished.connect(\
-                lambda: self.latex_btn_render_reenable())
+        self.process_1.finished.connect(self.latex_btn_render_reenable)
 
         QtWidgets.QShortcut(QtGui.QKeySequence("Return"), self, \
                 lambda: self.enter_key())
@@ -337,5 +336,5 @@ with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
     
     data_book = DataBook()
     
-    sys.exit(app.exec_())
+sys.exit(app.exec_())
 
