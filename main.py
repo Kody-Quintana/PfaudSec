@@ -15,7 +15,7 @@ def pronk(text):
     win.main_append(str(text) + '\n')
 
 #Global tempory working directory for XeLaTeX to use
-work_dir = tempfile.mkdtemp(prefix='PfaudSec_')
+#work_dir = tempfile.mkdtemp(prefix='PfaudSec_')
 
 grab_dir = ''
 output_dir = None
@@ -312,20 +312,22 @@ class Interface(redirect.MainWindow):
                 self.output_display.append(str(file))
         print(str(output_dir))
 
-app = QtWidgets.QApplication(sys.argv)
-win = Interface()
-win.show()
+with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
 
-
-#Global font size
-font = QtGui.QFont()
-font.setPointSize(14)
-app.setFont(font)
-
-app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-
-
-data_book = DataBook()
-
-sys.exit(app.exec_())
+    app = QtWidgets.QApplication(sys.argv)
+    win = Interface()
+    win.show()
+    
+    
+    #Global font size
+    font = QtGui.QFont()
+    font.setPointSize(14)
+    app.setFont(font)
+    
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+    
+    
+    data_book = DataBook()
+    
+    sys.exit(app.exec_())
 
