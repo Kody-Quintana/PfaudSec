@@ -132,7 +132,6 @@ class DataBook(object):
 
                 global work_dir
 
-                print('Path is: ' + str(path))
                 self.loose_embed_list = [] 
                 self.loose_name = input_loose_name.replace(' ', '!')
                 self.folder_check(work_dir + r'/' + self.loose_name)                

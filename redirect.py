@@ -62,28 +62,29 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         self.job_entry_4.setReadOnly(False)
         self.job_entry_4.setReadOnly(False)
 
-        
+        #This is dumb and should be put into some kind of loop
         #First LaTeX run
         self.process_0 = QtCore.QProcess(self)
         self.process_0.readyReadStandardOutput.connect(self.stdoutReady)
         self.process_0.readyReadStandardError.connect(self.stderrReady)
         self.process_0.started.connect(lambda: self.clear())
         self.process_0.started.connect(lambda: p('LaTeX first compile start'))
-        self.process_0.finished.connect(lambda: self.proc_num_increase(1))
+        self.process_0.finished.connect(lambda: self.proc_num_set(1))
 
+        #Second LaTeX run
         self.process_1 = QtCore.QProcess(self)
         self.process_1.readyReadStandardOutput.connect(self.stdoutReady)
         self.process_1.readyReadStandardError.connect(self.stderrReady)
         self.process_1.started.connect(lambda: self.clear())
         self.process_1.started.connect(lambda: p('LaTeX second compile start'))
-        self.process_1.finished.connect(lambda: self.proc_num_increase(2))
+        self.process_1.finished.connect(lambda: self.proc_num_set(2))
 
-        #Second LaTeX run (to update table of contents)
+        #Third LaTeX run (to update table of contents)
         self.process_2 = QtCore.QProcess(self)
         self.process_2.readyReadStandardOutput.connect(self.stdoutReady)
         self.process_2.readyReadStandardError.connect(self.stderrReady)
         self.process_2.started.connect(lambda: p('LaTeX third compile start'))
-        self.process_2.finished.connect(lambda: self.proc_num_reset())
+        self.process_2.finished.connect(lambda: self.proc_num_set(0))
     
     def output_same_dir(self):
         if self.checkBox.isChecked():
@@ -92,14 +93,8 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         else:
             self.output_sel.setEnabled(True)
 
-    def proc_num_increase(self, num):
+    def proc_num_set(self, num):
         self.proc_num = num
-        print('proc num is now: ' + str(self.proc_num))
-
-
-    def proc_num_reset(self):
-        self.proc_num = 0
-
 
     def clear(self):
         self.outputbox.clear()
