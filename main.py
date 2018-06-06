@@ -267,10 +267,10 @@ class Interface(redirect.MainWindow):
         super().__init__()
         
         
-        self.checkBox.stateChanged.connect(lambda: self.output_same_dir())
+        self.checkBox.stateChanged.connect(self.output_same_dir)
         self.checkBox.setChecked(True)
 
-        self.latex_render.clicked.connect(lambda: self.latex_btn_render())
+        self.latex_render.clicked.connect(self.latex_btn_render)
         self.grab_sel.clicked.connect(self.get_grab_dir)
         self.output_sel.clicked.connect(self.get_output_dir)
 
@@ -392,6 +392,5 @@ with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
     
     
     data_book = DataBook()
-
 sys.exit(app.exec_())
 
