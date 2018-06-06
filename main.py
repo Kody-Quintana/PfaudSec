@@ -127,6 +127,53 @@ class DataBook(object):
         for i in self.embed_list:
             pronk(i)
         
+
+        def loose_files_stage(self, input_loose_name, path):
+
+                global work_dir
+
+                print('Path is: ' + str(path))
+                self.loose_embed_list = [] 
+                self.loose_name = input_loose_name.replace(' ', '!')
+                self.folder_check(work_dir + r'/' + self.loose_name)                
+
+                def try_copy(src, dest):
+                    #this is not a good way, change later
+                    try:
+                        shutil.copy(src, dest)
+                    except FileExistsError:
+                        pass
+                
+                for root, dirs, files in os.walk(path):
+                    for j in files:
+                        if j.endswith('.pdf'):
+                            self.loose_embed_list.append(str(root + r'/' + j).replace(r'//',r'/'))
+                self.loose_embed_list.sort()
+                            
+                
+                for i in self.loose_embed_list:
+                    try_copy(i, work_dir + r'/' + self.loose_name)
+
+                for i in os.listdir(work_dir + '/' + self.loose_name):
+                    if i.endswith('.pdf'):
+                        os.rename(work_dir + '/' + self.loose_name + '/' + i,
+                                work_dir + '/' + self.loose_name + '/' + i.replace(' ','!'))
+                
+                
+                with open(work_dir + '/embedlist.tex', 'a') as self.embed_list_file:
+                    self.embed_list_file.write('\n' + r'\addsection{' 
+                            + self.loose_name.replace('!',' ') + '}')
+
+                    for i in self.loose_embed_list:
+                        self.embed_list_file.write('\n' 
+                                + r'\addpage{' 
+                                + self.loose_name 
+                                + '/' 
+                                + str(i.replace(' ','!').split('/')[len(i.split('/')) - 1]) 
+                                + '}')
+
+                    self.embed_list_file.close()
+
         def template_stage(self,src,dest):
             
             folder_check(self,dest)
@@ -176,6 +223,12 @@ class DataBook(object):
         template_stage(self, self.template_dir, work_dir)
         pdf_rename(self)
         job_info(self)
+
+
+        #test of loose files
+        loose_files_stage(self, 'loose test', '/home/user/PfaudSec/Pfaudler')
+        loose_files_stage(self, 'loose test 2', '/home/user/PfaudSec/Loose2')
+
         win.compile_tex(self.xelatex_path, work_dir) 
 
     def folder_check(self,folder):
@@ -191,7 +244,7 @@ class DataBook(object):
             self.folder_check(str(output_dir))
             pronk('\ndatabook.pdf copied to: ' + str(output_dir))
             shutil.copy(work_dir + '/databook.pdf',str(output_dir))
-            shutil.rmtree(work_dir)
+            #shutil.rmtree(work_dir)
             self.reset()
             #win.outputbox_2.clear()
 
@@ -225,9 +278,12 @@ class Interface(redirect.MainWindow):
         self.actionUser_Procedure.triggered.connect(self.open_procedure)
 
         self.process_0.finished.connect(\
-                lambda: self.compile_tex2(data_book.xelatex_path, work_dir))
+                lambda: self.compile_tex1(data_book.xelatex_path, work_dir))
 
         self.process_1.finished.connect(\
+                lambda: self.compile_tex2(data_book.xelatex_path, work_dir))
+
+        self.process_2.finished.connect(\
                 lambda: self.latex_btn_render_reenable())
 
         QtWidgets.QShortcut(QtGui.QKeySequence("Return"), self, \
@@ -326,7 +382,7 @@ with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
     app = QtWidgets.QApplication(sys.argv)
     win = Interface()
     win.show()
-
+    
     #Global font size
     font = QtGui.QFont()
     font.setPointSize(14)
@@ -336,6 +392,6 @@ with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
     
     
     data_book = DataBook()
-    
-    sys.exit(app.exec_())
+
+sys.exit(app.exec_())
 

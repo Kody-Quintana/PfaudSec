@@ -69,15 +69,21 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         self.process_0.readyReadStandardError.connect(self.stderrReady)
         self.process_0.started.connect(lambda: self.clear())
         self.process_0.started.connect(lambda: p('LaTeX first compile start'))
-        self.process_0.finished.connect(lambda: self.proc_num_increase())
+        self.process_0.finished.connect(lambda: self.proc_num_increase(1))
 
-
-        #Second LaTeX run (to update table of contents)
         self.process_1 = QtCore.QProcess(self)
         self.process_1.readyReadStandardOutput.connect(self.stdoutReady)
         self.process_1.readyReadStandardError.connect(self.stderrReady)
+        self.process_1.started.connect(lambda: self.clear())
         self.process_1.started.connect(lambda: p('LaTeX second compile start'))
-        self.process_1.finished.connect(lambda: self.proc_num_reset())
+        self.process_1.finished.connect(lambda: self.proc_num_increase(2))
+
+        #Second LaTeX run (to update table of contents)
+        self.process_2 = QtCore.QProcess(self)
+        self.process_2.readyReadStandardOutput.connect(self.stdoutReady)
+        self.process_2.readyReadStandardError.connect(self.stderrReady)
+        self.process_2.started.connect(lambda: p('LaTeX third compile start'))
+        self.process_2.finished.connect(lambda: self.proc_num_reset())
     
     def output_same_dir(self):
         if self.checkBox.isChecked():
@@ -86,8 +92,9 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         else:
             self.output_sel.setEnabled(True)
 
-    def proc_num_increase(self):
-        self.proc_num = 1
+    def proc_num_increase(self, num):
+        self.proc_num = num
+        print('proc num is now: ' + str(self.proc_num))
 
 
     def proc_num_reset(self):
@@ -105,10 +112,13 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         self.process_0.setWorkingDirectory(work_dir)
         self.process_0.start(xelatex_path, ['databook'])
 
-
-    def compile_tex2(self,xelatex_path, work_dir):
+    def compile_tex1(self,xelatex_path, work_dir):
         self.process_1.setWorkingDirectory(work_dir)
         self.process_1.start(xelatex_path, ['databook'])
+
+    def compile_tex2(self,xelatex_path, work_dir):
+        self.process_2.setWorkingDirectory(work_dir)
+        self.process_2.start(xelatex_path, ['databook'])
 
     
     # For printing to outputbox_2 (right side)
