@@ -171,7 +171,8 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 
 %--newcommand for subsections--%
 \newcommand\addpage[1]{%
-	\StrBefore[1]{#1}{.}[\temp] %-Display name must be stored in \temp because of expansion behavior in \includepdf
+	\StrBefore[1]{#1}{.}[\temp]%-Display name must be stored in \temp because of expansion behavior in \includepdf
+	\IfSubStr{\temp}{/}{\StrBehind{\temp}{/}[\temp]}{}%
 	\StrSubstitute{\temp}{!}{ }[\temp]
 	\includepdf[scale=0.95,pages=-,addtotoc={1,subsection,1,\temp,\temp},pagecommand=\phantomsection]{#1}}
 
