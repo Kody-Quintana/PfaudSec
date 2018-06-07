@@ -42,8 +42,11 @@ class DataBook(object):
 
 
     def reset(self):
+        global work_dir
         self.embed_list = []
         self.nested_list_sections = []
+        shutil.rmtree(work_dir)
+        os.makedirs(work_dir)
 
 
     def data_book_run(self):
@@ -162,7 +165,10 @@ class DataBook(object):
                 for i in os.listdir(work_dir + '/' + self.loose_name):
                     if i.endswith('.pdf'):
                         os.rename(work_dir + '/' + self.loose_name + '/' + i,
-                                work_dir + '/' + self.loose_name + '/' + strip_accents(self, i.replace(' ','!')))
+                                work_dir + '/' + self.loose_name + '/' + strip_accents(self, i\
+                                        .replace('-','')\
+                                        .replace('_','!')\
+                                        .replace(' ','!')))
                 
                 
                 with open(work_dir + '/embedlist.tex', 'a') as self.embed_list_file:
@@ -174,7 +180,11 @@ class DataBook(object):
                                 + r'\addpage{' 
                                 + self.loose_name 
                                 + '/' 
-                                + strip_accents(self, str(i.replace(' ','!').split('/')[len(i.split('/')) - 1]))
+                                + strip_accents(self, str(i\
+                                        .replace('-','')\
+                                        .replace('_','!')\
+                                        .replace(' ','!')\
+                                        .split('/')[len(i.split('/')) - 1]))
                                 + '}')
 
                     self.embed_list_file.close()
