@@ -186,6 +186,8 @@ class Ui_MainWindow(object):
         self.groupBox.setAlignment(QtCore.Qt.AlignCenter)
         self.groupBox.setObjectName("groupBox")
         self.gridLayout = QtWidgets.QGridLayout(self.groupBox)
+        self.gridLayout.setContentsMargins(20, 15, 20, 15)
+        self.gridLayout.setVerticalSpacing(6)
         self.gridLayout.setObjectName("gridLayout")
         self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_12.setSpacing(0)
