@@ -109,7 +109,7 @@ class DataBook(object):
                     self.nested_list_sections[self.section_num].append(self.new_name)
 
                 #This should catch and skip anything not matching an entry in sections_config.ini
-                except IndexError:
+                except KeyError:
                     pdf_skip(self,k)
                 except IndexError:
                     pdf_skip(self,k)
@@ -248,10 +248,33 @@ class DataBook(object):
             loose_files_stage(self, 'Pfaudler Brazil Data Book', win.lineEdit_loose_0.text())
 
         if win.checkBox_loose_1.isChecked() and win.lineEdit_loose_1.text() != '':
-            loose_files_stage(self, 'Pfaudler Brazil Data Book', win.lineEdit_loose_1.text())
+            loose_files_stage(self, 'Pfaudler Brazil Second Data Book', win.lineEdit_loose_1.text())
 
         if win.checkBox_loose_2.isChecked() and win.lineEdit_loose_2.text() != '':
             loose_files_stage(self, win.lineEdit_loose_name_2.text(), win.lineEdit_loose_2.text())
+
+        if True: 
+            if os.name == "nt":
+                self.gs_path = 'Ghostscript/bin/gswin32c.exe'
+            elif os.name == "posix":
+                self.gs_path = 'gs'
+            for root, dirs, files in os.walk(work_dir):
+                for k, i in enumerate(files):
+                    if i.endswith('.pdf'):
+                        folder_check(self, root + '/repair/')
+                        p = subprocess.Popen([self.gs_path,
+                            '-sOutputFile="' + str(root + '/repair/' + i + '"'),
+                            '-sDEVICE=pdfwrite',
+                            '-dPDFSETTINGS=/prepress',
+                            '-dBatch',
+                            '-dNOPAUSE',
+                            '-dQUIET',
+                            '"' + str(root + '/' + i) + '"'],
+                            stdin=subprocess.PIPE)
+
+                        p.communicate()
+                        p.wait()
+                        shutil.copy(root + '/repair/' + i, root + '/' + i)
 
         win.compile_tex(self.xelatex_path, work_dir) 
 
