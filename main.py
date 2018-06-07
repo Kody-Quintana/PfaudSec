@@ -1,4 +1,5 @@
 import sys
+import unicodedata
 import re
 import subprocess
 from PyQt5 import QtCore, QtGui, uic, QtWidgets
@@ -127,6 +128,10 @@ class DataBook(object):
         for i in self.embed_list:
             pronk(i)
         
+        def strip_accents(self, s):
+           return ''.join(c for c in unicodedata.normalize('NFD', s)
+                          if unicodedata.category(c) != 'Mn')
+        
 
         def loose_files_stage(self, input_loose_name, path):
 
@@ -152,11 +157,12 @@ class DataBook(object):
                 
                 for i in self.loose_embed_list:
                     try_copy(i, work_dir + r'/' + self.loose_name)
+                    # strip_accents(self, self.input)
 
                 for i in os.listdir(work_dir + '/' + self.loose_name):
                     if i.endswith('.pdf'):
                         os.rename(work_dir + '/' + self.loose_name + '/' + i,
-                                work_dir + '/' + self.loose_name + '/' + i.replace(' ','!'))
+                                work_dir + '/' + self.loose_name + '/' + strip_accents(self, i.replace(' ','!')))
                 
                 
                 with open(work_dir + '/embedlist.tex', 'a') as self.embed_list_file:
@@ -168,7 +174,7 @@ class DataBook(object):
                                 + r'\addpage{' 
                                 + self.loose_name 
                                 + '/' 
-                                + str(i.replace(' ','!').split('/')[len(i.split('/')) - 1]) 
+                                + strip_accents(self, str(i.replace(' ','!').split('/')[len(i.split('/')) - 1]))
                                 + '}')
 
                     self.embed_list_file.close()
