@@ -111,6 +111,8 @@ class DataBook(object):
                 #This should catch and skip anything not matching an entry in sections_config.ini
                 except IndexError:
                     pdf_skip(self,k)
+                except IndexError:
+                    pdf_skip(self,k)
                 except FileExistsError:
                     pdf_skip(self,k)
 
