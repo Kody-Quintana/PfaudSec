@@ -133,7 +133,7 @@ class DataBook(object):
                 global work_dir
 
                 self.loose_embed_list = [] 
-                self.loose_name = input_loose_name.replace(' ', '!')
+                self.loose_name = str(input_loose_name).replace(' ', '!')
                 self.folder_check(work_dir + r'/' + self.loose_name)                
 
                 def try_copy(src, dest):
@@ -224,9 +224,16 @@ class DataBook(object):
         job_info(self)
 
 
-        #test of loose files
-        loose_files_stage(self, 'loose test', '/home/user/PfaudSec/Pfaudler')
-        loose_files_stage(self, 'loose test 2', '/home/user/PfaudSec/Loose2')
+       # Runs loose files if checkboxes are checked
+
+        if win.checkBox_loose_0.isChecked() and win.lineEdit_loose_0.text() != '':
+            loose_files_stage(self, 'Pfaudler Brazil Data Book', win.lineEdit_loose_0.text())
+
+        if win.checkBox_loose_1.isChecked() and win.lineEdit_loose_1.text() != '':
+            loose_files_stage(self, 'Pfaudler Brazil Data Book', win.lineEdit_loose_1.text())
+
+        if win.checkBox_loose_2.isChecked() and win.lineEdit_loose_2.text() != '':
+            loose_files_stage(self, win.lineEdit_loose_name_2.text(), win.lineEdit_loose_2.text())
 
         win.compile_tex(self.xelatex_path, work_dir) 
 
@@ -266,8 +273,11 @@ class Interface(redirect.MainWindow):
         super().__init__()
         
         
-        self.checkBox.stateChanged.connect(self.output_same_dir)
-        self.checkBox.setChecked(True)
+
+        #self.checkBox.stateChanged.connect(self.output_same_dir)
+        #self.checkBox.setChecked(True)
+
+        #self.checkBox.stateChanged.connect(self.output_same_dir)
 
         self.latex_render.clicked.connect(self.latex_btn_render)
         self.grab_sel.clicked.connect(self.get_grab_dir)

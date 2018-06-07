@@ -13,10 +13,24 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         #uic.loadUi('redirect.ui', self)
         
         #ui = Ui_MainWindow()
-        self.setupUi(self)
-        self.checkBox.stateChanged.connect(lambda: self.output_same_dir())
-        self.checkBox.setChecked(True)
 
+        self.setupUi(self)
+        self.checkBox.stateChanged.connect(self.output_same_dir)
+        self.checkBox.setChecked(True)
+        
+        self.pushButton_loose_0.setEnabled(False)
+        self.pushButton_loose_1.setEnabled(False)
+        self.pushButton_loose_2.setEnabled(False)
+        self.lineEdit_loose_0.setEnabled(False)
+        self.lineEdit_loose_1.setEnabled(False)
+        self.lineEdit_loose_2.setEnabled(False)
+        self.lineEdit_loose_name_2.setEnabled(False)
+        self.checkBox_loose_0.stateChanged.connect(self.loose_func_0)
+        self.checkBox_loose_1.stateChanged.connect(self.loose_func_1)
+        self.checkBox_loose_2.stateChanged.connect(self.loose_func_2)
+        self.pushButton_loose_0.clicked.connect(self.loose_sel_0)
+        self.pushButton_loose_1.clicked.connect(self.loose_sel_1)
+        self.pushButton_loose_2.clicked.connect(self.loose_sel_2)
 
         self.setWindowState(QtCore.Qt.WindowMaximized)       
         #self.outputbox.setFocusPolicy(QtCore.Qt.NoFocus)
@@ -85,6 +99,51 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         self.process_2.readyReadStandardError.connect(self.stderrReady)
         self.process_2.started.connect(lambda: p('LaTeX third compile start'))
         self.process_2.finished.connect(lambda: self.proc_num_set(0))
+
+    def loose_func_0(self):
+        if self.checkBox_loose_0.isChecked():
+            self.pushButton_loose_0.setEnabled(True)
+            self.lineEdit_loose_0.setEnabled(True)
+        else:
+            self.pushButton_loose_0.setEnabled(False)
+            self.lineEdit_loose_0.setEnabled(False)
+
+    def loose_func_1(self):
+        if self.checkBox_loose_1.isChecked():
+            self.pushButton_loose_1.setEnabled(True)
+            self.lineEdit_loose_1.setEnabled(True)
+        else:
+            self.pushButton_loose_1.setEnabled(False)
+            self.lineEdit_loose_1.setEnabled(False)
+
+    def loose_func_2(self):
+        if self.checkBox_loose_2.isChecked():
+            self.pushButton_loose_2.setEnabled(True)
+            self.lineEdit_loose_2.setEnabled(True)
+            self.lineEdit_loose_name_2.setEnabled(True)
+        else:
+            self.pushButton_loose_2.setEnabled(False)
+            self.lineEdit_loose_2.setEnabled(False)
+            self.lineEdit_loose_name_2.setEnabled(False)
+
+    def loose_sel_0(self):
+        file = str(QtWidgets.QFileDialog.getExistingDirectory(\
+                self, "Select Brazil Data Book Folder"))
+        if file:
+            self.lineEdit_loose_0.setText(file)
+
+    def loose_sel_1(self):
+        file = str(QtWidgets.QFileDialog.getExistingDirectory(\
+                self, "Select Second Brazil Data Book Folder"))
+        if file:
+            self.lineEdit_loose_1.setText(file)
+
+    def loose_sel_2(self):
+        file = str(QtWidgets.QFileDialog.getExistingDirectory(\
+                self, "Select Misc PDF Files Folder"))
+        if file:
+            self.lineEdit_loose_2.setText(file)
+
     
     def output_same_dir(self):
         if self.checkBox.isChecked():
