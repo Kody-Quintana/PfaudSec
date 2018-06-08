@@ -1,3 +1,4 @@
+import time
 import sys
 import unicodedata
 import re
@@ -252,29 +253,41 @@ class DataBook(object):
 
         if win.checkBox_loose_2.isChecked() and win.lineEdit_loose_2.text() != '':
             loose_files_stage(self, win.lineEdit_loose_name_2.text(), win.lineEdit_loose_2.text())
+        
 
         if True: 
+            pronk('Scanning and repairing PDF files (interface will hang during this process)')
+            app.processEvents()
             if os.name == "nt":
-                self.gs_path = 'Ghostscript/bin/gswin32c.exe'
+                self.gs_path = os.path.dirname(os.path.realpath(__file__)) + '/Ghostscript/bin/gswin32c.exe'
             elif os.name == "posix":
                 self.gs_path = 'gs'
+            print(os.path.dirname(os.path.realpath(__file__)))
             for root, dirs, files in os.walk(work_dir):
                 for k, i in enumerate(files):
                     if i.endswith('.pdf'):
-                        folder_check(self, root + '/repair/')
+                        folder_check(self, os.path.expandvars(root) + '\\repair\\')
+                        #while not os.path.exists(root + '\\repair\\'):
+                        #    time.sleep(200)
                         p = subprocess.Popen([self.gs_path,
-                            '-sOutputFile="' + str(root + '/repair/' + i + '"'),
+                            '-sOutputFile=' + str(os.path.expandvars(root) + '\\repair\\' + i),
                             '-sDEVICE=pdfwrite',
-                            '-dPDFSETTINGS=/prepress',
+                            '-dPDFSETTINGS=/ebook',
                             '-dBatch',
                             '-dNOPAUSE',
-                            '-dQUIET',
-                            '"' + str(root + '/' + i) + '"'],
-                            stdin=subprocess.PIPE)
+                            #'-dQUIET',
+                            str(os.path.expandvars(root) + '\\' + i)],
+                            cwd=os.path.dirname(os.path.realpath(__file__)),
+                            stdout=subprocess.PIPE,
+                            stdin=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
 
                         p.communicate()
                         p.wait()
-                        shutil.copy(root + '/repair/' + i, root + '/' + i)
+                        try:
+                            shutil.copy(root + '\\repair\\' + i, root + '\\' + i)
+                        except FileNotFoundError:
+                            print("Couldn't copy file")
 
         win.compile_tex(self.xelatex_path, work_dir) 
 
