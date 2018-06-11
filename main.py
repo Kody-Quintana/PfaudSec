@@ -11,6 +11,19 @@ import configparser
 import redirect #name of interface file
 import qdarkstyle
 
+if sys.platform.startswith("win"):
+    # Don't display the Windows GPF dialog if the invoked program dies.
+    # See comp.os.ms-windows.programmer.win32
+    #  How to suppress crash notification dialog?, Jan 14,2004 -
+    #     Raymond Chen's response [1]
+
+    import ctypes
+    SEM_NOGPFAULTERRORBOX = 0x0002 # From MSDN
+    ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX);
+    CREATE_NO_WINDOW = 0x08000000    # From Windows API
+    subprocess_flags = CREATE_NO_WINDOW
+else:
+    subprocess_flags = 0
 
 # This replaces print() to output python related messages to a QTextEdit from redirect.py
 def pronk(text):
