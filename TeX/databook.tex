@@ -3,7 +3,7 @@
 \usepackage{lastpage}           %-to identify last page
 \usepackage{xspace}             %-to force add a space
 \usepackage[abspath]{currfile}  %-to find path to this file
-\usepackage{xstring,ifthen}     %-to manipulate strings
+\usepackage{xstring,ifthen,xifthen}     %-to manipulate strings
 \usepackage{graphicx}           %-to add images
 \usepackage{tabularx}
 \usepackage{tikz}               %-to create Pfaudler logo
@@ -117,6 +117,15 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 \renewcommand{\headrulewidth}{1pt}}
 %-----------------------------------------------------------------------------------%
 
+\newcommand{\pflogoart}{
+\raisebox{1cm}{
+\hspace{-2.5cm}\begin{tikzpicture}[scale=1.2,overlay]
+\node [hex] (inner) {};
+\path (inner.center) node[text=white]{\fontsize{32}{32}\selectfont\textbf{Pf}};
+\path (inner.center) ++({360/6*(1-0.5)}:2cm)  node[hex]{} node[text=white]{\Large\textbf{Quality}}; %1
+\path (inner.center) ++({360/6*(6-0.5)}:2cm)  node[hex]{} node[text=white]{\normalsize\textbf{Assurance}}; %6
+\end{tikzpicture}
+}}
 
 
 %-----------Table of Contents Formatting-----------%
@@ -191,8 +200,8 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 %%%%%                  __/ |                                                                                %%%%%
 %%%%%                 |___/                                                                                 %%%%%
 
-
 \begin{document}
+
 \begin{flushleft}
 \pagestyle{style1}
 \newcolumntype{Y}{>{\centering\arraybackslash}X}
@@ -202,23 +211,16 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 
 
 \LARGE
-\begin{tabular}{@{}lr}
+\begin{tabular}{@{}l>{\raggedleft\arraybackslash}p{2.45in}}
 \textbf{Order Number: }&\jobinfofill{mo}\\
 \textbf{Serial Number: }&\jobinfofill{serial}\\
 \textbf{Customer: }&\jobinfofill{customer}\\
 \textbf{Equipment: }&\jobinfofill{equipment}\\
 \end{tabular}
 
-&
 
-\raisebox{1cm}{
-\hspace{-2.5cm}\begin{tikzpicture}[scale=1.2,overlay]
-\node [hex] (inner) {};
-\path (inner.center) node[text=white]{\fontsize{32}{32}\selectfont\textbf{Pf}};
-\path (inner.center) ++({360/6*(1-0.5)}:2cm)  node[hex]{} node[text=white]{\Large\textbf{Quality}}; %1
-\path (inner.center) ++({360/6*(6-0.5)}:2cm)  node[hex]{} node[text=white]{\normalsize\textbf{Assurance}}; %6
-\end{tikzpicture}
-}
+&
+\pflogoart
 \end{tabularx}
 
 \vspace{12pt}
