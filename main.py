@@ -258,7 +258,9 @@ class DataBook(object):
         
 
         if True: 
-            pronk('Scanning and repairing PDF files (interface will hang during this process)')
+            comp_level = {0 : '/prepress', 1 : '/printer', 2 : '/ebook', 3 : '/screen'}
+            pronk('Scanning and repairing PDF files (interface will hang during this process)\n(Compression level: '
+                    + comp_level.get(int(win.spinBox.value())).replace('/','') + ')')
             app.processEvents()
             if os.name == "nt":
                 self.gs_path = os.path.dirname(os.path.realpath(__file__)) + '/Ghostscript/bin/gswin32c.exe'
@@ -274,7 +276,7 @@ class DataBook(object):
                         p = subprocess.Popen([self.gs_path,
                             '-sOutputFile=' + str(os.path.expandvars(root) + '\\repair\\' + i),
                             '-sDEVICE=pdfwrite',
-                            '-dPDFSETTINGS=/ebook',
+                            '-dPDFSETTINGS=' + comp_level.get(int(win.spinBox.value())),
                             '-dBatch',
                             '-dNOPAUSE',
                             #'-dQUIET',

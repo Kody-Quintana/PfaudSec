@@ -305,6 +305,20 @@
           </property>
          </spacer>
         </item>
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Compression level:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spinBox">
+          <property name="maximum">
+           <number>3</number>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
      </layout>
