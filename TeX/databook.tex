@@ -41,7 +41,7 @@
 
 %-----Margin formatting-----%
 \usepackage[letterpaper]{geometry}
-\geometry{top=0.9in, bottom=0.9in, left=0.9in, right=0.9in}
+\geometry{top=0.9in, bottom=1.5in, left=0.9in, right=0.9in}
 %---------------------------%
 
 
@@ -91,7 +91,6 @@ r}%
 %----------------------------------------------------------------%
 
 
-
 %---------------------------------Header Formatting---------------------------------%
 \usepackage{fancyhdr}
 \pagestyle{fancy}
@@ -113,7 +112,10 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 %--Embedded documents overlay header--%
 \fancypagestyle{style2}{
 \fancyhf{}
-\fancyfoot[R]{\textbf{Data Book: }\thepage\xspace of \pageref{LastPage}}
+\fancyfoot[R]{%
+\begin{tikzpicture}%
+\node [opacity=0.6] (0,0) {\textbf{Data Book: }\thepage\xspace of \pageref{LastPage}};
+\end{tikzpicture}}
 \renewcommand{\headrulewidth}{1pt}}
 %-----------------------------------------------------------------------------------%
 
@@ -201,7 +203,7 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 %%%%%                 |___/                                                                                 %%%%%
 
 \begin{document}
-
+\setlength{\footskip}{20pt}
 \begin{flushleft}
 \pagestyle{style1}
 \newcolumntype{Y}{>{\centering\arraybackslash}X}
@@ -253,6 +255,7 @@ If you would like to request additional documents, please feel free to contact u
 
 %-----Begin Embedded Documents-----%
 \newpage
+\setlength{\footskip}{110pt}
 \pagestyle{style2}
 \setlength\headheight{0pt}
 \renewcommand{\headrulewidth}{0pt}
