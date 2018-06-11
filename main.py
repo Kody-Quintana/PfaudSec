@@ -280,8 +280,8 @@ class DataBook(object):
                 for k, i in enumerate(files):
                     if i.endswith('.pdf'):
                         folder_check(self, os.path.expandvars(root) + '\\repair\\')
-                        #while not os.path.exists(root + '\\repair\\'):
-                        #    time.sleep(200)
+                        pronk('Working on ' + str(i).replace('!',' '))
+                        app.processEvents()
                         p = subprocess.Popen([self.gs_path,
                             '-sOutputFile=' + str(os.path.expandvars(root) + '\\repair\\' + i),
                             '-sDEVICE=pdfwrite',
@@ -293,14 +293,14 @@ class DataBook(object):
                             cwd=os.path.dirname(os.path.realpath(__file__)),
                             stdout=subprocess.PIPE,
                             stdin=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+                            stderr=subprocess.PIPE,
+                            creationflags=subprocess_flags).communicate()[1]
 
-                        p.communicate()
-                        p.wait()
                         try:
                             shutil.copy(root + '\\repair\\' + i, root + '\\' + i)
                         except FileNotFoundError:
                             print("Couldn't copy file")
+            pronk('Done')
 
         win.compile_tex(self.xelatex_path, work_dir) 
 
