@@ -17,8 +17,7 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         #Loose files ui stuff
         for i in range(3):
             num = str(i)
-            exec(
-"self.pushButton_loose_"+ num + """.setEnabled(False)
+            exec("self.pushButton_loose_"+ num + """.setEnabled(False)
 self.lineEdit_loose_""" + num + """.setEnabled(False)
 self.checkBox_loose_""" + num + '.stateChanged.connect(lambda: self.loose_func(' + num + """))
 self.pushButton_loose_""" + num + '.clicked.connect(lambda: self.loose_sel(' + num + '))',
@@ -85,14 +84,12 @@ self.job_entry_""" + num + '.setReadOnly(False)',locals(),locals())
 
     def loose_func(self, input):
         num = str(input)
-        exec("""
-if self.checkBox_loose_""" + num + """.isChecked():
+        exec('if self.checkBox_loose_' + num + """.isChecked():
     self.pushButton_loose_""" + num + """.setEnabled(True)
     self.lineEdit_loose_""" + num + """.setEnabled(True)
 else:
     self.pushButton_loose_""" + num + """.setEnabled(False)
-    self.lineEdit_loose_""" + num + """.setEnabled(False)
-    """,locals(),locals())
+    self.lineEdit_loose_""" + num + '.setEnabled(False)', locals(), locals())
 
     def loose_sel(self, input):
         box_label = {0 : 'Select Brazil Data Book Folder',
@@ -103,7 +100,7 @@ else:
                 self, box_label.get(input)))
         if file:
             num = str(input)
-            exec('self.lineEdit_loose_' + num + '.setText(file)',locals(),locals())
+            exec('self.lineEdit_loose_' + num + '.setText(file)', locals(), locals())
     
     def output_same_dir(self):
         if self.checkBox.isChecked():

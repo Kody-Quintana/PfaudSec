@@ -1,9 +1,8 @@
-import time
 import sys
 import unicodedata
 import re
 import subprocess
-from PyQt5 import QtCore, QtGui, uic, QtWidgets
+from PyQt5 import QtCore, QtGui, QtWidgets
 import tempfile
 import os
 import shutil
@@ -13,14 +12,10 @@ import qdarkstyle
 
 if sys.platform.startswith("win"):
     # Don't display the Windows GPF dialog if the invoked program dies.
-    # See comp.os.ms-windows.programmer.win32
-    #  How to suppress crash notification dialog?, Jan 14,2004 -
-    #     Raymond Chen's response [1]
-
     import ctypes
     SEM_NOGPFAULTERRORBOX = 0x0002 # From MSDN
     ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX);
-    CREATE_NO_WINDOW = 0x08000000    # From Windows API
+    CREATE_NO_WINDOW = 0x08000000  # From Windows API
     subprocess_flags = CREATE_NO_WINDOW
 else:
     subprocess_flags = 0
@@ -28,9 +23,6 @@ else:
 # This replaces print() to output python related messages to a QTextEdit from redirect.py
 def pronk(text):
     win.main_append(str(text) + '\n')
-
-#Global tempory working directory for XeLaTeX to use
-#work_dir = tempfile.mkdtemp(prefix='PfaudSec_')
 
 grab_dir = ''
 output_dir = None
@@ -46,9 +38,6 @@ class DataBook(object):
         self.xelatex_config()
 
     def xelatex_config(self):
-        #self.xelatex_config_file = 'PfaudSec_config.ini'
-        #self.xelatex_config = configparser.ConfigParser()
-        #self.xelatex_config.read(self.config_file)
         if os.name == "nt":
             self.xelatex_path = 'texlive/bin/win32/xelatex.exe'
         elif os.name == "posix":
@@ -317,6 +306,10 @@ class DataBook(object):
             self.folder_check(str(output_dir))
             pronk('\ndatabook.pdf copied to: ' + str(output_dir))
             shutil.copy(work_dir + '/databook.pdf',str(output_dir))
+            try:
+                os.rename(output_dir + '/databook.pdf', output_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
+            except:
+                pass
             #shutil.rmtree(work_dir)
             self.reset()
             #win.outputbox_2.clear()
@@ -324,9 +317,9 @@ class DataBook(object):
             #change to checkbox for open after compile option
             if True:
                 if os.name == "nt":
-                    os.startfile(output_dir + '/databook.pdf')
+                    os.startfile(output_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
                 elif os.name == "posix":
-                    os.system("/usr/bin/xdg-open " + output_dir + '/databook.pdf')  
+                    subprocess.call(["/usr/bin/xdg-open", output_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf'])
         except:
             pass
 
@@ -339,13 +332,6 @@ class Interface(redirect.MainWindow):
         global work_dir
         super().__init__()
         
-        
-
-        #self.checkBox.stateChanged.connect(self.output_same_dir)
-        #self.checkBox.setChecked(True)
-
-        #self.checkBox.stateChanged.connect(self.output_same_dir)
-
         self.latex_render.clicked.connect(self.latex_btn_render)
         self.grab_sel.clicked.connect(self.get_grab_dir)
         self.output_sel.clicked.connect(self.get_output_dir)
