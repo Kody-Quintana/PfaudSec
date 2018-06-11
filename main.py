@@ -306,12 +306,9 @@ class DataBook(object):
         try:
 
             self.folder_check(str(output_dir))
-            pronk('\ndatabook.pdf copied to: ' + str(output_dir))
-            shutil.copy(work_dir + '/databook.pdf',str(output_dir))
-            try:
-                os.rename(output_dir + '/databook.pdf', output_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
-            except:
-                pass
+            pronk('\ndatabook for ' + win.job_entry_2.text() + ' copied to: ' + str(output_dir))
+            os.rename(work_dir + '/databook.pdf', work_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
+            shutil.copy(work_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf', str(output_dir))
             #shutil.rmtree(work_dir)
             self.reset()
             #win.outputbox_2.clear()
