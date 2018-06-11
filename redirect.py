@@ -2,7 +2,6 @@ import sys
 
 from PyQt5 import QtGui, QtCore, uic, QtWidgets
 import ui_redirect
-#from PyQt5.QtWidgets import QApplication
 def p(x):
     print(x)
 
@@ -10,41 +9,30 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
     def __init__(self):
         
         QtWidgets.QWidget.__init__(self)
-        #uic.loadUi('redirect.ui', self)
-        
-        #ui = Ui_MainWindow()
 
         self.setupUi(self)
         self.checkBox.stateChanged.connect(self.output_same_dir)
         self.checkBox.setChecked(True)
         
-        self.pushButton_loose_0.setEnabled(False)
-        self.pushButton_loose_1.setEnabled(False)
-        self.pushButton_loose_2.setEnabled(False)
-        self.lineEdit_loose_0.setEnabled(False)
-        self.lineEdit_loose_1.setEnabled(False)
-        self.lineEdit_loose_2.setEnabled(False)
+        #Loose files ui stuff
+        for i in range(3):
+            num = str(i)
+            exec(
+"self.pushButton_loose_"+ num + """.setEnabled(False)
+self.lineEdit_loose_""" + num + """.setEnabled(False)
+self.checkBox_loose_""" + num + '.stateChanged.connect(lambda: self.loose_func(' + num + """))
+self.pushButton_loose_""" + num + '.clicked.connect(lambda: self.loose_sel(' + num + '))',
+locals(),locals())
+
         self.lineEdit_loose_name_2.setEnabled(False)
-        self.checkBox_loose_0.stateChanged.connect(self.loose_func_0)
-        self.checkBox_loose_1.stateChanged.connect(self.loose_func_1)
-        self.checkBox_loose_2.stateChanged.connect(self.loose_func_2)
-        self.pushButton_loose_0.clicked.connect(self.loose_sel_0)
-        self.pushButton_loose_1.clicked.connect(self.loose_sel_1)
-        self.pushButton_loose_2.clicked.connect(self.loose_sel_2)
 
         self.setWindowState(QtCore.Qt.WindowMaximized)       
-        #self.outputbox.setFocusPolicy(QtCore.Qt.NoFocus)
-        #self.outputbox_2.setFocusPolicy(QtCore.Qt.NoFocus)
-        #self.grab_sel.setFocusPolicy(QtCore.Qt.NoFocus)
-        #self.output_sel.setFocusPolicy(QtCore.Qt.NoFocus)
         self.grab_display.setFocusPolicy(QtCore.Qt.NoFocus)
         self.checkBox.setFocusPolicy(QtCore.Qt.NoFocus)
         self.output_display.setFocusPolicy(QtCore.Qt.NoFocus)
-        #self.latex_render.setFocusPolicy(QtCore.Qt.NoFocus)
-        #self.job_entry_1.clearFocus()
 
         # This var is to see which LaTeX QProcess is running
-        # out of the two required to update the table of contents
+        # out of the three required to update the table of contents
         self.proc_num = 0
 
         try:
@@ -67,83 +55,55 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
             pass
 
         #Allow copy/paste on job info line edits
-        self.job_entry_1.setDragEnabled(True)
-        self.job_entry_1.setReadOnly(False)
-        self.job_entry_2.setDragEnabled(True)
-        self.job_entry_2.setDragEnabled(True)
-        self.job_entry_3.setDragEnabled(True)
-        self.job_entry_3.setReadOnly(False)
-        self.job_entry_4.setReadOnly(False)
-        self.job_entry_4.setReadOnly(False)
+        for i in range(4):
+            num = str(i + 1)
+            exec('self.job_entry_' + num + """.setDragEnabled(True)
+self.job_entry_""" + num + '.setReadOnly(False)',locals(),locals())
 
         #This is dumb and should be put into some kind of loop
         #First LaTeX run
         self.process_0 = QtCore.QProcess(self)
-        self.process_0.readyReadStandardOutput.connect(self.stdoutReady)
-        self.process_0.readyReadStandardError.connect(self.stderrReady)
+        self.process_0.setProcessChannelMode(QtCore.QProcess.MergedChannels)
+        self.process_0.readyRead.connect(self.stdout_and_err_Ready)
         self.process_0.started.connect(lambda: self.clear())
         self.process_0.started.connect(lambda: p('LaTeX first compile start'))
         self.process_0.finished.connect(lambda: self.proc_num_set(1))
 
         #Second LaTeX run
         self.process_1 = QtCore.QProcess(self)
-        self.process_1.readyReadStandardOutput.connect(self.stdoutReady)
-        self.process_1.readyReadStandardError.connect(self.stderrReady)
-        self.process_1.started.connect(lambda: self.clear())
+        self.process_1.setProcessChannelMode(QtCore.QProcess.MergedChannels)
+        self.process_1.readyRead.connect(self.stdout_and_err_Ready)
         self.process_1.started.connect(lambda: p('LaTeX second compile start'))
         self.process_1.finished.connect(lambda: self.proc_num_set(2))
 
         #Third LaTeX run (to update table of contents)
         self.process_2 = QtCore.QProcess(self)
-        self.process_2.readyReadStandardOutput.connect(self.stdoutReady)
-        self.process_2.readyReadStandardError.connect(self.stderrReady)
+        self.process_2.setProcessChannelMode(QtCore.QProcess.MergedChannels)
+        self.process_2.readyRead.connect(self.stdout_and_err_Ready)
         self.process_2.started.connect(lambda: p('LaTeX third compile start'))
         self.process_2.finished.connect(lambda: self.proc_num_set(0))
 
-    def loose_func_0(self):
-        if self.checkBox_loose_0.isChecked():
-            self.pushButton_loose_0.setEnabled(True)
-            self.lineEdit_loose_0.setEnabled(True)
-        else:
-            self.pushButton_loose_0.setEnabled(False)
-            self.lineEdit_loose_0.setEnabled(False)
+    def loose_func(self, input):
+        num = str(input)
+        exec("""
+if self.checkBox_loose_""" + num + """.isChecked():
+    self.pushButton_loose_""" + num + """.setEnabled(True)
+    self.lineEdit_loose_""" + num + """.setEnabled(True)
+else:
+    self.pushButton_loose_""" + num + """.setEnabled(False)
+    self.lineEdit_loose_""" + num + """.setEnabled(False)
+    """,locals(),locals())
 
-    def loose_func_1(self):
-        if self.checkBox_loose_1.isChecked():
-            self.pushButton_loose_1.setEnabled(True)
-            self.lineEdit_loose_1.setEnabled(True)
-        else:
-            self.pushButton_loose_1.setEnabled(False)
-            self.lineEdit_loose_1.setEnabled(False)
+    def loose_sel(self, input):
+        box_label = {0 : 'Select Brazil Data Book Folder',
+                1 : 'Select Second Brazil Data Book Folder',
+                2 : 'Select Misc PDF Files Folder'}
 
-    def loose_func_2(self):
-        if self.checkBox_loose_2.isChecked():
-            self.pushButton_loose_2.setEnabled(True)
-            self.lineEdit_loose_2.setEnabled(True)
-            self.lineEdit_loose_name_2.setEnabled(True)
-        else:
-            self.pushButton_loose_2.setEnabled(False)
-            self.lineEdit_loose_2.setEnabled(False)
-            self.lineEdit_loose_name_2.setEnabled(False)
-
-    def loose_sel_0(self):
         file = str(QtWidgets.QFileDialog.getExistingDirectory(\
-                self, "Select Brazil Data Book Folder"))
+                self, box_label.get(input)))
         if file:
-            self.lineEdit_loose_0.setText(file)
-
-    def loose_sel_1(self):
-        file = str(QtWidgets.QFileDialog.getExistingDirectory(\
-                self, "Select Second Brazil Data Book Folder"))
-        if file:
-            self.lineEdit_loose_1.setText(file)
-
-    def loose_sel_2(self):
-        file = str(QtWidgets.QFileDialog.getExistingDirectory(\
-                self, "Select Misc PDF Files Folder"))
-        if file:
-            self.lineEdit_loose_2.setText(file)
-
+            num = str(input)
+            exec('self.lineEdit_loose_' + num + '.setText(file)',locals(),locals())
     
     def output_same_dir(self):
         if self.checkBox.isChecked():
@@ -197,21 +157,11 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
                 (self.outputbox.verticalScrollBar().maximum())
 
 
-    def stdoutReady(self):
+    def stdout_and_err_Ready(self):
         text = ''
         ldict = locals()
         exec('text = bytearray(self.process_' + str(self.proc_num)\
-                + '.readAllStandardOutput())',ldict)
-        text = ldict['text']
-        text = text.decode("UTF-8")
-        self.append(text)
-
-
-    def stderrReady(self):
-        text = ''
-        ldict = locals()
-        exec('text = bytearray(self.process_' + str(self.proc_num)\
-                + '.readAllStandardError())',ldict)
+                + '.readAll())',ldict)
         text = ldict['text']
         text = text.decode("UTF-8")
         self.append(text)
