@@ -151,6 +151,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_10.addWidget(self.label_4)
         self.spinBox = QtWidgets.QSpinBox(self.centralwidget)
         self.spinBox.setMaximum(3)
+        self.spinBox.setProperty("value", 2)
         self.spinBox.setObjectName("spinBox")
         self.horizontalLayout_10.addWidget(self.spinBox)
         self.verticalLayout_6.addLayout(self.horizontalLayout_10)
