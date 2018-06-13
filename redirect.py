@@ -90,6 +90,10 @@ self.job_entry_""" + num + '.setReadOnly(False)',locals(),locals())
 else:
     self.pushButton_loose_""" + num + """.setEnabled(False)
     self.lineEdit_loose_""" + num + '.setEnabled(False)', locals(), locals())
+        if self.checkBox_loose_2.isChecked():
+            self.lineEdit_loose_name_2.setEnabled(True)
+        else:
+            self.lineEdit_loose_name_2.setEnabled(False)
 
     def loose_sel(self, input):
         box_label = {0 : 'Select Brazil Data Book Folder',
