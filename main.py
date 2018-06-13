@@ -103,7 +103,7 @@ class DataBook(object):
                     self.doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
                     self.doc_id = self.doc_id_stage[0] + '.' + self.doc_id_stage[1].lstrip('0')
                     self.section_num = int(self.doc_id[0]) - 1
-                    shutil.copy(grab_dir + '/' + k, work_dir)
+                    shutil.copyfile(grab_dir + '/' + k, work_dir + '/' + k)
                     self.doc_section = (self.config[self.config.sections()\
                             [self.section_num]][self.doc_id])
                     self.new_name = self.doc_section.replace(' ','!') + '.pdf' 
@@ -152,7 +152,7 @@ class DataBook(object):
                 def try_copy(src, dest):
                     #this is not a good way, change later
                     try:
-                        shutil.copy(src, dest)
+                        shutil.copyfile(src, dest)
                     except FileExistsError:
                         pass
                 
@@ -206,7 +206,7 @@ class DataBook(object):
 
             for i in os.listdir(src):
                 if i.endswith('.tex'):
-                    shutil.copy(src + '/' + i,dest)
+                    shutil.copyfile(src + '/' + i,dest + '/' + i)
         
         
         def embed_stage(self,src,dest):
@@ -214,7 +214,7 @@ class DataBook(object):
             folder_check(self,dest) 
             for i in os.listdir(src):
                 if i.endswith('.pdf'):
-                    shutil.copy(src + '/' + i,dest)
+                    shutil.copyfile(src + '/' + i,dest, + '/' + i)
                     pronk (i)    
         
         
@@ -288,7 +288,7 @@ class DataBook(object):
                             creationflags=subprocess_flags).communicate()[1]
 
                         try:
-                            shutil.copy(root + '\\repair\\' + i, root + '\\' + i)
+                            shutil.copyfile(root + '\\repair\\' + i, root + '\\' + i)
                         except FileNotFoundError:
                             print("Couldn't copy file")
             pronk('Done')
@@ -308,7 +308,8 @@ class DataBook(object):
             self.folder_check(str(output_dir))
             pronk('\ndatabook for ' + win.job_entry_2.text() + ' copied to: ' + str(output_dir))
             os.rename(work_dir + '/databook.pdf', work_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
-            shutil.copy(work_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf', str(output_dir))
+            shutil.copyfile(work_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf',
+                    str(output_dir) + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
             #shutil.rmtree(work_dir)
             self.reset()
             #win.outputbox_2.clear()
