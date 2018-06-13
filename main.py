@@ -144,10 +144,11 @@ class DataBook(object):
         def loose_files_stage(self, input_loose_name, path):
 
                 global work_dir
-
-                self.loose_embed_list = [] 
-                self.loose_name = str(input_loose_name).replace(' ', '!')
-                self.folder_check(work_dir + r'/' + self.loose_name)                
+                
+                #loose_embed_names = []
+                loose_embed_list = [] 
+                loose_name = str(input_loose_name).replace(' ', '!')
+                self.folder_check(work_dir + r'/' + loose_name)                
 
                 def try_copy(src, dest):
                     #this is not a good way, change later
@@ -159,31 +160,33 @@ class DataBook(object):
                 for root, dirs, files in os.walk(path):
                     for j in files:
                         if j.endswith('.pdf'):
-                            self.loose_embed_list.append(str(root + r'/' + j).replace(r'//',r'/'))
-                self.loose_embed_list.sort()
+                            loose_embed_list.append(str(root + r'/' + j).replace(r'//',r'/'))
+                            #loose_embed_names.append(j)
+                loose_embed_list.sort()
                             
                 
-                for i in self.loose_embed_list:
-                    try_copy(i, work_dir + r'/' + self.loose_name)
+                for k, i in enumerate(loose_embed_list):
+                    file_name = str(i.replace('/','\\').split('\\')[len(i.replace('/','\\').split('\\')) - 1])
+                    try_copy(i, work_dir + r'/' + loose_name + '\\' + file_name)
                     # strip_accents(self, self.input)
 
-                for i in os.listdir(work_dir + '/' + self.loose_name):
+                for i in os.listdir(work_dir + '/' + loose_name):
                     if i.endswith('.pdf'):
-                        os.rename(work_dir + '/' + self.loose_name + '/' + i,
-                                work_dir + '/' + self.loose_name + '/' + strip_accents(self, i\
+                        os.rename(work_dir + '/' + loose_name + '/' + i,
+                                work_dir + '/' + loose_name + '/' + strip_accents(self, i\
                                         .replace('-','')\
                                         .replace('_','!')\
                                         .replace(' ','!')))
                 
                 
-                with open(work_dir + '/embedlist.tex', 'a') as self.embed_list_file:
-                    self.embed_list_file.write('\n' + r'\addsection{' 
-                            + self.loose_name.replace('!',' ') + '}')
+                with open(work_dir + '/embedlist.tex', 'a') as embed_list_file:
+                    embed_list_file.write('\n' + r'\addsection{' 
+                            + loose_name.replace('!',' ') + '}')
 
-                    for i in self.loose_embed_list:
-                        self.embed_list_file.write('\n' 
+                    for i in loose_embed_list:
+                        embed_list_file.write('\n' 
                                 + r'\addpage{' 
-                                + self.loose_name 
+                                + loose_name 
                                 + '/' 
                                 + strip_accents(self, str(i\
                                         .replace('-','')\
@@ -192,7 +195,7 @@ class DataBook(object):
                                         .split('/')[len(i.split('/')) - 1]))
                                 + '}')
 
-                    self.embed_list_file.close()
+                    embed_list_file.close()
 
         def template_stage(self,src,dest):
             
