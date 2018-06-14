@@ -1,4 +1,7 @@
 import sys
+import traceback
+import io
+import time
 import unicodedata
 import re
 import subprocess
@@ -9,6 +12,33 @@ import shutil
 import configparser
 import redirect #name of interface file
 import qdarkstyle
+
+
+def except_box(excType, excValue, tracebackobj):
+    logFile = "PfaudSec_crash.log"
+    notice = 'An unhandled exception occured. Please report the problem via email to Quintana.Kody@gmail.com'\
+            + '\n\nPlease attach the log file PfaudSec_crash.log from the PfaudSec folder to the email.\n'
+    versionInfo="0.0.1"
+    timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
+     
+    tbinfofile = io.StringIO()
+    traceback.print_tb(tracebackobj, None, tbinfofile)
+    tbinfofile.seek(0)
+    tbinfo = tbinfofile.read()
+    errmsg = '%s: \n%s' % (str(excType), str(excValue))
+    sep = '\n'
+    sections = [sep, timeString, sep, errmsg, sep, tbinfo]
+    msg = ''.join(sections)
+    try:
+        f = open(logFile, "w")
+        f.write(msg)
+        f.write(versionInfo)
+        f.close()
+    except IOError:
+        pass
+    errorbox = QtWidgets.QMessageBox()
+    errorbox.setText(str(notice)+str(msg)+str(versionInfo))
+    errorbox.exec_()
 
 if sys.platform.startswith("win"):
     # Don't display the Windows GPF dialog if the invoked program dies.
@@ -313,9 +343,7 @@ class DataBook(object):
             os.rename(work_dir + '/databook.pdf', work_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
             shutil.copyfile(work_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf',
                     str(output_dir) + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
-            #shutil.rmtree(work_dir)
             self.reset()
-            #win.outputbox_2.clear()
 
             #change to checkbox for open after compile option
             if True:
@@ -396,7 +424,7 @@ class Interface(redirect.MainWindow):
                 and (str(self.grab_display.toPlainText()) != ''):
 
             self.latex_render.setEnabled(False)
-            pronk('\n\n\n\n')
+            win.outputbox_2.clear()
             data_book.data_book_run()
         else:
             pronk('Missing one or more fields')
@@ -442,6 +470,7 @@ class Interface(redirect.MainWindow):
                 self.output_display.append(str(file))
         print(str(output_dir))
 
+sys.excepthook = except_box
 with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
 
     app = QtWidgets.QApplication(sys.argv)
@@ -458,4 +487,3 @@ with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
     
     data_book = DataBook()
 sys.exit(app.exec_())
-
