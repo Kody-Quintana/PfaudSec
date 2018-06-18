@@ -367,6 +367,8 @@ class Interface(redirect.MainWindow):
         self.grab_sel.clicked.connect(self.get_grab_dir)
         self.output_sel.clicked.connect(self.get_output_dir)
 
+        self.setWindowIcon(QtGui.QIcon('TeX/db_logo.ico'))
+
         self.actionSections_config.triggered.connect(self.edit_sections_config)
         self.actionUser_Procedure.triggered.connect(self.open_procedure)
 
