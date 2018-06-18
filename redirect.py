@@ -89,16 +89,26 @@ self.job_entry_""" + num + '.setReadOnly(False)',locals(),locals())
     def about_PfaudSec(self):
         about_box = QtWidgets.QMessageBox()
         about_box.setTextFormat(QtCore.Qt.RichText)
+        def link_text(url, display):
+            return str('<a href="http://www.' + url + '" style="color: rgb(255,255,255)">' + display + '</a>')
+
         about_box.setInformativeText(
-                'PfaudSec is a Python/'
-                + '<a href="https://www.qt.io" style="color: rgb(255,255,255)">Qt5</a> (via '
-                + '<a href="https://www.riverbankcomputing.com/software/pyqt/intro" style="color: rgb(255,255,255)">PyQt5</a>) interface for '
-                + '<a href="https://xetex.sourceforge.net" style="color: rgb(255,255,255)">XeLaTeX</a> '
-                + 'and <a href="https://www.ghostscript.com" style="color: rgb(255,255,255)">Ghostscript</a> '
-                + 'to create PDFs for internal use at Pfaudler.'
+                'PfaudSec is a '
+                + link_text('python.org','Python')
+                + '/'
+                + link_text('qt.io','Qt5')
+                + ' (via '
+                + link_text('riverbankcomputing.com/software/pyqt/intro','PyQt5')
+                + ') interface for '
+                + link_text('sharelatex.com/learn/XeLaTeX','XeLaTeX')
+                + ' and '
+                + link_text('ghostscript.com','Ghostscript')
+                + ' to create PDFs for internal use at '
+                + link_text('pfaudler.com/en','Pfaudler.')
                 + '<br><br>'
                 + 'Source code is available on '
-                + '<a href="https://github.com/kody-quintana/PfaudSec" style="color: rgb(255,255,255)">GitHub</a>')
+                + link_text('github.com/kody-quintana/PfaudSec','GitHub'))
+
         font = QtGui.QFont()
         font.setPointSize(14)
         about_box.setFont(font)
