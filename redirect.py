@@ -91,15 +91,17 @@ self.job_entry_""" + num + '.setReadOnly(False)',locals(),locals())
         about_box.setTextFormat(QtCore.Qt.RichText)
         about_box.setInformativeText(
                 'PfaudSec is a Python/'
-                + '<a href=https://www.qt.io>Qt5</a> (via '
-                + '<a href=https://www.riverbankcomputing.com/software/pyqt/intro>PyQt5</a>) interface for '
-                + '<a href=https://xetex.sourceforge.net>XeLaTeX</a> '
-                + 'and <a href=https://www.ghostscript.com>Ghostscript</a> '
+                + '<a href="https://www.qt.io" style="color: rgb(255,255,255)">Qt5</a> (via '
+                + '<a href="https://www.riverbankcomputing.com/software/pyqt/intro" style="color: rgb(255,255,255)">PyQt5</a>) interface for '
+                + '<a href="https://xetex.sourceforge.net" style="color: rgb(255,255,255)">XeLaTeX</a> '
+                + 'and <a href="https://www.ghostscript.com" style="color: rgb(255,255,255)">Ghostscript</a> '
                 + 'to create PDFs for internal use at Pfaudler.'
                 + '<br><br>'
                 + 'Source code is available on '
-                + '<a href=https://github.com/kody-quintana/PfaudSec>GitHub</a>')
-        about_box.setTextFormat(QtCore.Qt.RichText)
+                + '<a href="https://github.com/kody-quintana/PfaudSec" style="color: rgb(255,255,255)">GitHub</a>')
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        about_box.setFont(font)
         about_box.exec_()
 
     def loose_func(self, input):
