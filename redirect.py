@@ -10,7 +10,10 @@ class MainWindow(QtWidgets.QMainWindow,ui_redirect.Ui_MainWindow):#, UI.MainUI.U
         
         QtWidgets.QWidget.__init__(self)
 
+
         self.setupUi(self)
+        self.actionAbout_PfaudSec.triggered.connect(self.about_PfaudSec)
+        self.actionxelatex_config.setVisible(False)
         self.checkBox.stateChanged.connect(self.output_same_dir)
         self.checkBox.setChecked(True)
         
@@ -81,6 +84,23 @@ self.job_entry_""" + num + '.setReadOnly(False)',locals(),locals())
         self.process_2.readyRead.connect(self.stdout_and_err_Ready)
         self.process_2.started.connect(lambda: p('LaTeX third compile start'))
         self.process_2.finished.connect(lambda: self.proc_num_set(0))
+
+
+    def about_PfaudSec(self):
+        about_box = QtWidgets.QMessageBox()
+        about_box.setTextFormat(QtCore.Qt.RichText)
+        about_box.setInformativeText(
+                'PfaudSec is a Python/'
+                + '<a href=https://www.qt.io>Qt5</a> (via '
+                + '<a href=https://www.riverbankcomputing.com/software/pyqt/intro>PyQt5</a>) interface for '
+                + '<a href=https://xetex.sourceforge.net>XeLaTeX</a> '
+                + 'and <a href=https://www.ghostscript.com>Ghostscript</a> '
+                + 'to create PDFs for internal use at Pfaudler.'
+                + '<br><br>'
+                + 'Source code is available on '
+                + '<a href=https://github.com/kody-quintana/PfaudSec>GitHub</a>')
+        about_box.setTextFormat(QtCore.Qt.RichText)
+        about_box.exec_()
 
     def loose_func(self, input):
         num = str(input)
