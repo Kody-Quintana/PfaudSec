@@ -30,6 +30,8 @@ def date_cell_range(date_column):
 
     return(str(first_date_cell), str(last_date_cell))
 
+
+
 # Run this to set global active cells
 cells_start, cells_end = date_cell_range(date_column)
 active_range = range(int(cells_start), int(cells_end))
@@ -72,13 +74,17 @@ def curr_month_values(column):
             this_month.append(j)
     return Counter(this_month)
 
-print(curr_month_values('L'))
-
 
 def unique_column_list(column):
     values = list(set(column_list(column)))
     values.sort
-    print(values)
+    return values
 
-unique_column_list('I')
+# list of cell ranges for each month
+def month_ranges():
+    for k, i in reversed(list(cell_enumerate(column_list(date_column)))):
+        print(k,i)
+        # break loop when past 12 months   
 
+
+month_ranges()
