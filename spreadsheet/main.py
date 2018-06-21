@@ -3,12 +3,14 @@ from openpyxl.utils import coordinate_from_string,column_index_from_string
 from collections import Counter, OrderedDict
 import datetime
 
+
 #Variables to be determined by ui later
 work_file = './car_log.xlsx'
 date_column = 'b'
 
 wb = load_workbook(work_file)
 ws = wb.worksheets[0]
+now = datetime.date.today()
 
 # Determines global active rows by first date and last date in input column
 def date_cell_range(date_column):
@@ -29,7 +31,6 @@ def date_cell_range(date_column):
                         first_date_cell = last_date_counter
 
     return(str(first_date_cell), str(last_date_cell))
-
 
 
 # Run this to set global active cells
@@ -68,7 +69,6 @@ def curr_month_values(column):
     this_month = []
     for i, j in cell_enumerate(column_list(column)):
         date_cell = ws.cell(i,column_index_from_string(date_column)).value
-        now = datetime.date.today()
         if date_cell.month == now.month\
                 and date_cell.year == now.year:
             this_month.append(j)
@@ -80,11 +80,26 @@ def unique_column_list(column):
     values.sort
     return values
 
-# list of cell ranges for each month
-def month_ranges():
+def diff_month(d1, d2):
+    return (d1.year - d2.year) * 12 + d1.month - d2.month
+
+# returns dict of tuples, tuple index is how many months ago data is for
+def values_by_month(column, months=12):
+    catagories_index = {} #dict to get index from string for catagories
+    catagories = []       #list of lists for each catagory
+    return_dict = {}
     for k, i in reversed(list(cell_enumerate(column_list(date_column)))):
-        print(k,i)
-        # break loop when past 12 months   
+        column_value = ws[column + str(k)].value
+        months_ago = diff_month(now, i)
+        if months_ago > (months - 1):
+            break
+        if column_value not in catagories_index:
+            catagories_index[column_value] = len(catagories_index)
+            catagories.append([0] * months) #index is how many months ago
+        catagories[catagories_index.get(column_value)][months_ago] += 1
+    
+    for i in catagories_index:
+        return_dict[i] = tuple(catagories[catagories_index.get(i)])
+    return(return_dict)
 
-
-month_ranges()
+print(values_by_month('I'))
