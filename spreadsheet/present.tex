@@ -1,0 +1,248 @@
+\documentclass{article}
+\usepackage{eso-pic}
+\usepackage{datetime}
+\usepackage{grffile}
+\usepackage{lastpage}           %-to identify last page
+\usepackage{xspace}             %-to force add a space
+\usepackage[abspath]{currfile}  %-to find path to this file
+\usepackage{xstring,ifthen,xifthen}     %-to manipulate strings
+\usepackage{graphicx}           %-to add images
+\usepackage{tabularx}
+\usepackage{tikz}               %-to create Pfaudler logo
+	\usetikzlibrary{shapes.geometric} %-for creating hexagon
+	\usetikzlibrary{calc}
+
+
+\usepackage[linktoc=all,        %-for clickable links and pdf metadata
+            colorlinks=true,
+            linkcolor=black,
+            urlcolor=black,
+            citecolor=black,
+            pdfauthor={Pfaudler},
+            pdftitle={Data Book},
+            pdfsubject={},
+            pdfkeywords={},
+            pdfproducer={},
+            pdfcreator={}]{hyperref}
+
+\newdateformat{monthyeardate}{%
+  \monthname[\THEMONTH], \THEYEAR}
+
+%-----Font configuration-----%
+\usepackage{fontspec}
+\setmainfont[
+  Path          = ./,
+  Ligatures     = TeX,
+  UprightFont   = font/OTF/Pfaudler-Book.otf,
+  BoldItalicFont= font/OTF/Pfaudler-BoldItalic.otf,
+  BoldFont      = font/OTF/Pfaudler-Bold.otf,
+  ItalicFont    = font/OTF/Pfaudler-BookItalic.otf
+]{Pfaudler}
+%----------------------------%
+
+
+
+%-----Margin formatting-----%
+\usepackage[paperwidth=13.33in, paperheight=7.5in]{geometry}
+\geometry{top=0.9in, bottom=1.5in, left=0.9in, right=0.9in}
+%---------------------------%
+
+
+
+%-----Pfaudler colorscheme-----%
+\definecolor{pfblue}{RGB}{52,134,199}
+\definecolor{pfgrey}{RGB}{125,125,130}
+%------------------------------%
+
+
+%--------------Pfaudler logo (invoke with \pflogo)---------------%
+%---(Must be contained in one paragraph for use in the header)---%
+\newcommand\pflogo{%
+\raisebox{-9pt}{%
+\begin{tikzpicture}
+\node [right,scale=1,inner sep=1pt,outer sep=0pt, text=white]
+at (0,0) {\fontsize{10.73}{5}\selectfont{%
+%
+%--Strapline--%
+Defining the Standard}};
+%
+\node [right,scale=1,inner sep=0pt,outer sep=0pt, text=white]
+at (0.01,0.70) {\addfontfeature{LetterSpace=0.0}\fontsize{30}{0}\selectfont{%
+%
+%--Manually kerned Main text--%
+\textbf{%
+P{\kern 0.0pt}%
+f{\kern-1.0pt}%
+a{\kern-1.1pt}%
+u{\kern-1.1pt}%
+d{\kern-1.1pt}%
+l{\kern-1.1pt}%
+e{\kern-1.1pt}%
+r}%
+}};
+%
+%--Pf hexagon--%
+\path (4.70,1.32) node [regular polygon,
+		regular polygon sides=6,
+		rounded corners=1.5pt,
+		inner sep=8.8pt,
+		fill = white](hexagon){};
+%--Pf hexagon text--%
+\node [text=pfblue, scale=1.1] at (4.70,1.32) {\large{\textbf{Pf}}};
+\end{tikzpicture}}}
+%----------------------------------------------------------------%
+
+
+%---------------------------------Header Formatting---------------------------------%
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+
+%--First page header style--%
+\fancypagestyle{style1}{
+\fancyhf{}
+\fancyhead[L]{\pflogo}
+\fancyhead[R]{
+P.O. Box 23600, Rochester, NY 14692-3600\\
+1000 West Ave. Rochester, NY 14611 USA\\
+\begin{tabular}{@{}l r@{}}
+Telephone:&\href{tel:5852351000}{1-585-235-1000}\\
+Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
+\end{tabular}}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}}
+
+%--Embedded documents overlay header--%
+\fancypagestyle{style2}{
+\fancyhf{}
+\fancyfoot[R]{%
+\begin{tikzpicture}%
+\node [opacity=0.6] (0,0) {\textbf{Data Book: }\thepage\xspace of \pageref{LastPage}};
+\end{tikzpicture}}
+\renewcommand{\headrulewidth}{1pt}}
+%-----------------------------------------------------------------------------------%
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+
+\newcommand{\pflogoart}{
+\begin{tikzpicture}[remember picture, overlay]
+\draw node[
+	fill=pfblue,
+	rounded corners=0.45in,
+	regular polygon,
+	regular polygon sides=6,
+	minimum size=14in,
+	text=white
+](inner) at (current page.west) {};
+\path  ($(inner.center)!0.44!(inner.east)$) node[text=white]{\fontsize{50}{50}\selectfont\textbf{
+\begin{tabular}{C{6in}}
+Quality Review\\
+\monthyeardate\today
+\end{tabular}}};
+\end{tikzpicture}
+}
+
+
+%-----------Table of Contents Formatting-----------%
+%----(compiler must be ran twice to update TOC)----%
+\usepackage{titletoc}
+
+%--section toc format--%
+\titlecontents{section}
+[1.5em]
+{}
+{\contentslabel{2.3em}}
+{}
+{\titlerule*[0.7pc]{.}\contentspage}
+
+%--subsecion toc format--%
+\titlecontents{subsection}
+[4em]
+{\hangindent1em}
+{\contentslabel{2.3em}}
+{}
+{\titlerule*[0.7pc]{.}\contentspage}
+
+%--Page number formatting--%
+\makeatletter
+\renewcommand{\contentspage}[1][\thecontentspage]{\hb@xt@\@pnumwidth{#1\hfil}\hspace*{-\@pnumwidth}}
+\renewcommand{\@pnumwidth}{3em}
+\makeatother
+
+%--------------------------------------------------%
+
+
+
+%-----External job info (jobinfo.dat)-----%
+\usepackage{datatool}
+\DTLsetseparator{ = } %-Spaces must be included
+\DTLloaddb[noheader, keys={thekey,thevalue}]{jobinfo}{jobinfo.dat}
+\newcommand{\jobinfofill}[1]{\DTLfetch{jobinfo}{thekey}{#1}{thevalue}}
+%-----------------------------------------%
+
+
+
+\setlength{\parskip}{0pt}
+\setlength\headheight{62pt}
+
+
+
+%-------------Page embedder-------------%
+\usepackage{pdfpages}
+
+%--newcommand for sections--%
+\newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
+
+%--newcommand for subsections--%
+\newcommand\addpage[1]{%
+	\StrBefore[1]{#1}{.}[\temp]%-Display name must be stored in \temp because of expansion behavior in \includepdf
+	\IfSubStr{\temp}{/}{\StrBehind{\temp}{/}[\temp]}{}%
+	\StrSubstitute{\temp}{!}{ }[\temp]
+	\includepdf[scale=0.95,pages=-,addtotoc={1,subsection,1,\temp,\temp},pagecommand=\phantomsection]{#1}}
+
+%---------------------------------------%
+
+
+
+
+%%%%%                                                                                                       %%%%%
+%%%%%  ____                   _             _____                                                      _    %%%%%
+%%%%% |  _ \                 (_)           |  __ \                                                    | |   %%%%%
+%%%%% | |_) |   ___    __ _   _   _ __     | |  | |   ___     ___   _   _   _ __ ___     ___   _ __   | |_  %%%%%
+%%%%% |  _ <   / _ \  / _` | | | | '_ \    | |  | |  / _ \   / __| | | | | | '_ ` _ \   / _ \ | '_ \  | __| %%%%%
+%%%%% | |_) | |  __/ | (_| | | | | | | |   | |__| | | (_) | | (__  | |_| | | | | | | | |  __/ | | | | | |_  %%%%%
+%%%%% |____/   \___|  \__, | |_| |_| |_|   |_____/   \___/   \___|  \__,_| |_| |_| |_|  \___| |_| |_|  \__| %%%%%
+%%%%%                  __/ |                                                                                %%%%%
+%%%%%                 |___/                                                                                 %%%%%
+
+\begin{document}
+\AddToShipoutPictureBG*{\pflogoart}
+\setlength{\footskip}{20pt}
+\begin{flushleft}
+\pagestyle{style1}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+
+
+%%-----Table of Contents-----%
+%\setcounter{tocdepth}{2}
+%\setcounter{secnumdepth}{-2}
+%\startcontents[section]
+%\begin{center}
+%\setlength{\parskip}{0.5em}
+%\addsection{Table of Contents}
+%\printcontents[section]{}{1}{}
+%\setlength{\parskip}{1em}
+%\end{center}
+%%---------------------------%
+
+%-----Begin Embedded Documents-----%
+\newpage %page style1 doesnt work without this newpage for some reason
+\setlength{\footskip}{110pt}
+\pagestyle{style2}
+\setlength\headheight{0pt}
+\renewcommand{\headrulewidth}{0pt}
+\include{embedlist} %Embeds documents listed in embedlist.tex
+%----------------------------------%
+
+
+
+\end{flushleft}
+\end{document}
