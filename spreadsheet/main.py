@@ -65,10 +65,14 @@ def cell_enumerate(item):
         i += 1
 
 # Totals for input column for this month
-def curr_month_values(column):
+def curr_month_values(column, blanks=False):
     this_month = []
     for i, j in cell_enumerate(column_list(column)):
         date_cell = ws.cell(i,column_index_from_string(date_column)).value
+
+        if blanks == False and str(j) == 'None':
+            continue #Skips blank cells
+
         if date_cell.month == now.month\
                 and date_cell.year == now.year:
             this_month.append(j)
@@ -89,7 +93,7 @@ def values_by_month(column, months=12):
     catagories = []       #list of lists for each catagory
     return_dict = {}
     for k, i in reversed(list(cell_enumerate(column_list(date_column)))):
-        column_value = ws[column + str(k)].value
+        column_value = str(ws[column + str(k)].value) #This must be str to allow sorted()
         months_ago = diff_month(now, i)
         if months_ago > (months - 1):
             break
@@ -102,4 +106,30 @@ def values_by_month(column, months=12):
         return_dict[i] = tuple(catagories[catagories_index.get(i)])
     return(return_dict)
 
-print(values_by_month('I'))
+
+
+def current_month_graph(column, title, blanks=False):
+    test_count = curr_month_values(column, blanks)
+
+    #use this for symbolic x coords
+    for i in test_count:
+        print(i)
+
+    #use this for coordinates
+    for i in test_count.most_common():
+        print(str(i).replace("'",''))
+
+#current_month_graph('M', 'test')
+
+def monthly_graph(column, title, months=12, blanks=False):
+    for catagory, month_count_tuple in sorted(values_by_month(column, months).items()):
+
+        if blanks == False and str(catagory) == 'None':
+            continue #this skips empty cells
+
+        print('\n' + str(catagory)) #set this to title of graph
+
+        for relative_month, occurances in enumerate(month_count_tuple):
+            print(str(occurances) + ' ' + str(relative_month) + ' months ago')
+            #use relative month number to get month str then append to tex file in reverse
+monthly_graph('S', 'test')
