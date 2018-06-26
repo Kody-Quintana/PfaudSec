@@ -2,6 +2,7 @@ from openpyxl import load_workbook
 from openpyxl.utils import coordinate_from_string,column_index_from_string
 from collections import Counter, OrderedDict
 import datetime
+import dateutil.relativedelta
 
 
 #Variables to be determined by ui later
@@ -49,8 +50,8 @@ def column_list(column):
 # returns month as string
 def month_string(i):
     out = None
-    if isinstance(i, datetime.datetime):
-        out = i.strftime('%B')
+    if isinstance(i, datetime.datetime) or isinstance(i, datetime.date):
+        out = i.strftime('%b %y')
     else:
         print('Cant convert ' + str(type(i)) + ' to month string')
     return out
@@ -127,9 +128,24 @@ def monthly_graph(column, title, months=12, blanks=False):
         if blanks == False and str(catagory) == 'None':
             continue #this skips empty cells
 
-        print('\n' + str(catagory)) #set this to title of graph
+        symbolic_xcoords = []
+        coordinates = []
 
         for relative_month, occurances in enumerate(month_count_tuple):
-            print(str(occurances) + ' ' + str(relative_month) + ' months ago')
+            xcoord_month = month_string(now 
+                    - dateutil.relativedelta.relativedelta(\
+                            months=int(relative_month)))
             #use relative month number to get month str then append to tex file in reverse
-monthly_graph('S', 'test')
+
+            #for use in LaTeX pgfplots package
+            symbolic_xcoords.insert(0, xcoord_month + ',')
+            coordinates.insert(0, '(' + xcoord_month + ',' + str(occurances) + ')')
+
+        #lists changed to str with newlines to avoid using a loop to append to tex file
+        symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
+        coordinates = '\n'.join([str(i) for i in coordinates])
+
+        print('\n' + str(catagory)) #set this to title of graph
+        print(symbolic_xcoords)
+        print(coordinates)
+monthly_graph('N', 'test')
