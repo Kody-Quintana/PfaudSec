@@ -4,10 +4,13 @@ from collections import Counter, OrderedDict
 import datetime
 import dateutil.relativedelta
 
+#pgfplots tex file stored as list in a python file
+from texstorage import line_graph_tex, bar_graph_tex 
 
 #Variables to be determined by ui later
 work_file = './car_log.xlsx'
 date_column = 'b'
+work_dir = './'
 
 wb = load_workbook(work_file)
 ws = wb.worksheets[0]
@@ -110,18 +113,32 @@ def values_by_month(column, months=12):
 
 
 def current_month_graph(column, title, blanks=False):
-    test_count = curr_month_values(column, blanks)
+    current_data = curr_month_values(column, blanks)
 
-    #use this for symbolic x coords
-    for i in test_count:
-        print(i)
+    symbolic_xcoords = '\n'.join([str(i) + ',' for i \
+            in sorted(current_data, key=current_data.get, reverse=True)])
+    coordinates = '\n'.join([str(i).replace("'",'') for i in current_data.most_common()])
+    # ytick distance must be set to 1 for values less than 6
+    # or the ytick labels will be non whole numbers
+    ticks_distance_flag = 0
+    for key, value in current_data.items():
+        if int(value) > 5:
+            ticks_file_flag = 1
 
-    #use this for coordinates
-    for i in test_count.most_common():
-        print(str(i).replace("'",''))
+    with open(work_dir + '/graph.tex', 'a') as graphs_file:
+        graphs_file.write(bar_graph_tex[0])
+        graphs_file.write(title)
+        graphs_file.write(bar_graph_tex[1])
+        graphs_file.write(symbolic_xcoords)
+        graphs_file.write(bar_graph_tex[2])
+        if ticks_distance_flag == 0:
+            graphs_file.write('ytick distance=1,')
+        graphs_file.write(bar_graph_tex[3])
+        graphs_file.write(coordinates)
+        graphs_file.write(bar_graph_tex[4])
 
-#current_month_graph('M', 'test')
 
+#Uses line graph for one catagory over time
 def monthly_graph(column, title, months=12, blanks=False):
     for catagory, month_count_tuple in sorted(values_by_month(column, months).items()):
 
@@ -130,12 +147,18 @@ def monthly_graph(column, title, months=12, blanks=False):
 
         symbolic_xcoords = []
         coordinates = []
+        ticks_distance_flag = 0
 
+
+        # ytick distance must be set to 1 for values less than 6
+        # or the ytick labels will be non whole numbers
         for relative_month, occurances in enumerate(month_count_tuple):
+            if int(occurances) > 5:
+                ticks_distance_flag = 1
+
             xcoord_month = month_string(now 
                     - dateutil.relativedelta.relativedelta(\
                             months=int(relative_month)))
-            #use relative month number to get month str then append to tex file in reverse
 
             #for use in LaTeX pgfplots package
             symbolic_xcoords.insert(0, xcoord_month + ',')
@@ -145,7 +168,21 @@ def monthly_graph(column, title, months=12, blanks=False):
         symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
         coordinates = '\n'.join([str(i) for i in coordinates])
 
-        print('\n' + str(catagory)) #set this to title of graph
-        print(symbolic_xcoords)
-        print(coordinates)
-monthly_graph('N', 'test')
+        with open(work_dir + '/graph.tex', 'a') as graphs_file:
+            graphs_file.write(line_graph_tex[0])
+            graphs_file.write(title + ' - ' + catagory)
+            graphs_file.write(line_graph_tex[1])
+            graphs_file.write(symbolic_xcoords)
+            graphs_file.write(line_graph_tex[2])
+            if ticks_distance_flag == 0:
+                graphs_file.write('ytick distance=1,')
+            graphs_file.write(line_graph_tex[3])
+            graphs_file.write(coordinates)
+            graphs_file.write(line_graph_tex[4])
+
+current_month_graph('I', 'test')
+monthly_graph('I', 'test')
+#monthly_graph('N', 'column N values')
+
+
+

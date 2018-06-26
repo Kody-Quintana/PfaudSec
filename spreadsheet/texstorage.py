@@ -1,7 +1,8 @@
 line_graph_tex = [
 r"""
 \Large
-\begin{tikzpicture}% Line graph, use for data over time
+\begin{center}
+\begin{tikzpicture}[trim axis left, trim axis right]% Line graph, use for data over time
 	\begin{axis}
 		[ymin=0,
 		%ytick distance=1,
@@ -22,10 +23,11 @@ r"""
 		symbolic x coords={
 """,
 #Symbolic x coords go here
-r"""
-			},
+r"""},
 		xtick=data,
-		nodes near coords,
+""",
+#ytick distance here (must be set to 1 for values less than 6, otherwise non whole numbers will be used)
+r"""nodes near coords,
 		nodes near coords align={vertical},
 		x tick label style={rotate=35, anchor=north east},]
 	\addplot [draw=pfblue,
@@ -39,6 +41,7 @@ r"""
 		};
 	\end{axis}
 \end{tikzpicture}
+\end{center}
 """
 ]
 
@@ -47,7 +50,8 @@ r"""
 bar_graph_tex = [
 r"""
 \Large
-\begin{tikzpicture}% Bar graph, use for current month's values
+\begin{center}
+\begin{tikzpicture}[trim axis left, trim axis right]% Bar graph, use for current month's values
 	\begin{axis}
 		[ybar,
 		ymin=0,
@@ -66,11 +70,12 @@ r""" - \monthyeardate\today},
 		ylabel={},
 		symbolic x coords={
 """,
-# symbolic x coords go here
-r"""
-			},
+#Symbolic x coords go here
+r"""},
 		xtick=data,
-		nodes near coords,
+""",
+#ytick distance here (must be set to 1 for values less than 6, otherwise non whole numbers will be used)
+r"""nodes near coords,
 		nodes near coords align={vertical},
 		x tick label style={rotate=25,anchor=north east},]
 	\addplot [fill=pfblue,
@@ -89,5 +94,6 @@ r"""
 		};
 	\end{axis}
 \end{tikzpicture}
+\end{center}
 """
 ]
