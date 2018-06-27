@@ -69,6 +69,18 @@ def cell_enumerate(item):
         yield (i, it.__next__())
         i += 1
 
+
+
+
+def unique_column_list(column):
+    values = list(set(column_list(column)))
+    values.sort
+    return values
+
+def diff_month(d1, d2):
+    return (d1.year - d2.year) * 12 + d1.month - d2.month
+
+
 # Totals for input column for this month
 def curr_month_values(column, blanks=False):
     this_month = []
@@ -85,14 +97,52 @@ def curr_month_values(column, blanks=False):
             total_occurances  += 1
     return Counter(this_month), total_occurances
 
+def relative_month_to_string(relative_month):
+    output = month_string(now 
+            - dateutil.relativedelta.relativedelta(\
+                    months=int(relative_month)))
+    return output
 
-def unique_column_list(column):
-    values = list(set(column_list(column)))
-    values.sort
-    return values
 
-def diff_month(d1, d2):
-    return (d1.year - d2.year) * 12 + d1.month - d2.month
+def totals_by_month_graph(column=date_column, months=12, title='Totals by month'):
+    months_counter = [0] * months
+    return_dict = {}
+    symbolic_xcoords = [] # turns into string later
+    coordinates = []
+    ticks_distance_flag = 0
+
+    for index, data in reversed(list(cell_enumerate(column_list(date_column)))):
+        column_value = ws[column + str(index)].value #This must be str to allow sorted()
+        months_ago = diff_month(now, column_value)
+        if months_ago > (months - 1):
+            break
+        months_counter[months_ago] += 1
+
+    for i in months_counter:
+        if int(i) > 5:
+            ticks_distance_flag = 1
+
+    for index, data in reversed(list(enumerate(months_counter))):
+        xcoord_name = relative_month_to_string(index)
+        coordinates.append('(' + xcoord_name + ',' + str(data) + ')')
+        symbolic_xcoords.append(xcoord_name + ',')
+
+    symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
+    coordinates = '\n'.join([str(i) for i in coordinates])
+
+    with open(work_dir + '/graph.tex', 'a') as graphs_file:
+        graphs_file.write(line_graph_tex[0])
+        graphs_file.write(title)
+        graphs_file.write(line_graph_tex[1])
+        graphs_file.write(symbolic_xcoords)
+        graphs_file.write(line_graph_tex[2])
+        if ticks_distance_flag == 0:
+            graphs_file.write('ytick distance=1,')
+        graphs_file.write(line_graph_tex[3])
+        graphs_file.write(coordinates)
+        graphs_file.write(line_graph_tex[4])
+
+
 
 # returns dict of tuples, tuple index is how many months ago data is for
 def values_by_month(column, months=12):
@@ -134,7 +184,6 @@ def current_month_graph(column, title, blanks=False):
     pareto = '\n'.join(['(' + str(index) + ',' + str(percent) + ')'\
             for index, percent in enumerate(pareto)])
 
-    print(pareto)
 
     with open(work_dir + '/graph.tex', 'a') as graphs_file:
         graphs_file.write(bar_graph_tex[0])
@@ -162,16 +211,13 @@ def monthly_graph(column, title, months=12, blanks=False):
         coordinates = []
         ticks_distance_flag = 0
 
-
         # ytick distance must be set to 1 for values less than 6
         # or the ytick labels will be non whole numbers
         for relative_month, occurances in enumerate(month_count_tuple):
             if int(occurances) > 5:
                 ticks_distance_flag = 1
 
-            xcoord_month = month_string(now 
-                    - dateutil.relativedelta.relativedelta(\
-                            months=int(relative_month)))
+            xcoord_month = relative_month_to_string(relative_month)
 
             #for use in LaTeX pgfplots package
             symbolic_xcoords.insert(0, xcoord_month + ',')
@@ -193,13 +239,15 @@ def monthly_graph(column, title, months=12, blanks=False):
             graphs_file.write(coordinates)
             graphs_file.write(line_graph_tex[4])
 
-current_month_graph('I', 'test')
-monthly_graph('I', 'test')
+
+totals_by_month_graph(title='Total CARs by Month')
+current_month_graph('I', 'Item Type')
+monthly_graph('I', 'Item Type')
 #monthly_graph('N', 'column N values')
-current_month_graph('N', 'test')
-monthly_graph('N', 'test')
-current_month_graph('L', 'test')
-monthly_graph('L', 'test')
+current_month_graph('J', 'Root Cause')
+monthly_graph('N', '')
+current_month_graph('O', 'Action taken')
+monthly_graph('L', 'Dept Responsible')
 
 
 
