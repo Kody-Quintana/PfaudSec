@@ -287,7 +287,6 @@ Quality Review\\
 %\setlength{\parskip}{1em}
 %\end{center}
 %%---------------------------%
-
 \phantom{Placeholder for first page}
 %-----Begin Embedded Documents-----%
 \newpage %page style1 doesnt work without this newpage for some reason
@@ -297,4 +296,145 @@ Quality Review\\
 \renewcommand{\headrulewidth}{0pt}
 \include{graph}
 %----------------------------------%
+
+
+%\LARGE
+%\begin{tikzpicture}% Line graph, use for data over time
+%	\begin{axis}
+%		[ymin=0,
+%		title=\fontsize{25}{25}\selectfont\color{pfgrey}{Warranties Claims - Monthly},
+%		tick label style={/pgf/number format/assume math mode},
+%		every axis plot/.append style={ultra thick},
+%		ymajorgrids,
+%		bar width={0.06\textwidth},
+%		legend style={
+%			at={(0.5,-0.2)},
+%			anchor=north,
+%			legend columns=-1},
+%		ylabel={},
+%		symbolic x coords={
+%			Jan,
+%			Feb,
+%			Mar,
+%			Apr,
+%			May,
+%			Jun,
+%			Jul,
+%			Aug,
+%			Sep,
+%			Oct,
+%			Nov,
+%			Dec,
+%			},
+%		xtick=data,
+%		nodes near coords,
+%		nodes near coords align={vertical},
+%		x tick label style={},]
+%	\addplot [draw=pfblue,
+%		nodes near coords={\pgfmathfloatifflags{\pgfplotspointmeta}{0}{}{\pgfmathprintnumber{\pgfplotspointmeta}}},
+%		nodes near coords align={horizontal},
+%		nodes near coords style={font=\Large,/pgf/number format/assume math mode}]
+%		coordinates{
+%		(Jan,3)
+%		(Feb,8)
+%		(Mar,0)
+%		(Apr,2)
+%		(May,0)
+%		(Jun,0)
+%		(Jul,0)
+%		(Aug,0)
+%		(Sep,0)
+%		(Oct,0)
+%		(Nov,0)
+%		(Dec,0)
+%		};
+%	\end{axis}
+%\end{tikzpicture}
+%
+%
+%\begin{tikzpicture}% Bar graph, use for current month's values
+%	\begin{axis}
+%		[ybar,
+%		ymin=0,
+%		title=\fontsize{25}{25}\selectfont\color{pfgrey}{Warranties Claims - \monthyeardate\today},
+%		tick label style={/pgf/number format/assume math mode},
+%		every axis plot/.append style={ultra thick},
+%		ymajorgrids,
+%		bar width={0.06\textwidth},
+%		legend style={
+%			at={(0.5,-0.2)},
+%			anchor=north,
+%			legend columns=-1},
+%		ylabel={},
+%		symbolic x coords={
+%			OE ≥ 4000,
+%			Thing 2,
+%			Thing 3,
+%			Thing 4,
+%			Thing 5,
+%			Thing 6,
+%			},
+%		xtick=data,
+%		nodes near coords,
+%		nodes near coords align={vertical},
+%		x tick label style={},]
+%	\addplot [fill=pfblue,
+%		draw=none,
+%		nodes near coords={
+%			\pgfmathfloatifflags
+%			{\pgfplotspointmeta}{0}{}
+%			{\pgfmathprintnumber{\pgfplotspointmeta}}},
+%		nodes near coords align={south},
+%		nodes near coords style={font=\Large,/pgf/number format/assume math mode},
+%		every node near coord/.append style={xshift=0pt,yshift=-24pt,anchor=south,font=\color{white}\Large}]
+%		coordinates{
+%		(OE ≥ 4000,3)
+%		(Thing 2,8)
+%		(Thing 3,2)
+%		(Thing 4,1)
+%		(Thing 5,0)
+%		(Thing 6,0)
+%		};
+%	\end{axis}
+%% Pareto line
+%	\begin{axis}
+%		[ymin=0,
+%		ymax=100,
+%		tick label style={/pgf/number format/assume math mode},
+%		every axis plot/.append style={ultra thick},
+%		ytick style={draw=none},
+%		%bar width={0.06\textwidth},
+%		legend style={
+%			at={(0.5,-0.2)},
+%			anchor=north,
+%			legend columns=-1},
+%		ylabel={},
+%		xtick=data,
+%		xticklabels={,,},
+%		yticklabel={\pgfmathprintnumber\tick\%},
+%		xtick style={draw=none},
+%		%nodes near coords,
+%		%nodes near coords align={vertical},
+%		yticklabel pos=right,
+%		y tick label style={},
+%		x tick label style={},]
+%	\addplot [draw=orange,
+%		nodes near coords={}
+%%			\pgfmathfloatifflags
+%%			{\pgfplotspointmeta}{0}{}
+%%			{\pgfmathprintnumber{\pgfplotspointmeta}}},
+%%		nodes near coords align={south},
+%%		nodes near coords style={font=\Large,/pgf/number format/assume math mode},
+%%		every node near coord/.append style={xshift=0pt,yshift=0pt,anchor=south,font=\color{orange}\Large}
+%]
+%		coordinates{
+%		(0,3)
+%		(1,30)
+%		(2,40)
+%		(3,50)
+%		(4,60)
+%		(5,100)
+%		};
+%	\end{axis}
+%\end{tikzpicture}
 \end{document}

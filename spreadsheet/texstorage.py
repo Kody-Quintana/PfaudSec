@@ -93,6 +93,43 @@ r"""nodes near coords,
 r"""
 		};
 	\end{axis}
+% Pareto line
+	\begin{axis}
+		[ymin=0,
+		ymax=100,
+		tick label style={/pgf/number format/assume math mode},
+		every axis plot/.append style={ultra thick},
+		ytick style={draw=none},
+		%bar width={0.06\textwidth},
+		legend style={
+			at={(0.5,-0.2)},
+			anchor=north,
+			legend columns=-1},
+		ylabel={},
+		xtick=data,
+		xticklabels={,,},
+		yticklabel={\pgfmathprintnumber\tick\%},
+		xtick style={draw=none},
+		%nodes near coords,
+		%nodes near coords align={vertical},
+		yticklabel pos=right,
+		y tick label style={},
+		x tick label style={},]
+	\addplot [draw=orange,
+		nodes near coords={}
+%			\pgfmathfloatifflags
+%			{\pgfplotspointmeta}{0}{}
+%			{\pgfmathprintnumber{\pgfplotspointmeta}}},
+%		nodes near coords align={south},
+%		nodes near coords style={font=\Large,/pgf/number format/assume math mode},
+%		every node near coord/.append style={xshift=0pt,yshift=0pt,anchor=south,font=\color{orange}\Large}
+]
+		coordinates{""",
+
+# pareto coords go here
+
+r"""};
+	\end{axis}
 \end{tikzpicture}
 \end{center}
 """

@@ -3,6 +3,7 @@ from openpyxl.utils import coordinate_from_string,column_index_from_string
 from collections import Counter, OrderedDict
 import datetime
 import dateutil.relativedelta
+import itertools
 
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
@@ -71,6 +72,7 @@ def cell_enumerate(item):
 # Totals for input column for this month
 def curr_month_values(column, blanks=False):
     this_month = []
+    total_occurances = 0
     for i, j in cell_enumerate(column_list(column)):
         date_cell = ws.cell(i,column_index_from_string(date_column)).value
 
@@ -80,7 +82,8 @@ def curr_month_values(column, blanks=False):
         if date_cell.month == now.month\
                 and date_cell.year == now.year:
             this_month.append(j)
-    return Counter(this_month)
+            total_occurances  += 1
+    return Counter(this_month), total_occurances
 
 
 def unique_column_list(column):
@@ -113,7 +116,7 @@ def values_by_month(column, months=12):
 
 
 def current_month_graph(column, title, blanks=False):
-    current_data = curr_month_values(column, blanks)
+    current_data, total_occurances = curr_month_values(column, blanks)
 
     symbolic_xcoords = '\n'.join([str(i) + ',' for i \
             in sorted(current_data, key=current_data.get, reverse=True)])
@@ -121,9 +124,17 @@ def current_month_graph(column, title, blanks=False):
     # ytick distance must be set to 1 for values less than 6
     # or the ytick labels will be non whole numbers
     ticks_distance_flag = 0
-    for key, value in current_data.items():
-        if int(value) > 5:
+    occurances = sorted(current_data.values(), reverse=True)
+    for i in occurances:
+        if int(i) > 5:
             ticks_file_flag = 1
+
+    pareto = list(itertools.accumulate(occurances))
+    pareto = [round(x / total_occurances * 100) for x in pareto]
+    pareto = '\n'.join(['(' + str(index) + ',' + str(percent) + ')'\
+            for index, percent in enumerate(pareto)])
+
+    print(pareto)
 
     with open(work_dir + '/graph.tex', 'a') as graphs_file:
         graphs_file.write(bar_graph_tex[0])
@@ -136,6 +147,8 @@ def current_month_graph(column, title, blanks=False):
         graphs_file.write(bar_graph_tex[3])
         graphs_file.write(coordinates)
         graphs_file.write(bar_graph_tex[4])
+        graphs_file.write(pareto)
+        graphs_file.write(bar_graph_tex[5])
 
 
 #Uses line graph for one catagory over time
@@ -183,6 +196,10 @@ def monthly_graph(column, title, months=12, blanks=False):
 current_month_graph('I', 'test')
 monthly_graph('I', 'test')
 #monthly_graph('N', 'column N values')
+current_month_graph('N', 'test')
+monthly_graph('N', 'test')
+current_month_graph('L', 'test')
+monthly_graph('L', 'test')
 
 
 
