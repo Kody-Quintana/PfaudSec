@@ -4,18 +4,58 @@ from collections import Counter, OrderedDict
 import datetime
 import dateutil.relativedelta
 import itertools
+import configparser
+import os
 
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
 
-#Variables to be determined by ui later
+if os.name == "nt":
+    sep = '\\'
+elif os.name == "posix":
+    sep = '/'
+
 work_file = './car_log.xlsx'
-date_column = 'b'
+
+print(work_file.split(sep)[len(work_file.split(sep)) - 1].rsplit(".", 1)[0])
+config_file = './car_log.ini'
+config = configparser.ConfigParser()
+config.read(config_file)
+
+
+# Date column config
+if config.has_option('document', 'date_column'):
+    if str(config['document']['date_column']).isalpha():
+        date_column = config['document']['date_column']
+    else:
+        print('Date column but be a letter')
+        exit()
+else:
+    print('No date column defined in ' + str(config_file))
+    exit()
+
+
+# Worksheet number config
+if config.has_option('document', 'worksheet'):
+    try:
+        sheet_number = int(config['document']['worksheet'])
+        if sheet_number == 0:
+            sheet_number = 1
+            print('Sheet numbers start at 1, setting worksheet to 1 instead of 0')
+    except:
+        sheet_number = 1
+        print('Invalid worksheet specified in ' + str(config_file) + ' defaulting to sheet 1')
+else:
+    print('No worksheet specified in ' + str(config_file) + ' defaulting to sheet 1')
+    sheet_number = 1
+
+
 work_dir = './'
 
 wb = load_workbook(work_file)
-ws = wb.worksheets[0]
+ws = wb.worksheets[sheet_number - 1]
 now = datetime.date.today()
+
 
 # Determines global active rows by first date and last date in input column
 def date_cell_range(date_column):
@@ -42,6 +82,7 @@ def date_cell_range(date_column):
 cells_start, cells_end = date_cell_range(date_column)
 active_range = range(int(cells_start), int(cells_end))
 
+
 # For readability, returns a list of all cell.value
 # for input column, range determined by date_cell_range()
 def column_list(column):
@@ -51,6 +92,7 @@ def column_list(column):
             row_cells.append(cell.value)
     return row_cells
 
+
 # returns month as string
 def month_string(i):
     out = None
@@ -59,6 +101,7 @@ def month_string(i):
     else:
         print('Cant convert ' + str(type(i)) + ' to month string')
     return out
+
 
 # enumerate() but index starts at first cell
 # as determined by date_cell_range()
@@ -70,12 +113,11 @@ def cell_enumerate(item):
         i += 1
 
 
-
-
 def unique_column_list(column):
     values = list(set(column_list(column)))
     values.sort
     return values
+
 
 def diff_month(d1, d2):
     return (d1.year - d2.year) * 12 + d1.month - d2.month
@@ -97,11 +139,11 @@ def curr_month_values(column, blanks=False):
             total_occurances  += 1
     return Counter(this_month), total_occurances
 
+
 def relative_month_to_string(relative_month):
-    output = month_string(now 
+    return month_string(now 
             - dateutil.relativedelta.relativedelta(\
                     months=int(relative_month)))
-    return output
 
 
 def totals_by_month_graph(column=date_column, months=12, title='Totals by month'):
@@ -143,7 +185,6 @@ def totals_by_month_graph(column=date_column, months=12, title='Totals by month'
         graphs_file.write(line_graph_tex[4])
 
 
-
 # returns dict of tuples, tuple index is how many months ago data is for
 def values_by_month(column, months=12):
     catagories_index = {} #dict to get index from string for catagories
@@ -164,13 +205,13 @@ def values_by_month(column, months=12):
     return(return_dict)
 
 
-
 def current_month_graph(column, title, blanks=False):
     current_data, total_occurances = curr_month_values(column, blanks)
 
     symbolic_xcoords = '\n'.join([str(i) + ',' for i \
             in sorted(current_data, key=current_data.get, reverse=True)])
     coordinates = '\n'.join([str(i).replace("'",'') for i in current_data.most_common()])
+
     # ytick distance must be set to 1 for values less than 6
     # or the ytick labels will be non whole numbers
     ticks_distance_flag = 0
@@ -239,15 +280,37 @@ def monthly_graph(column, title, months=12, blanks=False):
             graphs_file.write(coordinates)
             graphs_file.write(line_graph_tex[4])
 
+def compile_tex():
+    print('Starting PfaudSec Graph compiler.\nLoaded sections from '\
+            + str(config_file) + ':\n')
+    
+    # Totals from date column
+    if config.getboolean('document', 'show_totals', fallback=False):
+        totals_by_month_graph(title = str(config.get\
+                ('document', 'document_name', fallback = 'Totals')) + ' totals')
 
-totals_by_month_graph(title='Total CARs by Month')
-current_month_graph('I', 'Item Type')
-monthly_graph('I', 'Item Type')
-#monthly_graph('N', 'column N values')
-current_month_graph('J', 'Root Cause')
-monthly_graph('N', '')
-current_month_graph('O', 'Action taken')
-monthly_graph('L', 'Dept Responsible')
+    non_column_sections = frozenset(('document', 'sharepoint'))
+    for column in config.sections():
+
+        if str(column).lower() in non_column_sections:
+            continue
+
+        # Bar/Pareto graph for current month
+        if config.getboolean(column, 'current_month', fallback=False):
+            current_month_graph(str(column), str(config.get(column, 'title', fallback = '')))
+
+        # Line graph for one catagory over time
+        if config.getboolean(column, 'monthly', fallback=False):
+            monthly_graph(str(column), str(config.get(column, 'title', fallback = '')))
+
+compile_tex()
 
 
-
+#totals_by_month_graph(title='Total CARs by Month')
+#current_month_graph('I', 'Item Type')
+#monthly_graph('I', 'Item Type')
+##monthly_graph('N', 'column N values')
+#current_month_graph('J', 'Root Cause')
+#monthly_graph('N', '')
+#current_month_graph('O', 'Action taken')
+#monthly_graph('L', 'Dept Responsible')
