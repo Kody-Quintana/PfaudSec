@@ -5,22 +5,21 @@ import time
 import unicodedata
 import re
 import subprocess
-from PyQt5 import QtCore, QtGui, QtWidgets
 import tempfile
 import os
 import shutil
 import configparser
+from PyQt5 import QtGui, QtWidgets
 import redirect #name of interface file
 import qdarkstyle
-
 
 def except_box(excType, excValue, tracebackobj):
     logFile = "PfaudSec_crash.log"
     notice = 'An unhandled exception occured. Please report the problem via email to Quintana.Kody@gmail.com'\
             + '\n\nPlease attach the log file PfaudSec_crash.log from the PfaudSec folder to the email.\n'
-    versionInfo="0.0.1"
+    versionInfo = "0.0.1"
     timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
-     
+
     tbinfofile = io.StringIO()
     traceback.print_tb(tracebackobj, None, tbinfofile)
     tbinfofile.seek(0)
@@ -41,7 +40,7 @@ def except_box(excType, excValue, tracebackobj):
     errorbox.exec_()
 
 if sys.platform.startswith("win"):
-    # Don't display the Windows GPF dialog if the invoked program dies.
+    """Don't display the Windows GPF dialog if the invoked program dies."""
     import ctypes
     SEM_NOGPFAULTERRORBOX = 0x0002 # From MSDN
     ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX);
@@ -50,21 +49,22 @@ if sys.platform.startswith("win"):
 else:
     subprocess_flags = 0
 
-# This replaces print() to output python related messages to a QTextEdit from redirect.py
 def pronk(text):
+    """Replace print() to output python related messages to a QTextEdit from redirect.py"""
     win.main_append(str(text) + '\n')
 
 grab_dir = ''
 output_dir = None
 
 class DataBook(object):
-    
+
     def __init__(self):
         self.embed_list = []
         self.nested_list_sections = []
-        
+
         self.config_file = 'sections_config.ini'
         self.template_dir = 'TeX'
+        self.xelatex_path = ''
         self.xelatex_config()
 
     def xelatex_config(self):
@@ -73,8 +73,8 @@ class DataBook(object):
         elif os.name == "posix":
             self.xelatex_path = 'xelatex'
 
-
     def reset(self):
+        """Clear variables and delete then recreate working directory"""
         global work_dir
         self.embed_list = []
         self.nested_list_sections = []
@@ -84,7 +84,7 @@ class DataBook(object):
 
     def data_book_run(self):
 
-        global work_dir 
+        global work_dir
         self.config = configparser.ConfigParser()
         self.config.read(self.config_file)
         pronk('Starting PfaudSec DataBook compiler.\nLoaded sections from '\
@@ -92,9 +92,10 @@ class DataBook(object):
         for i in self.config.sections():
             pronk('Section: ' + str(i))
         pronk('')
-        
-        
-        def get_file_list(self,dir):
+
+
+        def get_file_list(self, dir):
+            """Scan PDF grab folder, return list of matches"""
             global grab_dir
             pronk('\nLoading documents found in:\n"' + str(grab_dir) + '"\n')
             doc_pattern = re.compile("([^\s]+ \d+\.\d+\.pdf)")
@@ -103,53 +104,54 @@ class DataBook(object):
                 self.file_list_flag = 0
                 if doc_pattern.match(i):
                     for j in self.config.sections():
-                        for (x,y) in self.config.items(j):
+                        for (x, y) in self.config.items(j):
                             i_dot_split = str(str(i).split(' ')[1]).split('.')
                             if str(i_dot_split[0]) + '.' + str(i_dot_split[1]).lstrip('0') == str(x):
                                 self.list.append(i)
                                 self.file_list_flag = 1
-                    if self.file_list_flag == 0: 
+                    if self.file_list_flag == 0:
                         pronk('Skipping PDF file: "' + str(i) + '" (name not in sections_config.ini)')
                 else:
                     if i.endswith('pdf'):
                         pronk('Skipping PDF file: "' + str(i) + '" (is name malformed?)')
             return sorted(self.list)
-        
+
 
         def pdf_rename(self):
+            """Rename PDF files to match names from section_config.ini"""
             global grab_dir
-        
-            for l in range(len(self.config.sections())): 
+
+            for l in range(len(self.config.sections())):
                 # -1 from actual length but configparser makes a DEFAULT section that is not used so the -1 is fine
                 self.nested_list_sections.append([])
-            
-            def pdf_skip(self,skipped_pdf):
+
+            def pdf_skip(self, skipped_pdf):
                 pronk('\nSkipping PDF file: "' + str(skipped_pdf) + '" (is name malformed?)')
 
-            for i, k in enumerate((get_file_list(self,grab_dir))):
-        
+            for i, k in enumerate((get_file_list(self, grab_dir))):
+
                 #Splits document shorthand, removes leading 0s so that 2.1 is same as 2.01
                 try:
-                    self.doc_id_stage = k.split(' ')[1].replace('.pdf','').split('.')
+                    self.doc_id_stage = k.split(' ')[1].replace('.pdf', '').split('.')
                     self.doc_id = self.doc_id_stage[0] + '.' + self.doc_id_stage[1].lstrip('0')
                     self.section_num = int(self.doc_id[0]) - 1
                     shutil.copyfile(grab_dir + '/' + k, work_dir + '/' + k)
                     self.doc_section = (self.config[self.config.sections()\
                             [self.section_num]][self.doc_id])
-                    self.new_name = self.doc_section.replace(' ','!') + '.pdf' 
+                    self.new_name = self.doc_section.replace(' ', '!') + '.pdf'
                     self.new_full_name = work_dir + '/' + self.new_name
                     os.rename(work_dir + '/' + k, self.new_full_name)
                     self.nested_list_sections[self.section_num].append(self.new_name)
 
                 #This should catch and skip anything not matching an entry in sections_config.ini
                 except KeyError:
-                    pdf_skip(self,k)
+                    pdf_skip(self, k)
                 except IndexError:
-                    pdf_skip(self,k)
+                    pdf_skip(self, k)
                 except FileExistsError:
-                    pdf_skip(self,k)
+                    pdf_skip(self, k)
 
-            
+
             pronk('\n\nFound:')
             for i in self.nested_list_sections:
                 pronk(str(i).replace('!', ' ').replace('.PDF', '').replace('.pdf', ''))
@@ -162,117 +164,107 @@ class DataBook(object):
                 for i in self.embed_list:
                     self.embed_list_file.write('%s\n' % i)
             self.embed_list_file.close()
-        
+
         for i in self.embed_list:
             pronk(i)
-        
+
         def strip_accents(self, s):
-           return ''.join(c for c in unicodedata.normalize('NFD', s)
+            """Remove accent characters, for use with Brazil documents to prevent XeLaTeX errors"""
+            return ''.join(c for c in unicodedata.normalize('NFD', s)
                           if unicodedata.category(c) != 'Mn')
-        
+
 
         def loose_files_stage(self, input_loose_name, path):
+            """Adds "loose" PDF files to LaTeX document, named as found (except accented characters)"""
+            global work_dir
 
-                global work_dir
-                
-                #loose_embed_names = []
-                loose_embed_list = [] 
-                loose_name = str(input_loose_name).replace(' ', '!')
-                self.folder_check(work_dir + r'/' + loose_name)                
+            #loose_embed_names = []
+            loose_embed_list = []
+            loose_name = str(input_loose_name).replace(' ', '!')
+            self.folder_check(work_dir + r'/' + loose_name)
 
-                def try_copy(src, dest):
-                    #this is not a good way, change later
-                    try:
-                        shutil.copyfile(src, dest)
-                    except FileExistsError:
-                        pass
-                
-                for root, dirs, files in os.walk(path):
-                    for j in files:
-                        if j.endswith('.pdf'):
-                            loose_embed_list.append(str(root + r'/' + j).replace(r'//',r'/'))
-                            #loose_embed_names.append(j)
-                loose_embed_list.sort()
-                            
-                
-                for k, i in enumerate(loose_embed_list):
-                    file_name = str(i.replace('/','\\').split('\\')[len(i.replace('/','\\').split('\\')) - 1])
-                    try_copy(i, work_dir + r'/' + loose_name + '\\' + file_name)
-                    # strip_accents(self, self.input)
+            def try_copy(src, dest):
+                #this is not a good way, change later
+                try:
+                    shutil.copyfile(src, dest)
+                except FileExistsError:
+                    pass
 
-                for i in os.listdir(work_dir + '/' + loose_name):
-                    if i.endswith('.pdf'):
-                        os.rename(work_dir + '/' + loose_name + '/' + i,
-                                work_dir + '/' + loose_name + '/' + strip_accents(self, i\
-                                        .replace('-','')\
-                                        .replace('_','!')\
-                                        .replace(' ','!')))
-                
-                
-                with open(work_dir + '/embedlist.tex', 'a') as embed_list_file:
-                    embed_list_file.write('\n' + r'\addsection{' 
-                            + loose_name.replace('!',' ') + '}')
+            for root, dirs, files in os.walk(path):
+                for j in files:
+                    if j.endswith('.pdf'):
+                        loose_embed_list.append(str(root + r'/' + j).replace(r'//', r'/'))
+                        #loose_embed_names.append(j)
+            loose_embed_list.sort()
 
-                    for i in loose_embed_list:
-                        embed_list_file.write('\n' 
-                                + r'\addpage{' 
-                                + loose_name 
-                                + '/' 
-                                + strip_accents(self, str(i\
-                                        .replace('-','')\
-                                        .replace('_','!')\
-                                        .replace(' ','!')\
-                                        .split('/')[len(i.split('/')) - 1]))
-                                + '}')
 
-                    embed_list_file.close()
+            for k, i in enumerate(loose_embed_list):
+                file_name = str(i.replace('/', '\\').split('\\')[len(i.replace('/', '\\').split('\\')) - 1])
+                try_copy(i, work_dir + r'/' + loose_name + '\\' + file_name)
+                # strip_accents(self, self.input)
 
-        def template_stage(self,src,dest):
-            
-            folder_check(self,dest)
+            for i in os.listdir(work_dir + '/' + loose_name):
+                if i.endswith('.pdf'):
+                    os.rename(work_dir + '/' + loose_name + '/' + i,
+                            work_dir + '/' + loose_name + '/' + strip_accents(self, i\
+                                    .replace('-', '')\
+                                    .replace('_', '!')\
+                                    .replace(' ', '!')))
+
+
+            with open(work_dir + '/embedlist.tex', 'a') as embed_list_file:
+                embed_list_file.write('\n' + r'\addsection{'
+                        + loose_name.replace('!', ' ') + '}')
+
+                for i in loose_embed_list:
+                    embed_list_file.write('\n'
+                            + r'\addpage{'
+                            + loose_name
+                            + '/'
+                            + strip_accents(self, str(i\
+                                    .replace('-', '')\
+                                    .replace('_', '!')\
+                                    .replace(' ', '!')\
+                                    .split('/')[len(i.split('/')) - 1]))
+                            + '}')
+
+                embed_list_file.close()
+
+        def template_stage(self, src, dest):
+            """Copy fonts and tex files to working directory"""
+            folder_check(self, dest)
             pronk('Working directory: ' + str(work_dir))
-        
+
             try:
-                shutil.copytree(self.template_dir + '/font/',dest + '/font/')
+                shutil.copytree(self.template_dir + '/font/', dest + '/font/')
             except:
                 pass
 
             for i in os.listdir(src):
                 if i.endswith('.tex'):
-                    shutil.copyfile(src + '/' + i,dest + '/' + i)
-        
-        
-        def embed_stage(self,src,dest):
-        
-            folder_check(self,dest) 
-            for i in os.listdir(src):
-                if i.endswith('.pdf'):
-                    shutil.copyfile(src + '/' + i,dest, + '/' + i)
-                    pronk (i)    
-        
-        
-        def compile_TeX(self,path,texfile):
-            win.compile_tex(data_book.xelatex_path, str(work_dir))
-        
-        
-        def folder_check(self,folder):
+                    shutil.copyfile(src + '/' + i, dest + '/' + i)
+
+
+        def folder_check(self, folder):
+            """Create folder if it doesn't exist"""
             if not os.path.exists(folder):
                 os.mkdir(folder)
-        
-        
+
+
         def job_info(self):
-            self.data_file = ['mo = ' + str(win.job_entry_1.text()).replace('\\',''), 
-                    'serial = ' + str(win.job_entry_2.text()).replace('\\',''),
-                    'customer = ' + str(win.job_entry_3.text()).replace('\\',''),
-                    'equipment = ' + str(win.job_entry_4.text()).replace('\\','')] 
-        
+            """Create jobinfo.dat for use by LaTeX document to enter job information"""
+            self.data_file = ['mo = ' + str(win.job_entry_1.text()).replace('\\', ''),
+                    'serial = ' + str(win.job_entry_2.text()).replace('\\', ''),
+                    'customer = ' + str(win.job_entry_3.text()).replace('\\', ''),
+                    'equipment = ' + str(win.job_entry_4.text()).replace('\\', '')]
+
             with open(work_dir + '/jobinfo.dat', 'w') as self.job_info_file:
                 for i in self.data_file:
                     self.job_info_file.write('%s\n' % i)
             self.job_info_file.close()
-        
-        
-        
+
+
+
         template_stage(self, self.template_dir, work_dir)
         pdf_rename(self)
         job_info(self)
@@ -288,12 +280,12 @@ class DataBook(object):
 
         if win.checkBox_loose_2.isChecked() and win.lineEdit_loose_2.text() != '':
             loose_files_stage(self, win.lineEdit_loose_name_2.text(), win.lineEdit_loose_2.text())
-        
 
-        if True: 
+
+        if True:
             comp_level = {0 : '/prepress', 1 : '/printer', 2 : '/ebook', 3 : '/screen'}
             pronk('Scanning and repairing PDF files (interface will hang during this process)\n(Compression level: '
-                    + comp_level.get(int(win.spinBox.value())).replace('/','') + ')')
+                    + comp_level.get(int(win.spinBox.value())).replace('/', '') + ')')
             app.processEvents()
             if os.name == "nt":
                 self.gs_path = os.path.dirname(os.path.realpath(__file__)) + '/Ghostscript/bin/gswin32c.exe'
@@ -301,10 +293,10 @@ class DataBook(object):
                 self.gs_path = 'gs'
             print(os.path.dirname(os.path.realpath(__file__)))
             for root, dirs, files in os.walk(work_dir):
-                for k, i in enumerate(files):
+                for i in files:
                     if i.endswith('.pdf'):
                         folder_check(self, os.path.expandvars(root) + '\\repair\\')
-                        pronk('Working on ' + str(i).replace('!',' '))
+                        pronk('Working on ' + str(i).replace('!', ' '))
                         app.processEvents()
                         p = subprocess.Popen([self.gs_path,
                             '-sOutputFile=' + str(os.path.expandvars(root) + '\\repair\\' + i),
@@ -326,9 +318,9 @@ class DataBook(object):
                             print("Couldn't copy file")
             pronk('Done')
 
-        win.compile_tex(self.xelatex_path, work_dir) 
+        win.compile_tex(self.xelatex_path, work_dir)
 
-    def folder_check(self,folder):
+    def folder_check(self, folder):
         if not os.path.exists(folder):
             os.mkdir(folder)
 
@@ -354,15 +346,18 @@ class DataBook(object):
         except:
             pass
 
-# pyqt interface
-# inherits from redirect.py, 
-# the methods below need to be here to reference the data_book class
 class Interface(redirect.MainWindow):
+    """pyqt interface
+
+    inherits from redirect.py,
+    the methods below need to be here to reference the data_book class
+    """
+
     def __init__(self):
 
         global work_dir
         super().__init__()
-        
+
         self.latex_render.clicked.connect(self.latex_btn_render)
         self.grab_sel.clicked.connect(self.get_grab_dir)
         self.output_sel.clicked.connect(self.get_output_dir)
@@ -386,24 +381,27 @@ class Interface(redirect.MainWindow):
 
         QtWidgets.QShortcut(QtGui.QKeySequence("Enter"), self, \
                 lambda: self.enter_key())
-    
+
 
     def open_procedure(self):
+        """Open user_procedure.pdf in default program"""
         try:
             if os.name == "nt":
                 os.startfile('user_procedure.pdf')
             elif os.name == "posix":
-                os.system("/usr/bin/xdg-open " + 'user_procedure.pdf')  
+                os.system("/usr/bin/xdg-open " + 'user_procedure.pdf')
         except:
             pronk('Can\'t find user_procedure.pdf')
 
     def edit_sections_config(self):
+        """Open sections_config.ini in default editor"""
         if os.name == "nt":
             os.startfile('sections_config.ini')
         elif os.name == "posix":
-            os.system("/usr/bin/xdg-open " + 'sections_config.ini')  
-        
+            os.system("/usr/bin/xdg-open " + 'sections_config.ini')
+
     def enter_key(self):
+        """Determine behavior of enter key based on what has focus"""
         if self.grab_sel.hasFocus():
             self.grab_sel.click()
         elif self.output_sel.hasFocus():
@@ -412,12 +410,13 @@ class Interface(redirect.MainWindow):
             self.latex_render.click()
 
     def latex_btn_render_reenable(self):
+        """Allow render button to be clicked after compile"""
         self.latex_render.setEnabled(True)
         data_book.output_pdf()
-   
+
 
     def latex_btn_render(self):
-        #Will not render if job info LineEdits are empty
+        """Will not render if job info LineEdits are empty"""
         if (str(win.job_entry_1.text()) != '')\
                 and (str(self.job_entry_2.text()) != '')\
                 and (str(self.job_entry_3.text()) != '')\
@@ -430,9 +429,10 @@ class Interface(redirect.MainWindow):
             data_book.data_book_run()
         else:
             pronk('Missing one or more fields')
-    
+
 
     def output_same_dir(self):
+        """Make output folder same as grab folder if option checked"""
         global grab_dir
         global output_dir
         if self.checkBox.isChecked():
@@ -444,8 +444,8 @@ class Interface(redirect.MainWindow):
         else:
             self.output_sel.setEnabled(True)
 
-    #Button function: folder select for output
     def get_output_dir(self):
+        """Button function: folder select for output"""
         global output_dir
         file = str(QtWidgets.QFileDialog.getExistingDirectory(\
                 self, "Select PDF Output Directory"))
@@ -455,8 +455,8 @@ class Interface(redirect.MainWindow):
             self.output_display.append(str(file))
 
 
-    #Button function: folder select for grab dir
     def get_grab_dir(self):
+        """Button function: folder select for grab dir"""
         global output_dir
         global grab_dir
         file = str(QtWidgets.QFileDialog.getExistingDirectory(\
@@ -478,14 +478,16 @@ with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
     app = QtWidgets.QApplication(sys.argv)
     win = Interface()
     win.show()
-    
+
     #Global font size
     font = QtGui.QFont()
     font.setPointSize(14)
     app.setFont(font)
-    
+
     app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    
-    
+
+
     data_book = DataBook()
 sys.exit(app.exec_())
+
+
