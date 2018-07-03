@@ -14,6 +14,7 @@ import redirect #name of interface file
 import qdarkstyle
 
 def except_box(excType, excValue, tracebackobj):
+    """Exceptions from sys.excepthook displayed in a QMessageBox and saved to logfile"""
     logFile = "PfaudSec_crash.log"
     notice = 'An unhandled exception occured. Please report the problem via email to Quintana.Kody@gmail.com'\
             + '\n\nPlease attach the log file PfaudSec_crash.log from the PfaudSec folder to the email.\n'
@@ -68,6 +69,7 @@ class DataBook(object):
         self.xelatex_config()
 
     def xelatex_config(self):
+        """Set path to XeLaTeX based on what system is running"""
         if os.name == "nt":
             self.xelatex_path = 'texlive/bin/win32/xelatex.exe'
         elif os.name == "posix":
@@ -373,14 +375,11 @@ class Interface(redirect.MainWindow):
         self.process_1.finished.connect(\
                 lambda: self.compile_tex2(data_book.xelatex_path, work_dir))
 
-        self.process_2.finished.connect(\
-                lambda: self.latex_btn_render_reenable())
+        self.process_2.finished.connect(self.latex_btn_render_reenable)
 
-        QtWidgets.QShortcut(QtGui.QKeySequence("Return"), self, \
-                lambda: self.enter_key())
+        QtWidgets.QShortcut(QtGui.QKeySequence("Return"), self, self.enter_key)
 
-        QtWidgets.QShortcut(QtGui.QKeySequence("Enter"), self, \
-                lambda: self.enter_key())
+        QtWidgets.QShortcut(QtGui.QKeySequence("Enter"), self, self.enter_key)
 
 
     def open_procedure(self):
@@ -416,7 +415,9 @@ class Interface(redirect.MainWindow):
 
 
     def latex_btn_render(self):
-        """Will not render if job info LineEdits are empty"""
+        """Button function to run data_book_run()
+        
+        will not render if job info LineEdits are empty"""
         if (str(win.job_entry_1.text()) != '')\
                 and (str(self.job_entry_2.text()) != '')\
                 and (str(self.job_entry_3.text()) != '')\
@@ -489,5 +490,3 @@ with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
 
     data_book = DataBook()
 sys.exit(app.exec_())
-
-
