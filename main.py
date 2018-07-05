@@ -9,9 +9,10 @@ import tempfile
 import os
 import shutil
 import configparser
+import qdarkstyle
 from PyQt5 import QtGui, QtWidgets
 import redirect #name of interface file
-import qdarkstyle
+import fontload #decrypt fonts
 
 def except_box(excType, excValue, tracebackobj):
     """Exceptions from sys.excepthook displayed in a QMessageBox and saved to logfile"""
@@ -87,7 +88,9 @@ class DataBook(object):
     def data_book_run(self):
 
         global work_dir
+
         self.config = configparser.ConfigParser()
+
         self.config.read(self.config_file)
         pronk('Starting PfaudSec DataBook compiler.\nLoaded sections from '\
                 + str(self.config_file) + ':\n')
@@ -234,7 +237,7 @@ class DataBook(object):
 
         def template_stage(self, src, dest):
             """Copy fonts and tex files to working directory"""
-            folder_check(self, dest)
+            self.folder_check(dest)
             pronk('Working directory: ' + str(work_dir))
 
             try:
@@ -245,12 +248,6 @@ class DataBook(object):
             for i in os.listdir(src):
                 if i.endswith('.tex'):
                     shutil.copyfile(src + '/' + i, dest + '/' + i)
-
-
-        def folder_check(self, folder):
-            """Create folder if it doesn't exist"""
-            if not os.path.exists(folder):
-                os.mkdir(folder)
 
 
         def job_info(self):
@@ -297,7 +294,7 @@ class DataBook(object):
             for root, dirs, files in os.walk(work_dir):
                 for i in files:
                     if i.endswith('.pdf'):
-                        folder_check(self, os.path.expandvars(root) + '\\repair\\')
+                        self.folder_check(os.path.expandvars(root) + '\\repair\\')
                         pronk('Working on ' + str(i).replace('!', ' '))
                         app.processEvents()
                         p = subprocess.Popen([self.gs_path,
@@ -323,10 +320,12 @@ class DataBook(object):
         win.compile_tex(self.xelatex_path, work_dir)
 
     def folder_check(self, folder):
+        """Create folder if it doesn't exist"""
         if not os.path.exists(folder):
             os.mkdir(folder)
 
     def output_pdf(self):
+        """Copy final PDF to output_dir, reset(), and open PDF"""
         global work_dir
         global output_dir
 
@@ -381,6 +380,8 @@ class Interface(redirect.MainWindow):
 
         QtWidgets.QShortcut(QtGui.QKeySequence("Enter"), self, self.enter_key)
 
+    def error_message(self, message):
+        QtWidgets.QMessageBox.warning(self, 'Error', message)
 
     def open_procedure(self):
         """Open user_procedure.pdf in default program"""
@@ -477,15 +478,20 @@ sys.excepthook = except_box
 with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
 
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+
     win = Interface()
     win.show()
+
+    font_decrypt = fontload.Prompt()
+    if font_decrypt.check_success() == False:
+        font_decrypt.show()
 
     #Global font size
     font = QtGui.QFont()
     font.setPointSize(14)
     app.setFont(font)
 
-    app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
 
     data_book = DataBook()
