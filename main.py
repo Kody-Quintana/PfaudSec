@@ -1,5 +1,6 @@
 import sys
 import traceback
+import importlib
 import io
 import time
 import unicodedata
@@ -485,7 +486,12 @@ with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
 
     font_decrypt = fontload.Prompt()
     if font_decrypt.check_success() == False:
-        font_decrypt.show()
+        try:
+            import Cryptodome
+        except:
+            pass
+        if 'Cryptodome' in sys.modules:
+            font_decrypt.show()
 
     #Global font size
     font = QtGui.QFont()

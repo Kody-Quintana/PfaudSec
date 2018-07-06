@@ -37,25 +37,8 @@ locals(),locals())
         # out of the three required to update the table of contents
         self.proc_num = 0
 
-        try:
-            #Font imports
-            font_instance = QtGui.QFontDatabase
-            PfFont = font_instance.addApplicationFont("TeX/font/TTF/Pfaudler-Book.ttf")
-            pf_font_family = font_instance.applicationFontFamilies(PfFont)[0]
-            pf_font = QtGui.QFont(pf_font_family)
-
-            PfFontBold = font_instance.addApplicationFont("TeX/font/TTF/Pfaudler-Bold.ttf")
-            pf_font_family_bold = font_instance.applicationFontFamilies(PfFontBold)[0]
-            pf_font_bold_large = QtGui.QFont(pf_font_family_bold,50)
-            pf_font_bold = QtGui.QFont(pf_font_family_bold)
-
-            #self.setFont(pf_font_bold)
-            self.outputbox.setFont(pf_font)
-            self.outputbox_2.setFont(pf_font)
-            self.label.setFont(pf_font_bold_large)
-        except:
-            pass
-
+        self.set_fonts()
+        
         #Allow copy/paste on job info line edits
         for i in range(4):
             num = str(i + 1)
@@ -86,6 +69,27 @@ self.job_entry_""" + num + '.setReadOnly(False)',locals(),locals())
         self.process_2.finished.connect(lambda: self.proc_num_set(0))
 
 
+    def set_fonts(self):
+        try:
+            #Font imports
+            font_instance = QtGui.QFontDatabase
+            PfFont = font_instance.addApplicationFont("TeX/font/OTF/Pfaudler-Book.otf")
+            pf_font_family = font_instance.applicationFontFamilies(PfFont)[0]
+            pf_font = QtGui.QFont(pf_font_family)
+
+
+            PfFontBold = font_instance.addApplicationFont("TeX/font/OTF/Pfaudler-Bold.otf")
+            pf_font_family_bold = font_instance.applicationFontFamilies(PfFontBold)[0]
+            pf_font_bold_large = QtGui.QFont(pf_font_family_bold,50)
+            pf_font_bold = QtGui.QFont(pf_font_family_bold)
+
+            #self.setFont(pf_font_bold)
+            self.outputbox.setFont(pf_font)
+            self.outputbox_2.setFont(pf_font)
+            self.label.setFont(pf_font_bold_large)
+            self.label.setStyleSheet("font-weight: bold;")
+        except:
+            pass
     def about_PfaudSec(self):
         about_box = QtWidgets.QMessageBox()
         about_box.setTextFormat(QtCore.Qt.RichText)

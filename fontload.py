@@ -3,13 +3,23 @@ import os
 import random
 import struct
 import hashlib
-from Crypto.Cipher import AES
+#from Cryptodome.Cipher import AES
 from PyQt5 import QtGui, QtWidgets
 from fontTools import ttLib
 
 class Prompt(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(Prompt, self).__init__(parent)
+        global AES
+
+        try:
+            from Cryptodome.Cipher import AES
+        except:
+            QtWidgets.QMessageBox.warning(self, 'Error',
+                    """Couldn't load Cryptodome package!
+Fonts must be manually installed before PfaudSec will work.""")
+            self.accept()
+
         self.label = QtWidgets.QLabel(\
                 'Fonts not detected!\nEnter password to decrypt fonts')
         self.textPass = QtWidgets.QLineEdit(self)
@@ -24,6 +34,7 @@ class Prompt(QtWidgets.QDialog):
         layout.addWidget(self.buttonLogin)
 
         self.font_dir = 'TeX/font/OTF/'
+
 
     def check_success(self):
         """Check if font is valid by attempting to load with ttLib"""
@@ -48,6 +59,7 @@ class Prompt(QtWidgets.QDialog):
 
     def try_decrypt(self, passphrase):
         """Decrypt then check if font is valid"""
+
         key = hashlib.sha256(passphrase.encode('utf-8')).digest()
 
         for i in os.listdir(self.font_dir):
