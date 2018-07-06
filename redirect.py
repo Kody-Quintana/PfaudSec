@@ -77,11 +77,10 @@ self.job_entry_""" + num + '.setReadOnly(False)',locals(),locals())
             pf_font_family = font_instance.applicationFontFamilies(PfFont)[0]
             pf_font = QtGui.QFont(pf_font_family)
 
-
-            font_instance1 = QtGui.QFontDatabase
-            PfFontBold = font_instance1.addApplicationFont("TeX/font/OTF/Pfaudler-Bold.otf")
-            pf_font_family_bold = font_instance1.applicationFontFamilies(PfFontBold)[0]
+            PfFontBold = font_instance.addApplicationFont("TeX/font/OTF/Pfaudler-Bold.otf")
+            pf_font_family_bold = font_instance.applicationFontFamilies(PfFontBold)[0]
             pf_font_bold_large = QtGui.QFont(pf_font_family_bold,50)
+            pf_font_bold_large.setWeight(QtGui.QFont.Bold)
             pf_font_bold = QtGui.QFont(pf_font_family_bold)
 
             self.setFont(pf_font_bold)
