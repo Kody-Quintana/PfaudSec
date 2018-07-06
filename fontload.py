@@ -2,22 +2,21 @@ import sys
 import os
 import random
 import struct
+import hashlib
 from Crypto.Cipher import AES
 from PyQt5 import QtGui, QtWidgets
 from fontTools import ttLib
-import hashlib
-
-def font_check():
-    return False
 
 class Prompt(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(Prompt, self).__init__(parent)
-        self.label = QtWidgets.QLabel('Fonts not detected!\nEnter password to decrypt fonts')
+        self.label = QtWidgets.QLabel(\
+                'Fonts not detected!\nEnter password to decrypt fonts')
         self.textPass = QtWidgets.QLineEdit(self)
         self.textPass.setEchoMode(QtWidgets.QLineEdit.Password)
         self.buttonLogin = QtWidgets.QPushButton('Decrypt', self)
-        self.buttonLogin.clicked.connect(lambda: self.try_decrypt(self.textPass.text()))
+        self.buttonLogin.clicked.connect(lambda\
+                : self.try_decrypt(self.textPass.text()))
         self.setModal(True)
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.label)
@@ -48,6 +47,7 @@ class Prompt(QtWidgets.QDialog):
             return False
 
     def try_decrypt(self, passphrase):
+        """Decrypt then check if font is valid"""
         key = hashlib.sha256(passphrase.encode('utf-8')).digest()
 
         for i in os.listdir(self.font_dir):
@@ -60,49 +60,6 @@ class Prompt(QtWidgets.QDialog):
         else:
             self.accept()
 
-
-def encrypt_file(key, in_filename, out_filename=None, chunksize=64*1024):
-    """ Encrypts a file using AES (CBC mode) with the
-        given key.
-
-        key:
-            The encryption key - a string that must be
-            either 16, 24 or 32 bytes long. Longer keys
-            are more secure.
-
-        in_filename:
-            Name of the input file
-
-        out_filename:
-            If None, '<in_filename>.enc' will be used.
-
-        chunksize:
-            Sets the size of the chunk which the function
-            uses to read and encrypt the file. Larger chunk
-            sizes can be faster for some files and machines.
-            chunksize must be divisible by 16.
-    """
-    if not out_filename:
-        out_filename = in_filename + '.enc'
-
-    iv = os.urandom(16)
-    encryptor = AES.new(key, AES.MODE_CBC, iv)
-    filesize = os.path.getsize(in_filename)
-
-    with open(in_filename, 'rb') as infile:
-        with open(out_filename, 'wb') as outfile:
-            outfile.write(struct.pack('<Q', filesize))
-            outfile.write(iv)
-
-            while True:
-                chunk = infile.read(chunksize)
-                if len(chunk) == 0:
-                    break
-                elif len(chunk) % 16 != 0:
-                    chunk += b" " * (16 - len(chunk) % 16)
-                            #^ must be byte string because python3 behavior
-
-                outfile.write(encryptor.encrypt(chunk))
 
 def decrypt_file(key, in_filename, out_filename=None, chunksize=24*1024):
     """ Decrypts a file using AES (CBC mode) with the
@@ -126,5 +83,4 @@ def decrypt_file(key, in_filename, out_filename=None, chunksize=24*1024):
                 if len(chunk) == 0:
                     break
                 outfile.write(decryptor.decrypt(chunk))
-
             outfile.truncate(origsize)

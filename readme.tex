@@ -162,7 +162,7 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 \titleformat{\subsection}
 {\normalfont\Large\bfseries}{\thesubsection}{0.5em}{}
 \titleformat{\subsubsection}
-{\normalfont\large\bfseries}{\thesubsubsection}{0.5em}{}
+{\normalfont\bfseries}{\thesubsubsection}{0.5em}{}
 \titleformat{\paragraph}[runin]
 {\normalfont\large\bfseries}{\theparagraph}{0.5em}{}
 \titleformat{\subparagraph}[runin]
@@ -241,6 +241,7 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 \setlength\headheight{20pt}
 %\setlength{\footskip}{60pt}
 \begin{flushleft}
+
 \fontsize{35}{35}\selectfont\textbf{PfaudSec DataBook\\ Documentation}\\
 
 \normalsize
@@ -275,8 +276,7 @@ This section describes PfaudSec's dependencies, for installation instructions se
 \hyperref[sec:install]{\textit{Installing from source}}.\\[\normalbaselineskip]
 PfaudSec is a Python based interface for generating documents with the \LaTeX\xspace typesetting language.
 Its GUI is provided by the Qt5 library (via the PyQt5 wrapper).
-Document validation and compression is done by Ghostscript.
-
+Document repair and compression is done by Ghostscript.
 
 	\subsection{Python}
 PfaudSec is written primarily in Python.
@@ -285,6 +285,7 @@ From pythondocs.org:
 \begin{quote}
 Python is an interpreted, object-oriented, high-level programming language with dynamic semantics. Its high-level built in data structures, combined with dynamic typing and dynamic binding, make it very attractive for Rapid Application Development, as well as for use as a scripting or glue language to connect existing components together. Python's simple, easy to learn syntax emphasizes readability and therefore reduces the cost of program maintenance. Python supports modules and packages, which encourages program modularity and code reuse. The Python interpreter and the extensive standard library are available in source or binary form without charge for all major platforms, and can be freely distributed.\end{quote}
 
+%\newpage
 The following Python modules are not part of the standard library and must be installed with pip:
 
 		\begin{subs}
@@ -294,6 +295,15 @@ The GPL version that is utilized by PfaudSec includes the binaries for Qt5, so Q
 
 		\subsubsection{PyInstaller}
 PyInstaller is a Python module used for packaging the Python source .py files, a Python interpreter, and all Python modules into a single .exe file.
+
+		\subsubsection{QDarkStyle}
+QDarkStyle is a dark theme for Qt
+
+		\subsubsection{PyCrypto}
+Python encryption module (used for distributing commercial font)
+
+		\subsubsection{FontTools}
+Python font tools, used to validate decrypted fonts
 		\end{subs}
 
 	\subsection{Qt}
@@ -324,34 +334,53 @@ After installing Python, ensure that its installation folder and scripts subfold
 If these folders are not correctly added to PATH you will receive the following message: 
 ``python is not recognized as an internal or external command, operable program or batch file.''
 
-\item \textbf{Install PyQt5}
+\item \textbf{Install Python modules}
 
-PyQt5 is a python module and can be installed with pip, the python module package manager.
+Python modules that are not part of the standard library can be installed with pip, the Python package manager.
 Pip is included with Python, if the command is not found ensure that ``.../python3x/scripts'' has been addded to PATH.
 Also, if you are installing packages to a system wide Python installation you must run this command in an elevated command prompt.
 
-To install, open a terminal and enter:
+Open a terminal and enter the following commands:
 
-\begin{tcolorbox}[
-boxrule=0.5pt,
-colback=backgrey,
-colframe=bordergrey,
-sharpish corners] 
+\begin{tcolorbox}[boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
 \begin{minted}{bash}
+
 pip install pyqt5
+
 \end{minted}
 \end{tcolorbox}
-\item \textbf{Install PyInstaller}
 
-PyInstaller is another Python module and can be installed with pip:
-
-\begin{tcolorbox}[
-boxrule=0.5pt,
-colback=backgrey,
-colframe=bordergrey,
-sharpish corners] 
+\begin{tcolorbox}[boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
 \begin{minted}{bash}
+
 pip install pyinstaller
+
+\end{minted}
+\end{tcolorbox}
+
+\begin{tcolorbox}[boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
+\begin{minted}{bash}
+
+pip install qdarkstyle
+
+\end{minted}
+\end{tcolorbox}
+
+
+\begin{tcolorbox}[boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
+\begin{minted}{bash}
+
+pip install pycrypto
+
+\end{minted}
+\end{tcolorbox}
+
+
+\begin{tcolorbox}[boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
+\begin{minted}{bash}
+
+pip install fonttools
+
 \end{minted}
 \end{tcolorbox}
 
@@ -361,23 +390,18 @@ Python is an interpreted language so it does not need to be compiled, however pa
 This also allows for the program to be run from a network drive without requiring the end user to have Python installed.
 To package the program, open a terminal and navigate to the PfaudSec folder then enter:
 
-\begin{tcolorbox}[
-boxrule=0.5pt,
-colback=backgrey,
-colframe=bordergrey,
-sharpish corners] 
+\begin{tcolorbox}[boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
 \begin{minted}{bash}
+
 pyinstaller --onefile --windowed --icon=TeX/db_logo.ico main.py
+
 \end{minted}
 \end{tcolorbox}
+
 A folder called ``dist'' should now be found in the PfaudSec folder.
 Copy the following items from the PfaudSec folder into the dist folder:
 
-\begin{tcolorbox}[
-boxrule=0.5pt,
-colback=backgrey,
-colframe=bordergrey,
-sharpish corners] 
+\begin{tcolorbox}[boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
 \begin{itemize}[labelsep = 1.5em, align=center]% leftmargin=0.5in]
 
 \ifolder TeX
@@ -391,8 +415,12 @@ Next, rename main.exe inside dist to PfaudSec\_DataBook.exe
 \item \textbf{Install TexLive}
 
 An installer for TexLive is available at:
-\chref[pfblue]{https://www.tug.org/texlive/acquire-netinstall.html}{https://www.tug.org/texlive/acquire-netinstall.html}
-It is recommended to download the ``install-tl.zip'' and not the ``install-tl-windows.exe'' as running the bat file found inside the zip will give more verbose output should the installer fail.
+\chref[pfblue]
+{https://www.tug.org/texlive/acquire-netinstall.html}
+{https://www.tug.org/texlive/acquire-netinstall.html}
+It is recommended to download the
+``install-tl.zip'' and not the ``install-tl-windows.exe''
+as running the bat file found inside the zip will give more verbose output should the installer fail.
 
 After extracting the contents of ``install-tl.zip'', run ``install-tl-advanced.bat''.
 Toggle portable setup to yes, and select ``.../PfaudSec/dist/texlive'' as the installation folder.
@@ -400,7 +428,10 @@ The installation will take a while, the full distribution of TexLive is several 
 
 \item \textbf{Install Ghostscript}
 
-A portable version of Ghostscript has been made available at \chref[pfblue]{https://portableapps.com/apps/utilities/ghostscript_portable}{https://portableapps.com/apps/utilities/ghostscript\_portable}
+A portable version of Ghostscript has been made available at
+\chref[pfblue]
+{https://portableapps.com/apps/utilities/ghostscript_portable}
+{https://portableapps.com/apps/utilities/ghostscript\_portable}
 Run the installer and choose ``.../PfaudSec/dist/Ghostscript/'' as the installation directory.
 
 \item \textbf{Copy to network drive}
@@ -409,12 +440,11 @@ PfaudSec is designed to be portable and can be run from a network drive.
 Rename the dist folder to PfaudSec\_DataBook and copy it to wherever you would like to run it from.
 A user procedure can be added to the folder with the name ``user\_procedure.pdf'' this PDF can be opened with the help > user procedure button in PfaudSec.
 
+%\newpage
 The final folder should contain the following:
-\begin{tcolorbox}[
-boxrule=0.5pt,
-colback=backgrey,
-colframe=bordergrey,
-sharpish corners] 
+
+\begin{tcolorbox}[boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
+
 \begin{itemize}[labelsep = 1.5em, align=center]
 
 \ifolder Ghostscript
@@ -429,36 +459,70 @@ sharpish corners]
 
 If PfaudSec has already been installed and you are only upgrading, only the exe file should be copied.
 
+Due to the license of the font used by Pfaudler, the included font has been encrypted, the password will have been provided to you.
+PfaudSec will prompt you for this password only the first time it is run.
+
+
 \end{enumerate}
+
+\section{Usage}
+\setlength{\parindent}{0.2in}
+PfaudSec DataBook scans a user defined folder for PDF files matching the ``basename x.xx.pdf''
+format, where basename can be any word with no spaces. (usually MO number) followed by a space, then x.xx which is a numerical shorthand,
+These numerical shorthands are defined in sections\_config.ini.
+
+This shorthand naming scheme is used for two reasons. First, so that only PDF files renamed to this format are included while omitting all others, and second so that documents from a scanner are easier to name.
+(where often only a physical numpad is available and not a full keyboard).
+Included documents are placed in a cover page table of contents based on which section they are defined under in sections\_config.ini.
+Entries in sections\_config.ini must be unique.
+
+\begin{tcolorbox}[
+coltitle=black, title=\centering Example sections\_config.ini,
+boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
+\begin{minted}{bash}
+
+[Section One name]
+
+1.1 = Document full name
+1.2 = Other document full name
+
+[Another section name]
+
+2.1 = Another document
+
+\end{minted}
+\end{tcolorbox}
+
+\noindent Job information is entered manually by the user. The program will not render a PDF until all job info fields have been filled in and a folder to pull PDF documents from has been selected.
+
+A ``loose file'' option also exists for inserting pages from a Brazil databook or other source where all PDF files from the specified folder are included and named as they are found.
+After the document has completed being compiled, it will open and should be inspected for any errors.
+\setlength{\parindent}{0in}
 
 \section{Modifying cover page}
 
-To make changes to the cover page open TeX/databook.tex with any text editor.
+To make changes to the cover page, open TeX/databook.tex with any text editor.
 Exercise caution when modifying this file as its contents contain some of the core functionality of PfaudSec DataBook.
 A guide to \LaTeX\xspace syntax is available at 
-\chref[pfblue]{https://en.wikibooks.org/wiki/LaTeX/Basics}{https://en.wikibooks.org/wiki/LaTeX/Basics}
+\chref[pfblue]
+{https://en.wikibooks.org/wiki/LaTeX/Basics}
+{https://en.wikibooks.org/wiki/LaTeX/Basics}
 
-%\section{How it works}
-%\input{Diagram1}
-
+%\newpage
 \section{License}
+
 Due to the licenses of PyQt5 and Ghostscript, PfaudSec must be also released under a compatible license.
-In this case the \textbf{AGPL.}
+In this case the GNU Affero General Public License (AGPL).
 A full copy of the license can be found with the source code.
 While not legal advice, the AGPL can be summarized as follows:\\[\normalbaselineskip]
 
-\def\tabularxcolumn#1{m{#1}}
+\def\tabularxcolumn#1{m{#1}}% verticle centering
 \newcolumntype{Y}{>{\centering\arraybackslash}X}
 \begin{tabularx}{\textwidth}{YYY}
 
 \begin{tcolorbox}[
-	equal height group=license,
-	coltitle=black,
-	title=\centering Must,
-	boxrule=0.5pt,
-	colback=backgrey,
-	colframe=bordergrey,
-	sharpish corners] 
+	equal height group=license, coltitle=black, title=\centering Must,
+	boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
 \begin{itemize}[leftmargin=*]
 
 \raggedright
@@ -474,13 +538,8 @@ While not legal advice, the AGPL can be summarized as follows:\\[\normalbaseline
 &
 
 \begin{tcolorbox}[
-	equal height group=license,
-	coltitle=black,
-	title=\centering Can,
-	boxrule=0.5pt,
-	colback=backgrey,
-	colframe=bordergrey,
-	sharpish corners] 
+	equal height group=license, coltitle=black, title=\centering Can,
+	boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
 \begin{itemize}[leftmargin=*]
 
 \raggedright
@@ -491,15 +550,12 @@ While not legal advice, the AGPL can be summarized as follows:\\[\normalbaseline
 
 \end{itemize}
 \end{tcolorbox}
+
 &
+
 \begin{tcolorbox}[
-	equal height group=license,
-	coltitle=black,
-	title=\centering Cannot,
-	boxrule=0.5pt,
-	colback=backgrey,
-	colframe=bordergrey,
-	sharpish corners] 
+	equal height group=license, coltitle=black, title=\centering Cannot,
+	boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
 \begin{itemize}[leftmargin=*]
 
 \raggedright
@@ -510,5 +566,6 @@ While not legal advice, the AGPL can be summarized as follows:\\[\normalbaseline
 \end{tcolorbox}
 
 \end{tabularx}
+
 \end{flushleft}
 \end{document}
