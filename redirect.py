@@ -70,25 +70,25 @@ self.job_entry_""" + num + '.setReadOnly(False)',locals(),locals())
 
 
     def set_fonts(self):
+        #Font imports
         try:
-            #Font imports
             font_instance = QtGui.QFontDatabase
             PfFont = font_instance.addApplicationFont("TeX/font/OTF/Pfaudler-Book.otf")
             pf_font_family = font_instance.applicationFontFamilies(PfFont)[0]
             pf_font = QtGui.QFont(pf_font_family)
 
 
-            PfFontBold = font_instance.addApplicationFont("TeX/font/OTF/Pfaudler-Bold.otf")
-            pf_font_family_bold = font_instance.applicationFontFamilies(PfFontBold)[0]
+            font_instance1 = QtGui.QFontDatabase
+            PfFontBold = font_instance1.addApplicationFont("TeX/font/OTF/Pfaudler-Bold.otf")
+            pf_font_family_bold = font_instance1.applicationFontFamilies(PfFontBold)[0]
             pf_font_bold_large = QtGui.QFont(pf_font_family_bold,50)
             pf_font_bold = QtGui.QFont(pf_font_family_bold)
 
-            #self.setFont(pf_font_bold)
+            self.setFont(pf_font_bold)
             self.outputbox.setFont(pf_font)
             self.outputbox_2.setFont(pf_font)
             self.label.setFont(pf_font_bold_large)
-            self.label.setStyleSheet("font-weight: bold;")
-        except:
+        except IndexError:
             pass
     def about_PfaudSec(self):
         about_box = QtWidgets.QMessageBox()
