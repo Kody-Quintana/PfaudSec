@@ -1,6 +1,6 @@
 from openpyxl import load_workbook
-from openpyxl.utils import coordinate_from_string,column_index_from_string
-from collections import Counter, OrderedDict
+from openpyxl.utils import column_index_from_string #,coordinate_from_string
+from collections import Counter
 import datetime
 import dateutil.relativedelta
 import itertools
@@ -17,7 +17,9 @@ elif os.name == "posix":
 
 work_file = './car_log.xlsx'
 
-print(work_file.split(sep)[len(work_file.split(sep)) - 1].rsplit(".", 1)[0])
+def filename_noext(filename):
+    return filename.split(sep)[len(filename.split('/')) - 1].rsplit(".", 1)[0]
+
 config_file = './car_log.ini'
 config = configparser.ConfigParser()
 config.read(config_file)
@@ -63,10 +65,8 @@ def date_cell_range(date_column):
     first_date_cell = None
     last_date_counter = 0
 
-    for r in ws[date_column + str(1)\
-            :\
-            date_column + str(len(ws[date_column]))\
-            ]:
+    for r in ws[date_column + '1':\
+            date_column + str(len(ws[date_column]))]:
         for cell in r:
             last_date_counter = last_date_counter + 1
             if cell.value != None:
@@ -154,7 +154,7 @@ def totals_by_month_graph(column=date_column, months=12, title='Totals by month'
     ticks_distance_flag = 0
 
     for index, data in reversed(list(cell_enumerate(column_list(date_column)))):
-        column_value = ws[column + str(index)].value #This must be str to allow sorted()
+        column_value = ws[column + str(index)].value
         months_ago = diff_month(now, column_value)
         if months_ago > (months - 1):
             break
@@ -225,7 +225,6 @@ def current_month_graph(column, title, blanks=False):
     pareto = '\n'.join(['(' + str(index) + ',' + str(percent) + ')'\
             for index, percent in enumerate(pareto)])
 
-
     with open(work_dir + '/graph.tex', 'a') as graphs_file:
         graphs_file.write(bar_graph_tex[0])
         graphs_file.write(title)
@@ -280,14 +279,26 @@ def monthly_graph(column, title, months=12, blanks=False):
             graphs_file.write(coordinates)
             graphs_file.write(line_graph_tex[4])
 
+
+def column_has_data(column):
+    try:
+        for r in ws[column + '1' : column + str(len(ws[column]))]:
+            for cell in r:
+                if cell.value != None:
+                    return True
+    except:
+        return False
+    return False
+
+
 def compile_tex():
-    print('Starting PfaudSec Graph compiler.\nLoaded sections from '\
+    print('Starting PfaudSec Graph compiler.\nLoaded columns from '\
             + str(config_file) + ':\n')
     
     # Totals from date column
     if config.getboolean('document', 'show_totals', fallback=False):
         totals_by_month_graph(title = str(config.get\
-                ('document', 'document_name', fallback = 'Totals')) + ' totals')
+                ('document', 'document_name', fallback = 'Totals')))
 
     non_column_sections = frozenset(('document', 'sharepoint'))
     for column in config.sections():
@@ -295,22 +306,20 @@ def compile_tex():
         if str(column).lower() in non_column_sections:
             continue
 
-        # Bar/Pareto graph for current month
-        if config.getboolean(column, 'current_month', fallback=False):
-            current_month_graph(str(column), str(config.get(column, 'title', fallback = '')))
+        if column_has_data(column):
 
-        # Line graph for one catagory over time
-        if config.getboolean(column, 'monthly', fallback=False):
-            monthly_graph(str(column), str(config.get(column, 'title', fallback = '')))
+            # Bar/Pareto graph for current month
+            if config.getboolean(column, 'current_month', fallback=False):
+                current_month_graph(str(column), str(config.get(column, 'title', fallback = '')))
+
+            # Line graph for one catagory over time
+            if config.getboolean(column, 'monthly', fallback=False):
+                monthly_graph(str(column), str(config.get(column, 'title', fallback = '')))
+        else:
+            print('UserWarning: Column '
+                    + str(column)
+                    + ' specified in '
+                    + str(config_file)
+                    + ' does not contain valid data')
 
 compile_tex()
-
-
-#totals_by_month_graph(title='Total CARs by Month')
-#current_month_graph('I', 'Item Type')
-#monthly_graph('I', 'Item Type')
-##monthly_graph('N', 'column N values')
-#current_month_graph('J', 'Root Cause')
-#monthly_graph('N', '')
-#current_month_graph('O', 'Action taken')
-#monthly_graph('L', 'Dept Responsible')
