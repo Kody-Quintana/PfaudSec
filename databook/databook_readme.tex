@@ -267,7 +267,7 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 
 \section{About}
 
-PfaudSec (short for Pfaudler Secretary) is a tool for compiling multiple portable document format (PDF) files into a single PDF file.
+PfaudSec DataBook is a tool for compiling multiple portable document format (PDF) files into a single PDF file.
 Additionally, a cover page is generated to include the job information and a table of contents for the included documents.
 
 \section{Dependencies}
@@ -307,21 +307,21 @@ Python font tools, used to validate decrypted fonts
 		\end{subs}
 
 	\subsection{Qt}
-The high level GUI framework for PfaudSec is provided by Qt5, however the binaries for Qt are included in the Python module PyQt5 and do not need to be installed separately.
+The high level GUI framework for PfaudSec DataBook is provided by Qt5, however the binaries for Qt are included in the Python module PyQt5 and do not need to be installed separately.
 If you would like to make changes to the interface layout file (redirect.ui) Qt should be installed for access to its graphical interface editor QtCreator.
 
 	\subsection{Ghostscript}
 Ghostscript is an interpreter for the PostScript language and for PDF files.
-PDFs input to PfaudSec are all opened and processed by Ghostscript first to fix any errors and (optionally) add compression.
+PDFs input to PfaudSec DataBook are all opened and processed by Ghostscript first to fix any errors and (optionally) add compression.
 
 	\subsection{TexLive}
 Texlive is a distribution of the \LaTeX\xspace typesetting language that provides binaries and packages.
-PfaudSec utilizes the XeLaTeX engine for compiling the final PDF.
+PfaudSec DataBook utilizes the XeLaTeX engine for compiling the final PDF.
 
 \section{Installing from source}
 \label{sec:install}
 
-After downloading the PfaudSec source, follow these steps to prepare the package for use on Windows.
+After downloading the PfaudSec DataBook source, follow these steps to prepare the package for use on Windows.
 
 \begin{enumerate}
 
@@ -388,7 +388,7 @@ pip install fonttools
 
 Python is an interpreted language so it does not need to be compiled, however packaging the source code with an interpreter can be done for convenience.
 This also allows for the program to be run from a network drive without requiring the end user to have Python installed.
-To package the program, open a terminal and navigate to the PfaudSec folder then enter:
+To package the program, open a terminal and navigate to the PfaudSec DataBook folder then enter:
 
 \begin{tcolorbox}[boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
 \begin{minted}{bash}
@@ -398,8 +398,8 @@ pyinstaller --onefile --windowed --icon=TeX/db_logo.ico main.py
 \end{minted}
 \end{tcolorbox}
 
-A folder called ``dist'' should now be found in the PfaudSec folder.
-Copy the following items from the PfaudSec folder into the dist folder:
+A folder called ``dist'' should now be found in the PfaudSec DataBook folder.
+Copy the following items from the PfaudSec DataBook folder into the dist folder:
 
 \begin{tcolorbox}[boxrule=0.5pt, colback=backgrey, colframe=bordergrey, sharpish corners] 
 \begin{itemize}[labelsep = 1.5em, align=center]% leftmargin=0.5in]
@@ -423,7 +423,7 @@ It is recommended to download the
 as running the bat file found inside the zip will give more verbose output should the installer fail.
 
 After extracting the contents of ``install-tl.zip'', run ``install-tl-advanced.bat''.
-Toggle portable setup to yes, and select ``.../PfaudSec/dist/texlive'' as the installation folder.
+Toggle portable setup to yes, and select ``.../PfaudSec/databook/dist/texlive'' as the installation folder.
 The installation will take a while, the full distribution of TexLive is several gigabytes in size.
 
 \item \textbf{Install Ghostscript}
@@ -432,7 +432,7 @@ A portable version of Ghostscript has been made available at
 \chref[pfblue]
 {https://portableapps.com/apps/utilities/ghostscript_portable}
 {https://portableapps.com/apps/utilities/ghostscript\_portable}
-Run the installer and choose ``.../PfaudSec/dist/Ghostscript/'' as the installation directory.
+Run the installer and choose ``.../PfaudSec/databook/dist/Ghostscript/'' as the installation directory.
 
 \item \textbf{Copy to network drive}
 
@@ -457,7 +457,7 @@ The final folder should contain the following:
 \end{itemize}
 \end{tcolorbox}
 
-If PfaudSec has already been installed and you are only upgrading, only the exe file should be copied.
+If PfaudSec DataBook has already been installed and you are only upgrading, only the exe file should be copied.
 
 Due to the license of the font used by Pfaudler, the included font has been encrypted, the password will have been provided to you.
 PfaudSec will prompt you for this password only the first time it is run.
