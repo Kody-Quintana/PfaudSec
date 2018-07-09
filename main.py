@@ -105,22 +105,22 @@ class DataBook(object):
             global grab_dir
             pronk('\nLoading documents found in:\n"' + str(grab_dir) + '"\n')
             doc_pattern = re.compile("([^\s]+ \d+\.\d+\.pdf)")
-            self.list = []
+            file_list = []
             for i in os.listdir(dir):
-                self.file_list_flag = 0
+                file_list_flag = 0
                 if doc_pattern.match(i):
                     for j in self.config.sections():
                         for (x, y) in self.config.items(j):
                             i_dot_split = str(str(i).split(' ')[1]).split('.')
                             if str(i_dot_split[0]) + '.' + str(i_dot_split[1]).lstrip('0') == str(x):
-                                self.list.append(i)
-                                self.file_list_flag = 1
-                    if self.file_list_flag == 0:
+                                file_list.append(i)
+                                file_list_flag = 1
+                    if file_list_flag == 0:
                         pronk('Skipping PDF file: "' + str(i) + '" (name not in sections_config.ini)')
                 else:
                     if i.endswith('pdf'):
                         pronk('Skipping PDF file: "' + str(i) + '" (is name malformed?)')
-            return sorted(self.list)
+            return sorted(file_list)
 
 
         def pdf_rename(self):
@@ -138,16 +138,16 @@ class DataBook(object):
 
                 #Splits document shorthand, removes leading 0s so that 2.1 is same as 2.01
                 try:
-                    self.doc_id_stage = k.split(' ')[1].replace('.pdf', '').split('.')
-                    self.doc_id = self.doc_id_stage[0] + '.' + self.doc_id_stage[1].lstrip('0')
-                    self.section_num = int(self.doc_id[0]) - 1
+                    doc_id_stage = k.split(' ')[1].replace('.pdf', '').split('.')
+                    doc_id = doc_id_stage[0] + '.' + doc_id_stage[1].lstrip('0')
+                    section_num = int(doc_id[0]) - 1
                     shutil.copyfile(grab_dir + '/' + k, work_dir + '/' + k)
-                    self.doc_section = (self.config[self.config.sections()\
-                            [self.section_num]][self.doc_id])
-                    self.new_name = self.doc_section.replace(' ', '!') + '.pdf'
-                    self.new_full_name = work_dir + '/' + self.new_name
-                    os.rename(work_dir + '/' + k, self.new_full_name)
-                    self.nested_list_sections[self.section_num].append(self.new_name)
+                    doc_section = (self.config[self.config.sections()\
+                            [section_num]][doc_id])
+                    new_name = doc_section.replace(' ', '!') + '.pdf'
+                    new_full_name = work_dir + '/' + new_name
+                    os.rename(work_dir + '/' + k, new_full_name)
+                    self.nested_list_sections[section_num].append(new_name)
 
                 #This should catch and skip anything not matching an entry in sections_config.ini
                 except KeyError:
@@ -253,15 +253,15 @@ class DataBook(object):
 
         def job_info(self):
             """Create jobinfo.dat for use by LaTeX document to enter job information"""
-            self.data_file = ['mo = ' + str(win.job_entry_1.text()).replace('\\', ''),
+            data_file = ['mo = ' + str(win.job_entry_1.text()).replace('\\', ''),
                     'serial = ' + str(win.job_entry_2.text()).replace('\\', ''),
                     'customer = ' + str(win.job_entry_3.text()).replace('\\', ''),
                     'equipment = ' + str(win.job_entry_4.text()).replace('\\', '')]
 
-            with open(work_dir + '/jobinfo.dat', 'w') as self.job_info_file:
-                for i in self.data_file:
-                    self.job_info_file.write('%s\n' % i)
-            self.job_info_file.close()
+            with open(work_dir + '/jobinfo.dat', 'w') as job_info_file:
+                for i in data_file:
+                    job_info_file.write('%s\n' % i)
+            job_info_file.close()
 
 
 
