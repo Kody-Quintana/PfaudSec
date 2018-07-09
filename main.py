@@ -135,16 +135,20 @@ class DataBook(object):
                 pronk('\nSkipping PDF file: "' + str(skipped_pdf) + '" (is name malformed?)')
 
             for i, k in enumerate((get_file_list(self, grab_dir))):
-
-                #Splits document shorthand, removes leading 0s so that 2.1 is same as 2.01
                 try:
+                    #Split afer space, second part is compared to sections_config keys
                     doc_id_stage = k.split(' ')[1].replace('.pdf', '').split('.')
+
+                    #Removes leading zeros after the "." so 2.01 becomes 2.1
                     doc_id = doc_id_stage[0] + '.' + doc_id_stage[1].lstrip('0')
+
                     section_num = int(doc_id[0]) - 1
                     shutil.copyfile(grab_dir + '/' + k, work_dir + '/' + k)
-                    doc_section = (self.config[self.config.sections()\
+                    config_name = (self.config[self.config.sections()\
                             [section_num]][doc_id])
-                    new_name = doc_section.replace(' ', '!') + '.pdf'
+
+                    #Must remove spaces for pdfpages LaTeX package (space causes errors)
+                    new_name = config_name.replace(' ', '!') + '.pdf'
                     new_full_name = work_dir + '/' + new_name
                     os.rename(work_dir + '/' + k, new_full_name)
                     self.nested_list_sections[section_num].append(new_name)
@@ -184,7 +188,6 @@ class DataBook(object):
             """Adds "loose" PDF files to LaTeX document, named as found (except accented characters)"""
             global work_dir
 
-            #loose_embed_names = []
             loose_embed_list = []
             loose_name = str(input_loose_name).replace(' ', '!')
             self.folder_check(work_dir + r'/' + loose_name)
@@ -200,14 +203,11 @@ class DataBook(object):
                 for j in files:
                     if j.endswith('.pdf'):
                         loose_embed_list.append(str(root + r'/' + j).replace(r'//', r'/'))
-                        #loose_embed_names.append(j)
             loose_embed_list.sort()
-
 
             for k, i in enumerate(loose_embed_list):
                 file_name = str(i.replace('/', '\\').split('\\')[len(i.replace('/', '\\').split('\\')) - 1])
                 try_copy(i, work_dir + r'/' + loose_name + '\\' + file_name)
-                # strip_accents(self, self.input)
 
             for i in os.listdir(work_dir + '/' + loose_name):
                 if i.endswith('.pdf'):
