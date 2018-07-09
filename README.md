@@ -6,5 +6,4 @@ PfaudSec (short for Pfaudler Secretary) is a collection of tools with the aim of
 * [DataBook](databook): generates a single PDF with a cover page and table of contents from input PDF files.
 
 ## License
-PfaudSec is licensed under the AGPL. See [LICENSE.md](LICENSE.md) for details.
-
+PfaudSec is licensed under the AGPL. See [LICENSE](LICENSE) for details.
