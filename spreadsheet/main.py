@@ -10,6 +10,8 @@ import os
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
 
+work_dir = './'
+
 if os.name == "nt":
     sep = '\\'
 elif os.name == "posix":
@@ -20,10 +22,18 @@ work_file = './car_log.xlsx'
 def filename_noext(filename):
     return filename.split(sep)[len(filename.split('/')) - 1].rsplit(".", 1)[0]
 
-config_file = './car_log.ini'
-config = configparser.ConfigParser()
-config.read(config_file)
 
+config_file = work_dir + filename_noext(work_file) + '.ini'
+config = configparser.ConfigParser()
+try:
+    with open(config_file) as f:
+        config.read_file(f)
+except IOError:
+    #Put config maker here
+    print('no config file for this workbook')
+    exit()
+
+def 
 
 # Date column config
 if config.has_option('document', 'date_column'):
@@ -52,7 +62,6 @@ else:
     sheet_number = 1
 
 
-work_dir = './'
 
 wb = load_workbook(work_file)
 ws = wb.worksheets[sheet_number - 1]
