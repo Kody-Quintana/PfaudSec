@@ -18,7 +18,6 @@ class Grapher(object):
         self.work_dir = work_dir
 
         self.work_file = './car_log.xlsx'
-        #self.wb = load_workbook(work_file)
         self.config_file = self.work_dir + self.filename_noext(self.work_file) + '.ini'
         self.config = configparser.ConfigParser()
         try:
@@ -43,6 +42,7 @@ class Grapher(object):
         else:
             print('No worksheet specified in ' + str(self.config_file) + ' defaulting to sheet 1')
             sheet_number = 1
+
         self.ws = load_workbook(work_file).worksheets[sheet_number - 1]
 
 
@@ -67,18 +67,11 @@ class Grapher(object):
     
     
     def filename_noext(self, filename):
+        """Returns filename with no extension"""
         return filename.split('/')[len(filename.split('/')) - 1].rsplit(".", 1)[0]
     
-    
-    
-    
-    
-    
-    
-    
-    
-    # Determines global active rows by first date and last date in input column
     def date_cell_range(self, column):
+        """Determines worksheet active rows by first date and last date in input column"""
         last_date_cell = None
         first_date_cell = None
         last_date_counter = 0
@@ -96,14 +89,9 @@ class Grapher(object):
         return(str(first_date_cell), str(last_date_cell))
     
     
-    # Run this to set global active cells
-    #cells_start, cells_end = date_cell_range(date_column)
-    #active_range = range(int(cells_start), int(cells_end))
-    
-    
-    # For readability, returns a list of all cell.value
-    # for input column, range determined by date_cell_range()
     def column_list(self, column):
+        """For readability, returns a list of all cell.value
+        for input column, range determined by date_cell_range()"""
         row_cells = []
         for i in self.ws[column + self.cells_start : column + self.cells_end]:
             for cell in i:
@@ -111,8 +99,8 @@ class Grapher(object):
         return row_cells
     
     
-    # returns month as string
     def month_string(self, i):
+        """returns month as 3 letter string"""
         out = None
         if isinstance(i, datetime.datetime) or isinstance(i, datetime.date):
             out = i.strftime('%b %y')
@@ -121,9 +109,10 @@ class Grapher(object):
         return out
     
     
-    # enumerate() but index starts at first cell
-    # as determined by date_cell_range()
     def cell_enumerate(self, item):
+        """enumerate() but index starts at first cell
+
+        as determined by date_cell_range()"""
         i = int(self.cells_start)
         it = iter(item)
         while True:
@@ -132,17 +121,19 @@ class Grapher(object):
     
     
     def unique_column_list(self, column):
+        """Returns set of column_list()"""
         values = list(set(self.column_list(column)))
         values.sort
         return values
     
     
     def diff_month(self, d1, d2):
+        """Returns how many months apart two dates are"""
         return (d1.year - d2.year) * 12 + d1.month - d2.month
     
     
-    # Totals for input column for this month
     def curr_month_values(self, column, blanks=False):
+        """Totals for input column for this month"""
         this_month = []
         total_occurances = 0
         for i, j in self.cell_enumerate(self.column_list(column)):
@@ -159,12 +150,16 @@ class Grapher(object):
     
     
     def relative_month_to_string(self, relative_month):
+        """Takes relative month as int, returns month string
+
+        int is positive for time in past (think int(x) months ago)"""
         return self.month_string(self.now 
                 - dateutil.relativedelta.relativedelta(\
                         months=int(relative_month)))
     
     
     def totals_by_month_graph(self, months=12, title='Totals by month'):
+        """Writes line pgfplot to graph.tex of totals by month"""
         column = self.date_column
         months_counter = [0] * months
         return_dict = {}
@@ -204,8 +199,8 @@ class Grapher(object):
             graphs_file.write(line_graph_tex[4])
     
     
-    # returns dict of tuples, tuple index is how many months ago data is for
     def values_by_month(self, column, months=12):
+        """returns dict of tuples, tuple index is how many months ago data is for"""
         catagories_index = {} #dict to get index from string for catagories
         catagories = []       #list of lists for each catagory
         return_dict = {}
@@ -225,6 +220,7 @@ class Grapher(object):
     
     
     def current_month_graph(self, column, title, blanks=False):
+        """Writes bar/pareto pgfplot to graph.tex of current month values"""
         current_data, total_occurances = self.curr_month_values(column, blanks)
     
         symbolic_xcoords = '\n'.join([str(i) + ',' for i \
@@ -261,6 +257,7 @@ class Grapher(object):
     
     #Uses line graph for one catagory over time
     def monthly_graph(self, column, title, months=12, blanks=False):
+        """Writes line pgfplot to graph.tex for one catagory over time"""
         for catagory, month_count_tuple in sorted(self.values_by_month(column, months).items()):
     
             if blanks == False and str(catagory) == 'None':
@@ -300,6 +297,7 @@ class Grapher(object):
     
     
     def column_has_data(self, column):
+        """Returns true if any data is found in rows of a column"""
         try:
             for r in self.ws[column + '1' : column + str(len(self.ws[column]))]:
                 for cell in r:
@@ -311,6 +309,7 @@ class Grapher(object):
     
     
     def compile_tex(self):
+        """Calls graph functions based on what is found in config file"""
         print('Starting PfaudSec Graph compiler.\nLoaded columns from '\
                 + str(self.config_file) + ':\n')
         
@@ -341,5 +340,6 @@ class Grapher(object):
                         + str(self.config_file)
                         + ' does not contain valid data')
     
+#Load this with ui later
 graph = Grapher('./', './car_log.xlsx')
 graph.compile_tex()
