@@ -35,8 +35,8 @@ class Grapher(object):
     now = datetime.date.today()
 
     def __init__(self, work_dir, work_file):
+        print('Grapher instance start')
         self.work_dir = work_dir
-        print('Grapher start')
         self.work_file = './car_log.xlsx'
         self.config_file = 'resource/' + filename_noext(self.work_file) + '.ini'
         self.config = configparser.ConfigParser()
@@ -360,7 +360,6 @@ class Grapher(object):
                         + ' does not contain valid data')
 
         #call xelatex somewhere in here
-        del self #use new instances to always recheck config file
     
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
@@ -368,27 +367,39 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.menu = QtWidgets.QMenu(parent)
 
         checkAction = self.menu.addAction("Compile TeX")
-        checkAction.triggered.connect(lambda: make_ready())
+        checkAction.triggered.connect(self.make_ready)
 
         exitAction = self.menu.addAction("Exit")
         exitAction.triggered.connect(QtWidgets.qApp.quit)
 
         self.setContextMenu(self.menu)
-        self.timer = QtCore.QTimer()
-        
-        self.timer.timeout.connect(lambda: print('Qtimer now'))
-        self.timer.start(3000)
+        self.activated.connect(self.tray_clicked)
+        self.click_timer = QtCore.QTimer(self)
+        self.click_timer.setSingleShot(True)
+        self.click_timer.timeout.connect(self.single_click)
+        #self.timer = QtCore.QTimer() 
+        #self.timer.timeout.connect(lambda: self.showMessage('test', 'test2'))
+        #self.timer.start(9000)
 
-        #move this
+    def tray_clicked(self, reason):
+
+        if reason == QtWidgets.QSystemTrayIcon.Trigger:
+            self.click_timer.start(QtWidgets.qApp.doubleClickInterval())
+
+        elif reason == QtWidgets.QSystemTrayIcon.DoubleClick:
+            self.click_timer.stop()
+            self.double_click()
+
+    def double_click(self):
+        print('double click')
+
+    def single_click(self):
+        print('single click')
+
+    def make_ready(self):
+        self.showMessage('PfaudSec', 'Compiling graph')
         with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
-            self.graph = Grapher(work_dir, './car_log.xlsx')
-            self.graph.compile_tex()
-
-def make_ready():
-    with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
-        graph = Grapher(work_dir, './car_log.xlsx')
-        graph.compile_tex()
-
+            Grapher(work_dir, './car_log.xlsx').compile_tex()
 
 
 app = QtWidgets.QApplication(sys.argv)
@@ -399,8 +410,5 @@ work_file = './car_log.xlsx'
 
 trayIcon = SystemTrayIcon(icon)
 trayIcon.show()
-
-def maketray():
-    global trayIcon
 
 sys.exit(app.exec_())
