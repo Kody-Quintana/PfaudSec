@@ -4,6 +4,8 @@ import itertools
 import configparser
 import os
 import sys
+import tempfile
+import shutil
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string #,coordinate_from_string
 from collections import Counter
@@ -12,24 +14,43 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
 
-#class Configure(
+def filename_noext(filename):
+    """Returns filename with no extension"""
+    return filename.split('/')[len(filename.split('/')) - 1].rsplit(".", 1)[0]
+
+class EditConfig(QtWidgets.QDialog):
+    def __init__(self):
+        super(EditConfig, self).__init__()
+        # Put a text edit in here for config
+
+    def closeEvent(self, event):
+        #self.hide()
+        #event.ignore()
+        shutil.copyfile('./car_log.ini', 'resource/car_log.ini')
+
+        print('closed now')
+
 class Grapher(object):
 
     now = datetime.date.today()
 
     def __init__(self, work_dir, work_file):
         self.work_dir = work_dir
-
+        print('Grapher start')
         self.work_file = './car_log.xlsx'
-        self.config_file = self.work_dir + self.filename_noext(self.work_file) + '.ini'
+        self.config_file = 'resource/' + filename_noext(self.work_file) + '.ini'
         self.config = configparser.ConfigParser()
-        try:
-            with open(self.config_file) as f:
-                self.config.read_file(f)
-        except IOError:
-            #Put config maker here
-            print('no config file for this workbook')
-            exit()
+
+        def try_config_read(): 
+            try:
+                with open(self.config_file) as f:
+                    self.config.read_file(f)
+            except IOError:
+                edit_config = EditConfig()
+                edit_config.exec_() #Block until closed
+                try_config_read() #keep trying until the file exists and is read
+
+        try_config_read()
 
         # Worksheet number config
         if self.config.has_option('document', 'worksheet'):
@@ -67,11 +88,7 @@ class Grapher(object):
     #elif os.name == "posix":
     #    sep = '/'
     
-    
-    def filename_noext(self, filename):
-        """Returns filename with no extension"""
-        return filename.split('/')[len(filename.split('/')) - 1].rsplit(".", 1)[0]
-    
+     
     def date_cell_range(self, column):
         """Determines worksheet active rows by first date and last date in input column"""
         last_date_cell = None
@@ -341,24 +358,49 @@ class Grapher(object):
                         + ' specified in '
                         + str(self.config_file)
                         + ' does not contain valid data')
+
+        #call xelatex somewhere in here
+        del self #use new instances to always recheck config file
     
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
         QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
         self.menu = QtWidgets.QMenu(parent)
+
         checkAction = self.menu.addAction("Compile TeX")
-        checkAction.triggered.connect(lambda: print('it works'))
+        checkAction.triggered.connect(lambda: make_ready())
+
         exitAction = self.menu.addAction("Exit")
         exitAction.triggered.connect(QtWidgets.qApp.quit)
+
         self.setContextMenu(self.menu)
+        self.timer = QtCore.QTimer()
+        
+        self.timer.timeout.connect(lambda: print('Qtimer now'))
+        self.timer.start(3000)
+
+        #move this
+        with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
+            self.graph = Grapher(work_dir, './car_log.xlsx')
+            self.graph.compile_tex()
+
+def make_ready():
+    with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
+        graph = Grapher(work_dir, './car_log.xlsx')
+        graph.compile_tex()
+
+
 
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 icon = QtGui.QIcon('resource/logo.ico')  # need a icon
+
+work_file = './car_log.xlsx'
+
 trayIcon = SystemTrayIcon(icon)
 trayIcon.show()
-sys.exit(app.exec_())
 
-#Load this with ui later
-#graph = Grapher('./', './car_log.xlsx')
-#graph.compile_tex()
+def maketray():
+    global trayIcon
+
+sys.exit(app.exec_())
