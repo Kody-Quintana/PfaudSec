@@ -1,15 +1,18 @@
-from openpyxl import load_workbook
-from openpyxl.utils import column_index_from_string #,coordinate_from_string
-from collections import Counter
 import datetime
 import dateutil.relativedelta
 import itertools
 import configparser
 import os
+import sys
+from openpyxl import load_workbook
+from openpyxl.utils import column_index_from_string #,coordinate_from_string
+from collections import Counter
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
 
+#class Configure(
 class Grapher(object):
 
     now = datetime.date.today()
@@ -25,7 +28,6 @@ class Grapher(object):
                 self.config.read_file(f)
         except IOError:
             #Put config maker here
-            #app.setQuitOnLastWindowClosed(False)
             print('no config file for this workbook')
             exit()
 
@@ -340,6 +342,23 @@ class Grapher(object):
                         + str(self.config_file)
                         + ' does not contain valid data')
     
+class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
+    def __init__(self, icon, parent=None):
+        QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
+        self.menu = QtWidgets.QMenu(parent)
+        checkAction = self.menu.addAction("Compile TeX")
+        checkAction.triggered.connect(lambda: print('it works'))
+        exitAction = self.menu.addAction("Exit")
+        exitAction.triggered.connect(QtWidgets.qApp.quit)
+        self.setContextMenu(self.menu)
+
+app = QtWidgets.QApplication(sys.argv)
+app.setQuitOnLastWindowClosed(False)
+icon = QtGui.QIcon('resource/logo.ico')  # need a icon
+trayIcon = SystemTrayIcon(icon)
+trayIcon.show()
+sys.exit(app.exec_())
+
 #Load this with ui later
-graph = Grapher('./', './car_log.xlsx')
-graph.compile_tex()
+#graph = Grapher('./', './car_log.xlsx')
+#graph.compile_tex()
