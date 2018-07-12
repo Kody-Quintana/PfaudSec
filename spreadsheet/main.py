@@ -6,13 +6,46 @@ import os
 import sys
 import tempfile
 import shutil
+import sharepy
+import traceback
+import io
+import time
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string #,coordinate_from_string
 from collections import Counter
 from PyQt5 import QtWidgets, QtCore, QtGui
 
+import sp_prompt
+
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
+
+def except_box(excType, excValue, tracebackobj):
+    """Exceptions from sys.excepthook displayed in a QMessageBox and saved to logfile"""
+    logFile = "PfaudSec_crash.log"
+    notice = 'An unhandled exception occured. Please report the problem via email to Quintana.Kody@gmail.com'\
+            + '\n\nPlease attach the log file PfaudSec_crash.log from the PfaudSec folder to the email.\n'
+    versionInfo = "0.0.0"
+    timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
+
+    tbinfofile = io.StringIO()
+    traceback.print_tb(tracebackobj, None, tbinfofile)
+    tbinfofile.seek(0)
+    tbinfo = tbinfofile.read()
+    errmsg = '%s: \n%s' % (str(excType), str(excValue))
+    sep = '\n'
+    sections = [sep, timeString, sep, errmsg, sep, tbinfo]
+    msg = ''.join(sections)
+    try:
+        f = open(logFile, "w")
+        f.write(msg)
+        f.write(versionInfo)
+        f.close()
+    except IOError:
+        pass
+    errorbox = QtWidgets.QMessageBox()
+    errorbox.setText(str(notice)+str(msg)+str(versionInfo))
+    errorbox.exec_()
 
 def filename_noext(filename):
     """Returns filename with no extension"""
@@ -359,15 +392,47 @@ class Grapher(object):
                         + str(self.config_file)
                         + ' does not contain valid data')
 
-        #call xelatex somewhere in here
+        #TODO call xelatex somewhere in here
     
+class SharePoint(object):
+
+    def __init__(self):
+        #check is the session files exists
+        self.sp_url = 'pfaudlerazuread.sharepoint.com'
+
+        if os.path.isfile('sp-session.pkl'):
+            self.session = sharepy.load()
+            #self.session.raise_for_status()
+        else:
+            self.session = sharepy.connect(self.sp_url, *self.get_cred())
+            self.session.save()
+
+
+    def get_cred(self):
+        """Returns packed login credentials
+        
+        use *self.get_cred() as input to function
+        asking for two variables"""
+        #import sp_prompt
+        class Prompt(QtWidgets.QDialog, sp_prompt.Ui_Dialog):
+            def __init__(self):
+                super(Prompt, self).__init__()
+                self.setupUi(self)
+        prompt = Prompt()
+        prompt.exec_()
+        return prompt.lineEdit.text(), prompt.lineEdit_2.text() 
+
+    def upload(self, filename):
+        pass
+        #print(filename)
+
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
         QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
         self.menu = QtWidgets.QMenu(parent)
 
         checkAction = self.menu.addAction("Compile TeX")
-        checkAction.triggered.connect(self.make_ready)
+        checkAction.triggered.connect(lambda: self.sp())
 
         exitAction = self.menu.addAction("Exit")
         exitAction.triggered.connect(QtWidgets.qApp.quit)
@@ -377,9 +442,21 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.click_timer = QtCore.QTimer(self)
         self.click_timer.setSingleShot(True)
         self.click_timer.timeout.connect(self.single_click)
+
         #self.timer = QtCore.QTimer() 
         #self.timer.timeout.connect(lambda: self.showMessage('test', 'test2'))
         #self.timer.start(9000)
+
+    def write(self, text):
+        text = text.rstrip()
+        if len(text) == 0:
+            return
+        self.showMessage('Message', str(text))
+        #TODO: make some kind of queue so quickly written print() doesnt hide messages
+
+    def sp(self):
+        instance = SharePoint()
+        instance.upload('testfile')
 
     def tray_clicked(self, reason):
 
@@ -402,13 +479,16 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             Grapher(work_dir, './car_log.xlsx').compile_tex()
 
 
+sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 icon = QtGui.QIcon('resource/logo.ico')  # need a icon
+
 
 work_file = './car_log.xlsx'
 
 trayIcon = SystemTrayIcon(icon)
 trayIcon.show()
+sys.stdout = trayIcon
 
 sys.exit(app.exec_())
