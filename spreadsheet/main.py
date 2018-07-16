@@ -514,7 +514,18 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 k = Grapher(work_dir, './car_log.xlsx')
                 k.compile_tex()
 
+def tray_wait_to_show():
+    """Delay display of tray icon on Windows.
 
+    If right click menu is clicked too quickly on Windows the menu fails to display"""
+    if os.name == "nt":
+        tray_delay = QtCore.QTimer()
+        tray_delay.setSingleShot(True)
+        tray_delay.timeout.connect(trayIcon.show)
+        tray_delay.start(8000)
+
+    elif os.name == "posix":
+        trayIcon.show()
 
 sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
@@ -527,7 +538,9 @@ print(config_folder)
 work_file = './car_log.xlsx'
 
 trayIcon = SystemTrayIcon(icon)
-trayIcon.show()
-#sys.stdout = trayIcon
+tray_wait_to_show()
+
+#trayIcon.show()
+sys.stdout = trayIcon
 
 sys.exit(app.exec_())
