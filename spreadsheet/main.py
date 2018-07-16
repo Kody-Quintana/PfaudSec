@@ -450,6 +450,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.click_timer = QtCore.QTimer(self)
         self.click_timer.setSingleShot(True)
         self.click_timer.timeout.connect(self.single_click)
+        self.setToolTip('PfaudSec')
 
         #Used in write() for sys.stdout
         self.print_queue = []
@@ -480,7 +481,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         queue_timer.setSingleShot(True)
         queue_timer.timeout.connect(self.clear_queue_line)
         queue_timer.start(9000)
-        self.showMessage('PfaudSec spreadsheet:', '\n'.join([str(i) for i in self.print_queue]))
+        self.showMessage('PfaudSec spreadsheet:', '\n'.join([str(i) for i in self.print_queue]), icon)
 
     def clear_queue_line(self):
         try:
@@ -514,33 +515,18 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 k = Grapher(work_dir, './car_log.xlsx')
                 k.compile_tex()
 
-def tray_wait_to_show():
-    """Delay display of tray icon on Windows.
-
-    If right click menu is clicked too quickly on Windows the menu fails to display"""
-    if os.name == "nt":
-        tray_delay = QtCore.QTimer()
-        tray_delay.setSingleShot(True)
-        tray_delay.timeout.connect(trayIcon.show)
-        tray_delay.start(8000)
-
-    elif os.name == "posix":
-        trayIcon.show()
-
 sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
-icon = QtGui.QIcon('resource/logo.ico')  # need a icon
+
 config_folder = appdirs.user_config_dir('PfaudSec')
 folder_check(config_folder)
-print(config_folder)
 
 work_file = './car_log.xlsx'
 
+icon = QtGui.QIcon('resource/logo.ico')  # need a icon
 trayIcon = SystemTrayIcon(icon)
-tray_wait_to_show()
-
-#trayIcon.show()
+trayIcon.show()
 sys.stdout = trayIcon
 
 sys.exit(app.exec_())
