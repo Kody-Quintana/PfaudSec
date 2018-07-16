@@ -18,6 +18,7 @@ from collections import Counter
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 import sp_prompt
+import log
 
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
@@ -76,10 +77,12 @@ class Grapher(object):
     now = datetime.date.today()
 
     def __init__(self, work_dir, work_file):
-        print('Grapher instance start')
-        print(os.urandom(10))
+        try:
+            os.remove(work_dir + '/graph.tex')
+        except OSError:
+            pass
         self.work_dir = work_dir
-        self.work_file = './car_log.xlsx'
+        self.work_file = work_file
         self.config_file = 'resource/' + filename_noext(self.work_file) + '.ini'
         self.config = configparser.ConfigParser()
 
@@ -108,7 +111,7 @@ class Grapher(object):
             print('No worksheet specified in ' + str(self.config_file) + ' defaulting to sheet 1')
             sheet_number = 1
 
-        self.ws = load_workbook(work_file).worksheets[sheet_number - 1]
+        self.ws = load_workbook(work_dir + '/' + work_file).worksheets[sheet_number - 1]
 
 
         # Date column config
@@ -123,12 +126,6 @@ class Grapher(object):
             exit()
 
         self.cells_start, self.cells_end = self.date_cell_range(self.date_column)
-    #active_range = range(int(cells_start), int(cells_end))
-    
-    #if os.name == "nt":
-    #    sep = '\\'
-    #elif os.name == "posix":
-    #    sep = '/'
     
      
     def date_cell_range(self, column):
@@ -369,7 +366,7 @@ class Grapher(object):
         return False
     
     
-    def compile_tex(self):
+    def compile(self):
         """Calls graph functions based on what is found in config file"""
         print('Starting PfaudSec Graph compiler.\nLoaded columns from '\
                 + str(self.config_file) + ':\n')
@@ -400,17 +397,27 @@ class Grapher(object):
                         + ' specified in '
                         + str(self.config_file)
                         + ' does not contain valid data')
+        #log.compile_tex(work_dir)
+
+
+        return True
 
         #TODO call xelatex somewhere in here, copy pdf, then return location of pdf from this function
     
 class SharePoint(object):
 
-    def __init__(self):
+    def __init__(self, *arg, **args):
         #check is the session files exists
         self.sp_url = 'pfaudlerazuread.sharepoint.com'
+        #self.file_path = 
 
         if os.path.isfile(config_folder + '/sp-session.pkl'):
-            self.session = sharepy.load(config_folder + '/sp-session.pkl')
+            try:
+                self.session = sharepy.load(config_folder + '/sp-session.pkl')
+            except AttributeError:
+                self.session = sharepy.connect(self.sp_url, *self.get_cred())
+                self.session.save(config_folder + '/sp-session.pkl')
+                
             #self.session.raise_for_status()
         else:
             self.session = sharepy.connect(self.sp_url, *self.get_cred())
@@ -422,17 +429,64 @@ class SharePoint(object):
         
         use *self.get_cred() as input to function
         asking for two variables"""
-        #import sp_prompt
         class Prompt(QtWidgets.QDialog, sp_prompt.Ui_Dialog):
             def __init__(self):
                 super(Prompt, self).__init__()
                 self.setupUi(self)
+                self.setModal(True)
+                self.buttonBox.setEnabled(False)
+                self.lineEdit.textChanged.connect(self.btn_enable)
+                self.lineEdit_2.textChanged.connect(self.btn_enable)
+            def btn_enable(self):
+                if '@' and '.' in self.lineEdit.text() and self.lineEdit_2.text() != '':
+                    self.buttonBox.setEnabled(True)
+                else:
+                    self.buttonBox.setEnabled(False)
         prompt = Prompt()
         prompt.exec_()
-        return prompt.lineEdit.text(), prompt.lineEdit_2.text() 
+        if '@' and '.' in prompt.lineEdit.text() and prompt.lineEdit_2.text() != '':
+            return prompt.lineEdit.text(), prompt.lineEdit_2.text() 
+        else:
+            exit()
 
     def upload(self, filename):
         pass
+
+class LogWindow(QtWidgets.QDialog,log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
+
+    def __init__(self):
+        QtWidgets.QDialog.__init__(self)
+        self.setupUi(self)
+        self.xelatex_path = 'xelatex'
+        self.process_0 = QtCore.QProcess(self)
+        self.process_0.setProcessChannelMode(QtCore.QProcess.MergedChannels)
+        self.process_0.readyRead.connect(self.stdout_and_err_Ready)
+        #self.process_0.started.connect(lambda: self.clear())
+        #self.process_0.started.connect(lambda: p('LaTeX first compile start'))
+        self.process_0.finished.connect(lambda: print('XeLaTeX: done'))
+
+    def compile_tex(self, work_dir):
+        self.process_0.setWorkingDirectory(work_dir)
+        self.process_0.start(self.xelatex_path, ['present'])
+
+    def append(self, text):
+        cursor = self.outputbox.textCursor()
+        cursor.movePosition(cursor.End)
+        cursor.insertText(text)
+        cursor.movePosition(cursor.End)
+        self.outputbox.verticalScrollBar().setSliderPosition\
+                (self.outputbox.verticalScrollBar().maximum())
+
+    def stdout_and_err_Ready(self):
+        #text = ''
+        #ldict = locals()
+        #exec('text = bytearray(self.process_' + str(self.proc_num)\
+                #+ '.readAll())',ldict)
+        text = bytearray(self.process_0.readAll())
+        #text = ldict['text']
+        text = text.decode("UTF-8")
+        self.append(text)
+
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
@@ -440,7 +494,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.menu = QtWidgets.QMenu(parent)
 
         checkAction = self.menu.addAction("Compile TeX")
-        checkAction.triggered.connect(self.sp)
+        checkAction.triggered.connect(self.make_ready)
 
         exitAction = self.menu.addAction("Exit")
         exitAction.triggered.connect(QtWidgets.qApp.quit)
@@ -506,18 +560,31 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         print('double click')
 
     def single_click(self):
+        log.show()
         print('single click')
 
     def make_ready(self):
-        self.showMessage('PfaudSec', 'Compiling graph')
-        for i in range(3):
-            with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
-                k = Grapher(work_dir, './car_log.xlsx')
-                k.compile_tex()
+        print('Compiling Graph')
+        #with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
+        work_dir = 'test'
+        if True:
+            sp = SharePoint()
+            doc_name = "MANUFACTURING CAR's Log.xlsx"
+            doc_nospace = doc_name.replace(' ','_')
+            sp.session.getfile('https://pfaudlerazuread.sharepoint.com/sites/PfaudlerUS/'
+                    + "QC_CAR/"
+                    + doc_name,
+                    filename = work_dir + '/' + doc_nospace)
+
+            if Grapher(work_dir, doc_nospace).compile():
+                log.compile_tex(work_dir)
+            #sp.upload(work_file)
+
 
 sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
+xelatex_path = 'xelatex'
 
 config_folder = appdirs.user_config_dir('PfaudSec')
 folder_check(config_folder)
@@ -528,5 +595,6 @@ icon = QtGui.QIcon('resource/logo.ico')  # need a icon
 trayIcon = SystemTrayIcon(icon)
 trayIcon.show()
 sys.stdout = trayIcon
+log = LogWindow()
 
 sys.exit(app.exec_())
