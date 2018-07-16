@@ -11,6 +11,7 @@ import traceback
 import io
 import time
 import appdirs
+import pathlib
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string #,coordinate_from_string
 from collections import Counter
@@ -22,9 +23,10 @@ import sp_prompt
 from texstorage import line_graph_tex, bar_graph_tex 
 
 def folder_check(folder):
-    """Create folder if it doesn't exist"""
-    if not os.path.exists(folder):
-        os.mkdir(folder)
+    #"""Create folder if it doesn't exist"""
+    #if not os.path.exists(folder):
+    #    os.mkdir(folder)
+    pathlib.Path(folder).mkdir(parents = True, exist_ok = True)
 
 def except_box(excType, excValue, tracebackobj):
     """Exceptions from sys.excepthook displayed in a QMessageBox and saved to logfile"""
@@ -518,7 +520,7 @@ sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 icon = QtGui.QIcon('resource/logo.ico')  # need a icon
-config_folder = appdirs.user_config_dir('PfaudSec', 'PfaudSec')
+config_folder = appdirs.user_config_dir('PfaudSec')
 folder_check(config_folder)
 print(config_folder)
 
@@ -526,6 +528,6 @@ work_file = './car_log.xlsx'
 
 trayIcon = SystemTrayIcon(icon)
 trayIcon.show()
-sys.stdout = trayIcon
+#sys.stdout = trayIcon
 
 sys.exit(app.exec_())
