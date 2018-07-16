@@ -10,6 +10,7 @@ import sharepy
 import traceback
 import io
 import time
+import appdirs
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string #,coordinate_from_string
 from collections import Counter
@@ -20,11 +21,16 @@ import sp_prompt
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
 
+def folder_check(folder):
+    """Create folder if it doesn't exist"""
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+
 def except_box(excType, excValue, tracebackobj):
     """Exceptions from sys.excepthook displayed in a QMessageBox and saved to logfile"""
-    logFile = "PfaudSec_crash.log"
+    logFile = "PfaudSec_spreadsheet_crash.log"
     notice = 'An unhandled exception occured. Please report the problem via email to Quintana.Kody@gmail.com'\
-            + '\n\nPlease attach the log file PfaudSec_crash.log from the PfaudSec folder to the email.\n'
+            + '\n\nPlease attach the log file PfaudSec_spreadsheet_crash.log from the PfaudSec spreadsheet folder to the email.\n'
     versionInfo = "0.0.0"
     timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
 
@@ -69,6 +75,7 @@ class Grapher(object):
 
     def __init__(self, work_dir, work_file):
         print('Grapher instance start')
+        print(os.urandom(10))
         self.work_dir = work_dir
         self.work_file = './car_log.xlsx'
         self.config_file = 'resource/' + filename_noext(self.work_file) + '.ini'
@@ -392,7 +399,7 @@ class Grapher(object):
                         + str(self.config_file)
                         + ' does not contain valid data')
 
-        #TODO call xelatex somewhere in here
+        #TODO call xelatex somewhere in here, copy pdf, then return location of pdf from this function
     
 class SharePoint(object):
 
@@ -400,12 +407,12 @@ class SharePoint(object):
         #check is the session files exists
         self.sp_url = 'pfaudlerazuread.sharepoint.com'
 
-        if os.path.isfile('sp-session.pkl'):
-            self.session = sharepy.load()
+        if os.path.isfile(config_folder + '/sp-session.pkl'):
+            self.session = sharepy.load(config_folder + '/sp-session.pkl')
             #self.session.raise_for_status()
         else:
             self.session = sharepy.connect(self.sp_url, *self.get_cred())
-            self.session.save()
+            self.session.save(config_folder + '/sp-session.pkl')
 
 
     def get_cred(self):
@@ -424,7 +431,6 @@ class SharePoint(object):
 
     def upload(self, filename):
         pass
-        #print(filename)
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
@@ -432,7 +438,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.menu = QtWidgets.QMenu(parent)
 
         checkAction = self.menu.addAction("Compile TeX")
-        checkAction.triggered.connect(lambda: self.sp())
+        checkAction.triggered.connect(self.sp)
 
         exitAction = self.menu.addAction("Exit")
         exitAction.triggered.connect(QtWidgets.qApp.quit)
@@ -443,16 +449,42 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.click_timer.setSingleShot(True)
         self.click_timer.timeout.connect(self.single_click)
 
-        #self.timer = QtCore.QTimer() 
-        #self.timer.timeout.connect(lambda: self.showMessage('test', 'test2'))
-        #self.timer.start(9000)
+        #Used in write() for sys.stdout
+        self.print_queue = []
+        self.time_stamp = ''
+        self.time_format_str = '%H:%M:%S: '
+
+    def flush(self, *arg, **args):
+        """Used only to suppress errors"""
+        pass
 
     def write(self, text):
+        """sys.stdout directed to a system tray message"""
         text = text.rstrip()
         if len(text) == 0:
             return
-        self.showMessage('Message', str(text))
-        #TODO: make some kind of queue so quickly written print() doesnt hide messages
+
+        #Adds timestamp only if different than previous one
+        if datetime.datetime.strftime(datetime.datetime.now(),
+                self.time_format_str) == self.time_stamp:
+            self.print_queue.append(text)
+        else:
+            self.print_queue.append(datetime.datetime.strftime(datetime.datetime.now(),
+                self.time_format_str)
+                    + text)
+
+        self.time_stamp = datetime.datetime.strftime(datetime.datetime.now(), self.time_format_str)
+        queue_timer = QtCore.QTimer(self)
+        queue_timer.setSingleShot(True)
+        queue_timer.timeout.connect(self.clear_queue_line)
+        queue_timer.start(9000)
+        self.showMessage('PfaudSec spreadsheet:', '\n'.join([str(i) for i in self.print_queue]))
+
+    def clear_queue_line(self):
+        try:
+            del self.print_queue[0]
+        except IndexError:
+            pass
 
     def sp(self):
         instance = SharePoint()
@@ -475,15 +507,20 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def make_ready(self):
         self.showMessage('PfaudSec', 'Compiling graph')
-        with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
-            Grapher(work_dir, './car_log.xlsx').compile_tex()
+        for i in range(3):
+            with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
+                k = Grapher(work_dir, './car_log.xlsx')
+                k.compile_tex()
+
 
 
 sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 icon = QtGui.QIcon('resource/logo.ico')  # need a icon
-
+config_folder = appdirs.user_config_dir('PfaudSec', 'PfaudSec')
+folder_check(config_folder)
+print(config_folder)
 
 work_file = './car_log.xlsx'
 
