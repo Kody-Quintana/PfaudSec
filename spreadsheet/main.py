@@ -463,6 +463,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.process_0.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.process_0.readyRead.connect(self.stdout_and_err_Ready)
         self.process_0.finished.connect(self.done_statement)
+        self.proc_count = 0
 
         self.xelatex_config()
     def done_statement(self):
@@ -481,20 +482,33 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
 
     def compile_tex(self, work_dir, name, layout):
 
+        def layout_name(work_dir, name, layout):
+            os.replace(work_dir
+                + '/present.pdf', work_dir
+                + '/'
+                + filename_noext(name)
+                + ' '
+                + layout
+                + '.pdf')
+            print('XeLaTeX: ' + layout + ' done')
+            self.proc_count += 1
+            if self.proc_count < 2:
+                log.compile_tex(work_dir, name, 'paper')
+                log.process_0.finished.disconnect()
+                log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
+            else:
+                self.proc_count = 0            
+
         self.layout = layout
 
         self.layout_type = self.layout_text.get(layout)
         with open(work_dir + '/layout.tex', 'w', encoding='utf-8') as layout_file:
             layout_file.write(self.layout_type)
-
-        
-        #self.process_0.finished.connect(lambda: try_rename(work_dir, name))
+ 
         self.process_0.setWorkingDirectory(work_dir)
         self.process_0.start(self.xelatex_path, ['--halt-on-error', 'present'])
-        #self.process_0.waitForFinished(-1)
-        #self.process_0.finished.connect(self.done_statement)
-        #if self.process_0.exitCode() == 0:
-            #return True
+        self.process_0.finished.disconnect()
+        self.process_0.finished.connect(lambda: layout_name(work_dir, name, 'screen'))
 
     def append(self, text):
         cursor = self.outputbox.textCursor()
@@ -537,8 +551,6 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
         self.config_file = 'resource/PfaudSec_SpreadSheet.ini'
         self.config = configparser.ConfigParser()
-
-        self.proc_count = 0
 
         def try_config_read(): 
             try:
@@ -618,23 +630,6 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         #TODO Change to if else for downloading or running a file locally
         #make config file for what documents to download and run
 
-        def layout_name(work_dir, doc_name, layout):
-            os.replace(work_dir
-                + '/present.pdf', work_dir
-                + '/'
-                + filename_noext(doc_name)
-                + ' '
-                + layout
-                + '.pdf')
-            print('XeLaTeX: ' + layout + ' done')
-            self.proc_count += 1
-            if self.proc_count < 2:
-                log.compile_tex(work_dir, doc_name, 'paper')
-                log.process_0.finished.disconnect()
-                log.process_0.finished.connect(lambda: layout_name(work_dir, doc_name, 'paper'))
-            else:
-                self.proc_count = 0            
-        
         if True:
             #TODO make this run from the config file
             sp = SharePoint()
@@ -648,8 +643,6 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             #Sequentially compile documents with both sizes
             if Grapher(work_dir, doc_nospace).compile():
                 log.compile_tex(work_dir, doc_name, 'screen')
-                log.process_0.finished.disconnect()
-                log.process_0.finished.connect(lambda: layout_name(work_dir, doc_name, 'screen'))
 
             #sp.upload(work_file)
         else:
@@ -664,8 +657,6 @@ sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-
-xelatex_path = 'xelatex'
 
 config_folder = appdirs.user_config_dir('PfaudSec')
 folder_check(config_folder)
