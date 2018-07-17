@@ -456,14 +456,19 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.setupUi(self)
         #TODO set outputbox to readonly
         # and create another output box with all stdout appended
-        self.xelatex_path = 'xelatex'
         self.process_0 = QtCore.QProcess(self)
         self.process_0.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.process_0.readyRead.connect(self.stdout_and_err_Ready)
         self.process_0.finished.connect(lambda: print('XeLaTeX: done'))
-        font = QtGui.QFont()
-        font.setPointSize(14)
-        self.setFont(font)
+
+        self.xelatex_config()
+
+    def xelatex_config(self):
+        """Set path to XeLaTeX based on what system is running"""
+        if os.name == "nt":
+            self.xelatex_path = 'texlive/bin/win32/xelatex.exe'
+        elif os.name == "posix":
+            self.xelatex_path = 'xelatex'
 
     def compile_tex(self, work_dir):
         self.process_0.setWorkingDirectory(work_dir)
