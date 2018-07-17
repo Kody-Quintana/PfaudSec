@@ -491,9 +491,10 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         #self.process_0.finished.connect(lambda: try_rename(work_dir, name))
         self.process_0.setWorkingDirectory(work_dir)
         self.process_0.start(self.xelatex_path, ['--halt-on-error', 'present'])
-        self.process_0.waitForFinished(-1)
-        if self.process_0.exitCode() == 0:
-            return True
+        #self.process_0.waitForFinished(-1)
+        #self.process_0.finished.connect(self.done_statement)
+        #if self.process_0.exitCode() == 0:
+            #return True
 
     def append(self, text):
         cursor = self.outputbox.textCursor()
@@ -537,6 +538,8 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.config_file = 'resource/PfaudSec_SpreadSheet.ini'
         self.config = configparser.ConfigParser()
 
+        self.proc_count = 0
+
         def try_config_read(): 
             try:
                 with open(self.config_file) as f:
@@ -579,7 +582,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         queue_timer = QtCore.QTimer(self)
         queue_timer.setSingleShot(True)
         queue_timer.timeout.connect(self.clear_queue_line)
-        queue_timer.start(9000)
+        queue_timer.start(4000)
         self.showMessage('PfaudSec spreadsheet:', '\n'.join([str(i) for i in self.print_queue]), icon)
 
     def clear_queue_line(self):
@@ -623,7 +626,14 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 + ' '
                 + layout
                 + '.pdf')
-            
+            print('XeLaTeX: ' + layout + ' done')
+            self.proc_count += 1
+            if self.proc_count < 2:
+                log.compile_tex(work_dir, doc_name, 'paper')
+                log.process_0.finished.disconnect()
+                log.process_0.finished.connect(lambda: layout_name(work_dir, doc_name, 'paper'))
+            else:
+                self.proc_count = 0            
         
         if True:
             #TODO make this run from the config file
@@ -637,10 +647,9 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
             #Sequentially compile documents with both sizes
             if Grapher(work_dir, doc_nospace).compile():
-                if log.compile_tex(work_dir, doc_name, 'screen'):
-                    layout_name(work_dir, doc_name, 'screen')
-                    if log.compile_tex(work_dir, doc_name, 'paper'):
-                        layout_name(work_dir, doc_name, 'paper')
+                log.compile_tex(work_dir, doc_name, 'screen')
+                log.process_0.finished.disconnect()
+                log.process_0.finished.connect(lambda: layout_name(work_dir, doc_name, 'screen'))
 
             #sp.upload(work_file)
         else:
