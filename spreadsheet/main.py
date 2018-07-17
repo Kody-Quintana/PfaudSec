@@ -462,9 +462,15 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.process_0 = QtCore.QProcess(self)
         self.process_0.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.process_0.readyRead.connect(self.stdout_and_err_Ready)
-        self.process_0.finished.connect(lambda: print('XeLaTeX: done'))
+        self.process_0.finished.connect(self.done_statement)
 
         self.xelatex_config()
+    def done_statement(self):
+        if self.process_0.exitCode() == 0:
+            print('XeLaTeX: done')
+        else:
+            print('XeLaTeX error!')
+            self.show()
 
     def xelatex_config(self):
         """Set path to XeLaTeX based on what system is running"""
@@ -484,9 +490,10 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         
         #self.process_0.finished.connect(lambda: try_rename(work_dir, name))
         self.process_0.setWorkingDirectory(work_dir)
-        self.process_0.start(self.xelatex_path, ['present'])
+        self.process_0.start(self.xelatex_path, ['--halt-on-error', 'present'])
         self.process_0.waitForFinished(-1)
-        return True
+        if self.process_0.exitCode() == 0:
+            return True
 
     def append(self, text):
         cursor = self.outputbox.textCursor()
@@ -609,7 +616,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         #make config file for what documents to download and run
 
         def layout_name(work_dir, doc_name, layout):
-            os.rename(work_dir
+            os.replace(work_dir
                 + '/present.pdf', work_dir
                 + '/'
                 + filename_noext(doc_name)
