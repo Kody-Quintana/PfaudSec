@@ -451,6 +451,9 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
     """Normally hidden log window, also "hosts" the QProcess for calling XeLaTeX"""
     #TODO on xelatex finish, copy pdfs to a folder for upload
 
+    layout_text = {'paper' : r'\usepackage[paperwidth=8.27in, paperheight=11.69in, landscape]{geometry}',
+            'screen' : r'\usepackage[paperwidth=7.5in, paperheight=13.33in, landscape]{geometry}'}
+
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
         self.setupUi(self)
@@ -470,9 +473,20 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         elif os.name == "posix":
             self.xelatex_path = 'xelatex'
 
-    def compile_tex(self, work_dir):
+    def compile_tex(self, work_dir, name, layout):
+
+        self.layout = layout
+
+        self.layout_type = self.layout_text.get(layout)
+        with open(work_dir + '/layout.tex', 'w', encoding='utf-8') as layout_file:
+            layout_file.write(self.layout_type)
+
+        
+        #self.process_0.finished.connect(lambda: try_rename(work_dir, name))
         self.process_0.setWorkingDirectory(work_dir)
         self.process_0.start(self.xelatex_path, ['present'])
+        self.process_0.waitForFinished(-1)
+        return True
 
     def append(self, text):
         cursor = self.outputbox.textCursor()
@@ -594,8 +608,18 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         #TODO Change to if else for downloading or running a file locally
         #make config file for what documents to download and run
 
-
+        def layout_name(work_dir, doc_name, layout):
+            os.rename(work_dir
+                + '/present.pdf', work_dir
+                + '/'
+                + filename_noext(doc_name)
+                + ' '
+                + layout
+                + '.pdf')
+            
+        
         if True:
+            #TODO make this run from the config file
             sp = SharePoint()
             doc_name = "MANUFACTURING CAR's Log.xlsx"
             doc_nospace = doc_name.replace(' ','_')
@@ -604,10 +628,16 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                     + doc_name,
                     filename = work_dir + '/' + doc_nospace)
 
+            #Sequentially compile documents with both sizes
             if Grapher(work_dir, doc_nospace).compile():
-                log.compile_tex(work_dir)
+                if log.compile_tex(work_dir, doc_name, 'screen'):
+                    layout_name(work_dir, doc_name, 'screen')
+                    if log.compile_tex(work_dir, doc_name, 'paper'):
+                        layout_name(work_dir, doc_name, 'paper')
+
             #sp.upload(work_file)
         else:
+            #TODO non-sharepoint version in case authentication stops working
             doc_name = sys.argv[1]
             doc_nospace = doc_name.replace(' ','_')
             #shutil.copyfile(doc_name, 
