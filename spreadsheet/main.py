@@ -242,7 +242,7 @@ class Grapher(object):
         symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
         coordinates = '\n'.join([str(i) for i in coordinates])
     
-        with open(self.work_dir + '/graph.tex', 'a') as graphs_file:
+        with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
             graphs_file.write(line_graph_tex[0])
             graphs_file.write(title)
             graphs_file.write(line_graph_tex[1])
@@ -296,7 +296,7 @@ class Grapher(object):
         pareto = '\n'.join(['(' + str(index) + ',' + str(percent) + ')'\
                 for index, percent in enumerate(pareto)])
     
-        with open(self.work_dir + '/graph.tex', 'a') as graphs_file:
+        with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
             graphs_file.write(bar_graph_tex[0])
             graphs_file.write(title)
             graphs_file.write(bar_graph_tex[1])
@@ -339,7 +339,7 @@ class Grapher(object):
             symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
             coordinates = '\n'.join([str(i) for i in coordinates])
     
-            with open(self.work_dir + '/graph.tex', 'a') as graphs_file:
+            with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
                 graphs_file.write(line_graph_tex[0])
                 graphs_file.write(title + ' - ' + catagory)
                 graphs_file.write(line_graph_tex[1])
@@ -585,6 +585,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         print('Compiling Graph')
         #with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
         work_dir = 'test'
+        folder_check(work_dir)
         #TODO Change to if else for downloading or running a file locally
         #make config file for what documents to download and run
 
