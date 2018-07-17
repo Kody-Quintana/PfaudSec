@@ -12,21 +12,19 @@ import io
 import time
 import appdirs
 import pathlib
+import qdarkstyle
 from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string #,coordinate_from_string
 from collections import Counter
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-import sp_prompt
-import log
+import sp_prompt #Credentials prompt
+import ui_log #Log window
 
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
 
 def folder_check(folder):
-    #"""Create folder if it doesn't exist"""
-    #if not os.path.exists(folder):
-    #    os.mkdir(folder)
     pathlib.Path(folder).mkdir(parents = True, exist_ok = True)
 
 def except_box(excType, excValue, tracebackobj):
@@ -61,14 +59,14 @@ def filename_noext(filename):
     return filename.split('/')[len(filename.split('/')) - 1].rsplit(".", 1)[0]
 
 class EditConfig(QtWidgets.QDialog):
-    def __init__(self):
+    def __init__(self, mode):
         super(EditConfig, self).__init__()
-        # Put a text edit in here for config
+        #TODO make basic text editor for individual workbook configs
 
+        #mode for what kind of ini to edit, the sharepoint ini or a document ini
     def closeEvent(self, event):
         #self.hide()
         #event.ignore()
-        shutil.copyfile('./car_log.ini', 'resource/car_log.ini')
 
         print('closed now')
 
@@ -91,7 +89,7 @@ class Grapher(object):
                 with open(self.config_file) as f:
                     self.config.read_file(f)
             except IOError:
-                edit_config = EditConfig()
+                edit_config = EditConfig('document')
                 edit_config.exec_() #Block until closed
                 try_config_read() #keep trying until the file exists and is read
 
@@ -368,6 +366,7 @@ class Grapher(object):
     
     def compile(self):
         """Calls graph functions based on what is found in config file"""
+
         print('Starting PfaudSec Graph compiler.\nLoaded columns from '\
                 + str(self.config_file) + ':\n')
         
@@ -397,12 +396,9 @@ class Grapher(object):
                         + ' specified in '
                         + str(self.config_file)
                         + ' does not contain valid data')
-        #log.compile_tex(work_dir)
-
-
         return True
+        #This true triggers XeLaTeX to be called
 
-        #TODO call xelatex somewhere in here, copy pdf, then return location of pdf from this function
     
 class SharePoint(object):
 
@@ -418,7 +414,6 @@ class SharePoint(object):
                 self.session = sharepy.connect(self.sp_url, *self.get_cred())
                 self.session.save(config_folder + '/sp-session.pkl')
                 
-            #self.session.raise_for_status()
         else:
             self.session = sharepy.connect(self.sp_url, *self.get_cred())
             self.session.save(config_folder + '/sp-session.pkl')
@@ -452,18 +447,23 @@ class SharePoint(object):
     def upload(self, filename):
         pass
 
-class LogWindow(QtWidgets.QDialog,log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
+class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
+    """Normally hidden log window, also "hosts" the QProcess for calling XeLaTeX"""
+    #TODO on xelatex finish, copy pdfs to a folder for upload
 
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
         self.setupUi(self)
+        #TODO set outputbox to readonly
+        # and create another output box with all stdout appended
         self.xelatex_path = 'xelatex'
         self.process_0 = QtCore.QProcess(self)
         self.process_0.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.process_0.readyRead.connect(self.stdout_and_err_Ready)
-        #self.process_0.started.connect(lambda: self.clear())
-        #self.process_0.started.connect(lambda: p('LaTeX first compile start'))
         self.process_0.finished.connect(lambda: print('XeLaTeX: done'))
+        font = QtGui.QFont()
+        font.setPointSize(14)
+        self.setFont(font)
 
     def compile_tex(self, work_dir):
         self.process_0.setWorkingDirectory(work_dir)
@@ -478,17 +478,14 @@ class LogWindow(QtWidgets.QDialog,log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                 (self.outputbox.verticalScrollBar().maximum())
 
     def stdout_and_err_Ready(self):
-        #text = ''
-        #ldict = locals()
-        #exec('text = bytearray(self.process_' + str(self.proc_num)\
-                #+ '.readAll())',ldict)
         text = bytearray(self.process_0.readAll())
-        #text = ldict['text']
         text = text.decode("UTF-8")
         self.append(text)
 
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
+    """Program "lives" here, treat like mainwindow, call other functions and classes from here"""
+
     def __init__(self, icon, parent=None):
         QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
         self.menu = QtWidgets.QMenu(parent)
@@ -511,12 +508,34 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.time_stamp = ''
         self.time_format_str = '%H:%M:%S: '
 
+        self.config_file = 'resource/PfaudSec_SpreadSheet.ini'
+        self.config = configparser.ConfigParser()
+
+        def try_config_read(): 
+            try:
+                with open(self.config_file) as f:
+                    self.config.read_file(f)
+            except IOError:
+                edit_config = EditConfig('program')
+                edit_config.exec_() #Block until closed
+                try_config_read() #keep trying until the file exists and is read
+
+        try_config_read()
+
     def flush(self, *arg, **args):
         """Used only to suppress errors"""
         pass
 
     def write(self, text):
         """sys.stdout directed to a system tray message"""
+        def append(text):
+            cursor = log.outputbox_2.textCursor()
+            cursor.movePosition(cursor.End)
+            cursor.insertText(text)
+            cursor.movePosition(cursor.End)
+            log.outputbox.verticalScrollBar().setSliderPosition\
+                    (log.outputbox.verticalScrollBar().maximum())
+        append(text)
         text = text.rstrip()
         if len(text) == 0:
             return
@@ -543,10 +562,6 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         except IndexError:
             pass
 
-    def sp(self):
-        instance = SharePoint()
-        instance.upload('testfile')
-
     def tray_clicked(self, reason):
 
         if reason == QtWidgets.QSystemTrayIcon.Trigger:
@@ -560,13 +575,20 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         print('double click')
 
     def single_click(self):
-        log.show()
-        print('single click')
+        if log.isVisible():
+            log.hide()
+        else:
+            log.show()
+        #print('single click')
 
     def make_ready(self):
         print('Compiling Graph')
         #with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
         work_dir = 'test'
+        #TODO Change to if else for downloading or running a file locally
+        #make config file for what documents to download and run
+
+
         if True:
             sp = SharePoint()
             doc_name = "MANUFACTURING CAR's Log.xlsx"
@@ -579,22 +601,29 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             if Grapher(work_dir, doc_nospace).compile():
                 log.compile_tex(work_dir)
             #sp.upload(work_file)
+        else:
+            doc_name = sys.argv[1]
+            doc_nospace = doc_name.replace(' ','_')
+            #shutil.copyfile(doc_name, 
+
 
 
 sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
+app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+
 xelatex_path = 'xelatex'
 
 config_folder = appdirs.user_config_dir('PfaudSec')
 folder_check(config_folder)
 
-work_file = './car_log.xlsx'
 
 icon = QtGui.QIcon('resource/logo.ico')  # need a icon
 trayIcon = SystemTrayIcon(icon)
 trayIcon.show()
 sys.stdout = trayIcon
+
 log = LogWindow()
 
 sys.exit(app.exec_())
