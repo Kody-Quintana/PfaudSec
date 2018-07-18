@@ -472,6 +472,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         else:
             print('XeLaTeX error!')
             self.show()
+            self.proc_count = 2
 
     def xelatex_config(self):
         """Set path to XeLaTeX based on what system is running"""
@@ -480,8 +481,9 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         elif os.name == "posix":
             self.xelatex_path = 'xelatex'
 
-    def compile_tex(self, work_dir, name, layout):
+    def compile_tex(self, work_dir, name, layout, upload):
         self.outputbox.clear()
+        #sp_upload = upload
 
         def layout_name(work_dir, name, layout):
             new_name = work_dir + '/' + filename_noext(name) + ' ' + layout + '.pdf'
@@ -492,15 +494,13 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             print('XeLaTeX: ' + layout + ' done')
             self.proc_count += 1
             if self.proc_count < 2:
-                log.compile_tex(work_dir, name, 'paper')
+                log.compile_tex(work_dir, name, 'paper', upload)
                 log.process_0.finished.disconnect()
                 log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
             else:
                 self.proc_count = 0            
 
-            sp_upload = True
-            if sp_upload == True:
-                #sp = SharePoint()
+            if upload == True:
 
                 headers = {"accept": "application/json;odata=verbose",
                 "content-type": "application/x-www-urlencoded; charset=UTF-8"}
@@ -509,11 +509,11 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                     content = read_file.read()
                  
                 r = sp.session.post(r"https://"
-                        + r"pfaudlerazuread.sharepoint.com"
+                        + sp.sp_url
                         + r"/sites/"
                         + r"PfaudlerUS"
                         + r"/_api/web/GetFolderByServerRelativeUrl('"
-                        + r"QC_CAR"
+                        + r"QC_CAR" #TODO un-hardcode this
                         + r"/"
                         + r'Graphs'
                         + r"')/Files/add(url='"
@@ -521,14 +521,12 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                         + r"',overwrite=true)"
                         , data=content
                         , headers=headers)
+
                 if '200' in str(r):
                     print('Upload successful')
                 else:
                     print('Upload Error!')
 
-        #self.layout = layout
-
-        #layout_type = self.layout_text.get(layout)
         with open(work_dir + '/layout.tex', 'w', encoding='utf-8') as layout_file:
             layout_file.write(self.layout_text.get(layout))
         with open(work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
@@ -675,8 +673,9 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                     filename = work_dir + '/' + doc_nospace)
 
             #Sequentially compile documents with both sizes
+            log.proc_count = 0 #Reset count incase of previous error before count reset natually
             if Grapher(work_dir, doc_nospace).compile():
-                log.compile_tex(work_dir, doc_name, 'screen')
+                log.compile_tex(work_dir, doc_name, 'screen', upload=False)
 
              
             #sp.upload(work_file)
