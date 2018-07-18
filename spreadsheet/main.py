@@ -1,6 +1,7 @@
 import datetime
 import dateutil.relativedelta
 import itertools
+import urllib.parse
 import configparser
 import os
 import sys
@@ -458,7 +459,6 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         QtWidgets.QDialog.__init__(self)
         self.setupUi(self)
         #TODO set outputbox to readonly
-        # and create another output box with all stdout appended
         self.process_0 = QtCore.QProcess(self)
         self.process_0.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.process_0.readyRead.connect(self.stdout_and_err_Ready)
@@ -468,7 +468,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.xelatex_config()
     def done_statement(self):
         if self.process_0.exitCode() == 0:
-            print('XeLaTeX: done')
+            return
         else:
             print('XeLaTeX error!')
             self.show()
@@ -481,15 +481,14 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             self.xelatex_path = 'xelatex'
 
     def compile_tex(self, work_dir, name, layout):
+        self.outputbox.clear()
 
         def layout_name(work_dir, name, layout):
-            os.replace(work_dir
-                + '/present.pdf', work_dir
-                + '/'
-                + filename_noext(name)
-                + ' '
-                + layout
-                + '.pdf')
+            new_name = work_dir + '/' + filename_noext(name) + ' ' + layout + '.pdf'
+
+            os.replace(work_dir + '/present.pdf',
+                    new_name)
+
             print('XeLaTeX: ' + layout + ' done')
             self.proc_count += 1
             if self.proc_count < 2:
@@ -499,18 +498,50 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             else:
                 self.proc_count = 0            
 
-        self.layout = layout
+            sp_upload = True
+            if sp_upload == True:
+                #sp = SharePoint()
 
-        self.layout_type = self.layout_text.get(layout)
+                headers = {"accept": "application/json;odata=verbose",
+                "content-type": "application/x-www-urlencoded; charset=UTF-8"}
+                 
+                with open(new_name, 'rb') as read_file:
+                    content = read_file.read()
+                 
+                r = sp.session.post(r"https://"
+                        + r"pfaudlerazuread.sharepoint.com"
+                        + r"/sites/"
+                        + r"PfaudlerUS"
+                        + r"/_api/web/GetFolderByServerRelativeUrl('"
+                        + r"QC_CAR"
+                        + r"/"
+                        + r'Graphs'
+                        + r"')/Files/add(url='"
+                        + filename_noext(name).replace("'",'') + ' ' + layout + '.pdf'
+                        + r"',overwrite=true)"
+                        , data=content
+                        , headers=headers)
+                if '200' in str(r):
+                    print('Upload successful')
+                else:
+                    print('Upload Error!')
+
+        #self.layout = layout
+
+        #layout_type = self.layout_text.get(layout)
         with open(work_dir + '/layout.tex', 'w', encoding='utf-8') as layout_file:
-            layout_file.write(self.layout_type)
+            layout_file.write(self.layout_text.get(layout))
+        with open(work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
+            name_file.write(filename_noext(name))
  
         self.process_0.setWorkingDirectory(work_dir)
         self.process_0.start(self.xelatex_path, ['--halt-on-error', 'present'])
         self.process_0.finished.disconnect()
+        self.process_0.finished.connect(self.done_statement)
         self.process_0.finished.connect(lambda: layout_name(work_dir, name, 'screen'))
 
     def append(self, text):
+        """Write stdout from XeLaTeX to outputbox"""
         cursor = self.outputbox.textCursor()
         cursor.movePosition(cursor.End)
         cursor.insertText(text)
@@ -519,6 +550,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                 (self.outputbox.verticalScrollBar().maximum())
 
     def stdout_and_err_Ready(self):
+        """Feed stdout from XeLaTeX to self.append()"""
         text = bytearray(self.process_0.readAll())
         text = text.decode("UTF-8")
         self.append(text)
@@ -553,6 +585,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.config = configparser.ConfigParser()
 
         def try_config_read(): 
+            """Opens config maker, will keep opening if file not found"""
             try:
                 with open(self.config_file) as f:
                     self.config.read_file(f)
@@ -598,13 +631,14 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.showMessage('PfaudSec spreadsheet:', '\n'.join([str(i) for i in self.print_queue]), icon)
 
     def clear_queue_line(self):
+        """Called from a QTimer to reduce lines displayed in system tray message"""
         try:
             del self.print_queue[0]
         except IndexError:
             pass
 
     def tray_clicked(self, reason):
-
+        """Determine single or double click with a QTimer"""
         if reason == QtWidgets.QSystemTrayIcon.Trigger:
             self.click_timer.start(QtWidgets.qApp.doubleClickInterval())
 
@@ -632,7 +666,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
         if True:
             #TODO make this run from the config file
-            sp = SharePoint()
+            #sp = SharePoint()
             doc_name = "MANUFACTURING CAR's Log.xlsx"
             doc_nospace = doc_name.replace(' ','_')
             sp.session.getfile('https://pfaudlerazuread.sharepoint.com/sites/PfaudlerUS/'
@@ -644,7 +678,9 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             if Grapher(work_dir, doc_nospace).compile():
                 log.compile_tex(work_dir, doc_name, 'screen')
 
+             
             #sp.upload(work_file)
+
         else:
             #TODO non-sharepoint version in case authentication stops working
             doc_name = sys.argv[1]
@@ -652,14 +688,10 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             #shutil.copyfile(doc_name, 
 
 
-
 sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-
-config_folder = appdirs.user_config_dir('PfaudSec')
-folder_check(config_folder)
 
 
 icon = QtGui.QIcon('resource/logo.ico')  # need a icon
@@ -668,5 +700,10 @@ trayIcon.show()
 sys.stdout = trayIcon
 
 log = LogWindow()
+
+config_folder = appdirs.user_config_dir('PfaudSec')
+folder_check(config_folder)
+sp = SharePoint()
+
 
 sys.exit(app.exec_())
