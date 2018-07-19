@@ -160,7 +160,7 @@ P.O. Box 23600, Rochester, NY 14692-3600\\
 Telephone:&\href{tel:5852351000}{1-585-235-1000}\\
 Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 \end{tabular}}
-\fancyfoot[R]{\thepage}
+\fancyfoot[R]{}
 \renewcommand{\headrulewidth}{0.4pt}}
 
 %--Embedded documents overlay header--%
@@ -187,9 +187,9 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 	minimum size=14in,
 	text=white
 ](inner) at (current page.west) {};
-\path  ($(inner.center)!0.44!(inner.east)$) node[text=white]{\fontsize{50}{50}\selectfont\textbf{
+\path  ($(inner.center)!0.44!(inner.east)$) node[text=white]{\fontsize{40}{40}\selectfont\textbf{
 \begin{tabular}{C{6in}}
-Quality Review\\
+\input{name}\\
 \monthyeardate\today
 \end{tabular}}};
 \end{tikzpicture}

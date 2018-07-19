@@ -1,16 +1,16 @@
 import datetime
 import dateutil.relativedelta
 import itertools
-import urllib.parse
 import configparser
 import os
+import time
 import sys
-import tempfile
+#import tempfile
+import functools
 import shutil
 import sharepy
 import traceback
 import io
-import time
 import appdirs
 import pathlib
 import qdarkstyle
@@ -27,6 +27,10 @@ from texstorage import line_graph_tex, bar_graph_tex
 
 def folder_check(folder):
     pathlib.Path(folder).mkdir(parents = True, exist_ok = True)
+
+def filename_noext(filename):
+    """Returns filename with no extension"""
+    return filename.split('/')[len(filename.split('/')) - 1].rsplit(".", 1)[0]
 
 def except_box(excType, excValue, tracebackobj):
     """Exceptions from sys.excepthook displayed in a QMessageBox and saved to logfile"""
@@ -55,14 +59,18 @@ def except_box(excType, excValue, tracebackobj):
     errorbox.setText(str(notice)+str(msg)+str(versionInfo))
     errorbox.exec_()
 
-def filename_noext(filename):
-    """Returns filename with no extension"""
-    return filename.split('/')[len(filename.split('/')) - 1].rsplit(".", 1)[0]
-
 class EditConfig(QtWidgets.QDialog):
     def __init__(self, mode):
         super(EditConfig, self).__init__()
         #TODO make basic text editor for individual workbook configs
+        # make example configs for each type, then based on input, open with example config pasted in
+
+        if mode == 'document':
+            pass
+        elif mode == 'program':
+            pass
+        else:
+            pass
 
         #mode for what kind of ini to edit, the sharepoint ini or a document ini
     def closeEvent(self, event):
@@ -75,11 +83,12 @@ class Grapher(object):
 
     now = datetime.date.today()
 
-    def __init__(self, work_dir, work_file):
+    def __init__(self, work_dir, work_file, doc_name):
         try:
             os.remove(work_dir + '/graph.tex')
         except OSError:
             pass
+        self.doc_name = filename_noext(doc_name)
         self.work_dir = work_dir
         self.work_file = work_file
         self.config_file = 'resource/' + filename_noext(self.work_file) + '.ini'
@@ -373,8 +382,7 @@ class Grapher(object):
         
         # Totals from date column
         if self.config.getboolean('document', 'show_totals', fallback=False):
-            self.totals_by_month_graph(title = str(self.config.get\
-                    ('document', 'document_name', fallback = 'Totals')))
+            self.totals_by_month_graph(title = self.doc_name)
     
         non_column_sections = frozenset(('document', 'sharepoint'))
         for column in self.config.sections():
@@ -414,7 +422,7 @@ class SharePoint(object):
             except AttributeError:
                 self.session = sharepy.connect(self.sp_url, *self.get_cred())
                 self.session.save(config_folder + '/sp-session.pkl')
-                
+
         else:
             self.session = sharepy.connect(self.sp_url, *self.get_cred())
             self.session.save(config_folder + '/sp-session.pkl')
@@ -482,6 +490,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             self.xelatex_path = 'xelatex'
 
     def compile_tex(self, work_dir, name, layout, upload):
+
         self.outputbox.clear()
         #sp_upload = upload
 
@@ -499,6 +508,8 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                 log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
             else:
                 self.proc_count = 0            
+                if running_local == True:
+                    exit()
 
             if upload == True:
 
@@ -559,25 +570,38 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def __init__(self, icon, parent=None):
         QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
+
         self.menu = QtWidgets.QMenu(parent)
+        def menu_func(spreadsheet):
+            """Base function to compile graph
 
-        checkAction = self.menu.addAction("Compile TeX")
-        checkAction.triggered.connect(self.make_ready)
+            fed to functools.partial to make a button for each spreadsheet based on the config file"""
+            print(spreadsheet)
+            #with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
+            work_dir = 'test'
+            folder_check(work_dir)
+            #TODO Change to if else for downloading or running a file locally
+            #make config file for what documents to download and run
 
-        exitAction = self.menu.addAction("Exit")
-        exitAction.triggered.connect(QtWidgets.qApp.quit)
+            #TODO make this run from the config file
+            #sp = SharePoint()
 
-        self.setContextMenu(self.menu)
-        self.activated.connect(self.tray_clicked)
-        self.click_timer = QtCore.QTimer(self)
-        self.click_timer.setSingleShot(True)
-        self.click_timer.timeout.connect(self.single_click)
-        self.setToolTip('PfaudSec')
+            
 
-        #Used in write() for sys.stdout
-        self.print_queue = []
-        self.time_stamp = ''
-        self.time_format_str = '%H:%M:%S: '
+            doc_name = "MANUFACTURING CAR's Log.xlsx"
+            doc_nospace = doc_name.replace(' ','_')
+            sp.session.getfile('https://pfaudlerazuread.sharepoint.com/sites/PfaudlerUS/'
+                    + "QC_CAR/"
+                    + doc_name,
+                    filename = work_dir + '/' + doc_nospace)
+
+            #Sequentially compile documents with both sizes
+            log.proc_count = 0 #Reset count incase of previous error before count reset natually
+            if Grapher(work_dir, doc_nospace, doc_name).compile():
+                log.compile_tex(work_dir, doc_name, 'screen', upload=False)
+
+        def edit_doc_settings(doc):
+            print('Open editor for: ' + doc)
 
         self.config_file = 'resource/PfaudSec_SpreadSheet.ini'
         self.config = configparser.ConfigParser()
@@ -593,6 +617,32 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 try_config_read() #keep trying until the file exists and is read
 
         try_config_read()
+
+        config_list = ['1','2']
+        for i in config_list:
+            if str(i) == 'Default':
+                continue
+            self.menu.addAction(i).triggered.connect(functools.partial(menu_func, spreadsheet=i))
+            self.menu.addAction('Edit config for: ' + i).triggered.connect(functools.partial(edit_doc_settings, doc=i))
+
+        delete_cookie = self.menu.addAction('Delete access cookie and exit')
+        delete_cookie.triggered.connect(lambda: os.remove(config_folder + '/sp-session.pkl'))
+        delete_cookie.triggered.connect(QtWidgets.qApp.quit)
+
+        exitAction = self.menu.addAction("Exit")
+        exitAction.triggered.connect(QtWidgets.qApp.quit)
+
+        self.setContextMenu(self.menu)
+        self.activated.connect(self.tray_clicked)
+        self.click_timer = QtCore.QTimer(self)
+        self.click_timer.setSingleShot(True)
+        self.click_timer.timeout.connect(self.single_click)
+        self.setToolTip('PfaudSec')
+
+        #Used in write() for sys.stdout
+        self.print_queue = []
+        self.time_stamp = ''
+        self.time_format_str = '%H:%M:%S: '
 
     def flush(self, *arg, **args):
         """Used only to suppress errors"""
@@ -652,40 +702,6 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             log.hide()
         else:
             log.show()
-        #print('single click')
-
-    def make_ready(self):
-        print('Compiling Graph')
-        #with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
-        work_dir = 'test'
-        folder_check(work_dir)
-        #TODO Change to if else for downloading or running a file locally
-        #make config file for what documents to download and run
-
-        if True:
-            #TODO make this run from the config file
-            #sp = SharePoint()
-            doc_name = "MANUFACTURING CAR's Log.xlsx"
-            doc_nospace = doc_name.replace(' ','_')
-            sp.session.getfile('https://pfaudlerazuread.sharepoint.com/sites/PfaudlerUS/'
-                    + "QC_CAR/"
-                    + doc_name,
-                    filename = work_dir + '/' + doc_nospace)
-
-            #Sequentially compile documents with both sizes
-            log.proc_count = 0 #Reset count incase of previous error before count reset natually
-            if Grapher(work_dir, doc_nospace).compile():
-                log.compile_tex(work_dir, doc_name, 'screen', upload=False)
-
-             
-            #sp.upload(work_file)
-
-        else:
-            #TODO non-sharepoint version in case authentication stops working
-            doc_name = sys.argv[1]
-            doc_nospace = doc_name.replace(' ','_')
-            #shutil.copyfile(doc_name, 
-
 
 sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
@@ -697,12 +713,35 @@ icon = QtGui.QIcon('resource/logo.ico')  # need a icon
 trayIcon = SystemTrayIcon(icon)
 trayIcon.show()
 sys.stdout = trayIcon
-
 log = LogWindow()
 
-config_folder = appdirs.user_config_dir('PfaudSec')
-folder_check(config_folder)
-sp = SharePoint()
+def local_or_sp():
+    for arg in sys.argv:
+        if '.xlsx' in arg:
+            local_file = arg
+    if 'local_file' in locals():
+        work_dir = 'test'
+        folder_check(work_dir)
+        if os.name == 'nt':
+            doc_name = local_file.split('\\')
+            doc_name = doc_name[len(doc_name) - 1]
+        else:
+            doc_name = local_file.split('/')
+            doc_name = doc_name[len(doc_name) - 1]
+        doc_nospace = doc_name.replace(' ','_')
+        shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
+        if Grapher(work_dir, doc_nospace, doc_name).compile():
+            print('Grapher')
+            log.compile_tex(work_dir, doc_name, 'screen', upload=False)
+        return True
+    else:
+        return False
 
+running_local = local_or_sp()
+if running_local == False:
+    config_folder = appdirs.user_config_dir('PfaudSec')
+    folder_check(config_folder)
+    sp = SharePoint()
+        
 
 sys.exit(app.exec_())
