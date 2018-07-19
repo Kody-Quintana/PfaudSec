@@ -81,8 +81,6 @@ class EditConfig(QtWidgets.QDialog):
 
 class Grapher(object):
 
-    now = datetime.date.today()
-
     def __init__(self, work_dir, work_file, doc_name):
         try:
             os.remove(work_dir + '/graph.tex')
@@ -100,6 +98,7 @@ class Grapher(object):
                     self.config.read_file(f)
             except IOError:
                 edit_config = EditConfig('document')
+                print(self.config_file)
                 edit_config.exec_() #Block until closed
                 try_config_read() #keep trying until the file exists and is read
 
@@ -208,8 +207,8 @@ class Grapher(object):
             if blanks == False and str(j) == 'None':
                 continue #Skips blank cells
     
-            if date_cell.month == self.now.month\
-                    and date_cell.year == self.now.year:
+            if date_cell.month == now.month\
+                    and date_cell.year == now.year:
                 this_month.append(j)
                 total_occurances  += 1
         return Counter(this_month), total_occurances
@@ -219,7 +218,7 @@ class Grapher(object):
         """Takes relative month as int, returns month string
 
         int is positive for time in past (think int(x) months ago)"""
-        return self.month_string(self.now 
+        return self.month_string(now 
                 - dateutil.relativedelta.relativedelta(\
                         months=int(relative_month)))
     
@@ -235,11 +234,16 @@ class Grapher(object):
     
         for index, data in reversed(list(self.cell_enumerate(self.column_list(self.date_column)))):
             column_value = self.ws[column + str(index)].value
-            months_ago = self.diff_month(self.now, column_value)
+            try:
+                months_ago = self.diff_month(now, column_value)
+            except AttributeError:
+                continue
             if months_ago > (months - 1):
                 break
             months_counter[months_ago] += 1
     
+        #if any(x > 5 for x in months_counter):
+        #    ticks_distance_flag = 1
         for i in months_counter:
             if int(i) > 5:
                 ticks_distance_flag = 1
@@ -254,7 +258,7 @@ class Grapher(object):
     
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
             graphs_file.write(line_graph_tex[0])
-            graphs_file.write(title)
+            graphs_file.write(title + ' - ' + now.strftime('%B, %Y'))
             graphs_file.write(line_graph_tex[1])
             graphs_file.write(symbolic_xcoords)
             graphs_file.write(line_graph_tex[2])
@@ -272,7 +276,10 @@ class Grapher(object):
         return_dict = {}
         for k, i in reversed(list(self.cell_enumerate(self.column_list(self.date_column)))):
             column_value = str(self.ws[column + str(k)].value) #This must be str to allow sorted()
-            months_ago = self.diff_month(self.now, i)
+            try:
+                months_ago = self.diff_month(now, i)
+            except AttributeError:
+                continue
             if months_ago > (months - 1):
                 break
             if column_value not in catagories_index:
@@ -297,9 +304,10 @@ class Grapher(object):
         # or the ytick labels will be non whole numbers
         ticks_distance_flag = 0
         occurances = sorted(current_data.values(), reverse=True)
+
         for i in occurances:
             if int(i) > 5:
-                ticks_file_flag = 1
+                ticks_distance_flag = 1
     
         pareto = list(itertools.accumulate(occurances))
         pareto = [round(x / total_occurances * 100) for x in pareto]
@@ -308,7 +316,7 @@ class Grapher(object):
     
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
             graphs_file.write(bar_graph_tex[0])
-            graphs_file.write(title)
+            graphs_file.write(title + ' - ' + now.strftime('%B, %Y'))
             graphs_file.write(bar_graph_tex[1])
             graphs_file.write(symbolic_xcoords)
             graphs_file.write(bar_graph_tex[2])
@@ -382,7 +390,7 @@ class Grapher(object):
         
         # Totals from date column
         if self.config.getboolean('document', 'show_totals', fallback=False):
-            self.totals_by_month_graph(title = self.doc_name)
+            self.totals_by_month_graph(title = self.doc_name.replace('_',' '))
     
         non_column_sections = frozenset(('document', 'sharepoint'))
         for column in self.config.sections():
@@ -509,7 +517,8 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             else:
                 self.proc_count = 0            
                 if running_local == True:
-                    exit()
+                    QtWidgets.qApp.quit()
+                    #exit()
 
             if upload == True:
 
@@ -541,7 +550,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         with open(work_dir + '/layout.tex', 'w', encoding='utf-8') as layout_file:
             layout_file.write(self.layout_text.get(layout))
         with open(work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
-            name_file.write(filename_noext(name))
+            name_file.write(filename_noext(name).replace('_',' ') + r'\\' + '\n' + now.strftime('%B, %Y'))
  
         self.process_0.setWorkingDirectory(work_dir)
         self.process_0.start(self.xelatex_path, ['--halt-on-error', 'present'])
@@ -704,10 +713,12 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             log.show()
 
 sys.excepthook = except_box
+#os.chdir(sys.executable)
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
+now = datetime.date.today() #+ dateutil.relativedelta.relativedelta(months=-1)
 
 icon = QtGui.QIcon('resource/logo.ico')  # need a icon
 trayIcon = SystemTrayIcon(icon)
@@ -731,7 +742,6 @@ def local_or_sp():
         doc_nospace = doc_name.replace(' ','_')
         shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
         if Grapher(work_dir, doc_nospace, doc_name).compile():
-            print('Grapher')
             log.compile_tex(work_dir, doc_name, 'screen', upload=False)
         return True
     else:

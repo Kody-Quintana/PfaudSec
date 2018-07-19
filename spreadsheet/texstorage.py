@@ -58,7 +58,7 @@ r"""
 		title=\fontsize{25}{25}\selectfont\color{pfgrey}{
 """,
 # Title goes here                
-r""" - \monthyeardate\today},
+r"""},
 		tick label style={/pgf/number format/assume math mode},
 		every axis plot/.append style={ultra thick},
 		ymajorgrids,
