@@ -553,7 +553,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.outputbox.clear()
 
         def layout_name(work_dir, name, layout):
-            new_name = work_dir + '/' + filename_noext(name) + ' ' + now.strftime('%b%y') + ' ' + layout + '.pdf'
+            new_name = output_folder + '/' + filename_noext(name) + ' ' + now.strftime('%b%y') + ' ' + layout + '.pdf'
 
             if self.process_0.exitCode() == 0:
                 os.replace(work_dir + '/present.pdf',
@@ -812,6 +812,9 @@ sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
+
+output_folder = 'output_folder'
+folder_check(output_folder)
 
 font_decrypt = fontload.Prompt()
 if font_decrypt.check_success() == False:
