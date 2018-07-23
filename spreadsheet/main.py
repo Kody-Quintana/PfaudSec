@@ -24,6 +24,7 @@ import ui_log #Log window
 import iniedit
 import ini_storage
 import date_set
+import fontload
 
 if os.name == 'nt':
     os.chdir(os.path.dirname(sys.executable))
@@ -95,10 +96,6 @@ class EditConfig(QtWidgets.QDialog, iniedit.Ui_Dialog):
         else:
             if mode == 'document':
                 self.textEdit.setText(ini_storage.ini_document)
-                pass
-            elif mode == 'program':
-                pass
-            else:
                 pass
 
         #mode for what kind of ini to edit, the sharepoint ini or a document ini
@@ -812,7 +809,16 @@ app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
-now = datetime.date.today() #+ dateutil.relativedelta.relativedelta(months=-1)
+font_decrypt = fontload.Prompt()
+if font_decrypt.check_success() == False:
+    try:
+        import Cryptodome
+    except:
+        pass
+    if 'Cryptodome' in sys.modules:
+        font_decrypt.show()
+
+now = datetime.date.today()
 
 icon = QtGui.QIcon('resource/logo.ico')  # need a icon
 trayIcon = SystemTrayIcon(icon)
@@ -857,12 +863,8 @@ def choose_open_file():
     if local_file:
         work_dir = 'work_folder'
         folder_check(work_dir)
-        if os.name == 'nt':
-            doc_name = local_file.split('\\')
-            doc_name = doc_name[len(doc_name) - 1]
-        else:
-            doc_name = local_file.split('/')
-            doc_name = doc_name[len(doc_name) - 1]
+        doc_name = local_file.split('/')
+        doc_name = doc_name[len(doc_name) - 1]
         doc_nospace = doc_name.replace(' ','_')
         try:
             shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
