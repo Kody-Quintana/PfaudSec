@@ -550,52 +550,54 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
     def compile_tex(self, work_dir, name, layout, upload):
 
         self.outputbox.clear()
-        #sp_upload = upload
 
         def layout_name(work_dir, name, layout):
             new_name = work_dir + '/' + filename_noext(name) + ' ' + layout + '.pdf'
 
-            os.replace(work_dir + '/present.pdf',
-                    new_name)
+            if self.process_0.exitCode() == 0:
+                os.replace(work_dir + '/present.pdf',
+                        new_name)
 
-            print('XeLaTeX: ' + layout + ' done')
-            self.proc_count += 1
-            if self.proc_count < 2:
-                log.compile_tex(work_dir, name, 'paper', upload)
-                log.process_0.finished.disconnect()
-                log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
-            else:
-                self.proc_count = 0            
+                print('XeLaTeX: ' + layout + ' done')
+                self.proc_count += 1
+                if self.proc_count < 2:
+                    log.compile_tex(work_dir, name, 'paper', upload)
+                    log.process_0.finished.disconnect()
+                    log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
+                else:
+                    self.proc_count = 0            
                 #if running_local == True:
                 #    QtWidgets.qApp.quit()
                     #exit()
+            else:
+                log.show()
 
-            if upload == True:
+           # if upload == True:
 
-                headers = {"accept": "application/json;odata=verbose",
-                "content-type": "application/x-www-urlencoded; charset=UTF-8"}
-                 
-                with open(new_name, 'rb') as read_file:
-                    content = read_file.read()
-                 
-                r = sp.session.post(r"https://"
-                        + sp.sp_url
-                        + r"/sites/"
-                        + r"PfaudlerUS"
-                        + r"/_api/web/GetFolderByServerRelativeUrl('"
-                        + r"QC_CAR" #TODO un-hardcode this
-                        + r"/"
-                        + r'Graphs'
-                        + r"')/Files/add(url='"
-                        + filename_noext(name).replace("'",'') + ' ' + layout + '.pdf'
-                        + r"',overwrite=true)"
-                        , data=content
-                        , headers=headers)
+           #     headers = {"accept": "application/json;odata=verbose",
+           #     "content-type": "application/x-www-urlencoded; charset=UTF-8"}
+           #      
+           #     with open(new_name, 'rb') as read_file:
+           #         content = read_file.read()
+           #      
+           #     r = sp.session.post(r"https://"
+           #             + sp.sp_url
+           #             + r"/sites/"
+           #             + r"PfaudlerUS"
+           #             + r"/_api/web/GetFolderByServerRelativeUrl('"
+           #             + r"QC_CAR" #TODO un-hardcode this
+           #             + r"/"
+           #             + r'Graphs'
+           #             + r"')/Files/add(url='"
+           #             + filename_noext(name).replace("'",'') + ' ' + layout + '.pdf'
+           #             + r"',overwrite=true)"
+           #             , data=content
+           #             , headers=headers)
 
-                if '200' in str(r):
-                    print('Upload successful')
-                else:
-                    print('Upload Error!')
+           #     if '200' in str(r):
+           #         print('Upload successful')
+           #     else:
+           #         print('Upload Error!')
 
         with open(work_dir + '/layout.tex', 'w', encoding='utf-8') as layout_file:
             layout_file.write(self.layout_text.get(layout))
@@ -632,33 +634,26 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
 
         self.menu = QtWidgets.QMenu(parent)
-        def menu_func(spreadsheet):
-            """Base function to compile graph
+        #def menu_func(spreadsheet):
+        #    """Base function to compile graph
 
-            fed to functools.partial to make a button for each spreadsheet based on the config file"""
-            print(spreadsheet)
-            #with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
-            work_dir = 'test'
-            folder_check(work_dir)
-            #TODO Change to if else for downloading or running a file locally
-            #make config file for what documents to download and run
+        #    fed to functools.partial to make a button for each spreadsheet based on the config file"""
+        #    print(spreadsheet)
+        #    #with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
+        #    work_dir = 'test'
+        #    folder_check(work_dir)
 
-            #TODO make this run from the config file
-            #sp = SharePoint()
+        #    doc_name = "MANUFACTURING CAR's Log.xlsx"
+        #    doc_nospace = doc_name.replace(' ','_')
+        #    sp.session.getfile('https://pfaudlerazuread.sharepoint.com/sites/PfaudlerUS/'
+        #            + "QC_CAR/"
+        #            + doc_name,
+        #            filename = work_dir + '/' + doc_nospace)
 
-            
-
-            doc_name = "MANUFACTURING CAR's Log.xlsx"
-            doc_nospace = doc_name.replace(' ','_')
-            sp.session.getfile('https://pfaudlerazuread.sharepoint.com/sites/PfaudlerUS/'
-                    + "QC_CAR/"
-                    + doc_name,
-                    filename = work_dir + '/' + doc_nospace)
-
-            #Sequentially compile documents with both sizes
-            log.proc_count = 0 #Reset count incase of previous error before count reset natually
-            if Grapher(work_dir, doc_nospace, doc_name).compile():
-                log.compile_tex(work_dir, doc_name, 'screen', upload=False)
+        #    #Sequentially compile documents with both sizes
+        #    log.proc_count = 0 #Reset count incase of previous error before count reset natually
+        #    if Grapher(work_dir, doc_nospace, doc_name).compile():
+        #        log.compile_tex(work_dir, doc_name, 'screen', upload=False)
 
         #def edit_doc_settings(doc):
         #    print('Open editor for: ' + doc)
@@ -706,14 +701,17 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         def edit_base_function(config_file):
             edit_config = EditConfig(None, config_file)
             edit_config.exec_() #Block until closed
-        open_xlsx = self.menu.addAction('Open spreadsheet file')
-        open_xlsx.triggered.connect(self.choose_open_file)
+
 
         self.menu.clear()
+
+        open_xlsx = self.menu.addAction('Open spreadsheet file')
+        open_xlsx.triggered.connect(lambda: choose_open_file())
+        self.menu.addSeparator()
         for item in os.listdir('resource'):
             if item.endswith('.ini'):
                 self.menu.addAction('Edit ' + item).triggered.connect(functools.partial(edit_base_function, config_file = 'resource' + '/' + item))
-
+        self.menu.addSeparator()
         run_month = self.menu.addAction('Set graph month')
         run_month.triggered.connect(self.get_run_month)
         exitAction = self.menu.addAction("Exit")
@@ -827,7 +825,7 @@ def local_or_sp():
         if '.xlsx' in arg:
             local_file = arg
     if 'local_file' in locals():
-        work_dir = 'test'
+        work_dir = 'work_folder'
         folder_check(work_dir)
         if os.name == 'nt':
             doc_name = local_file.split('\\')
@@ -852,23 +850,28 @@ if running_local == False:
     #config_folder = appdirs.user_config_dir('PfaudSec')
     #folder_check(config_folder)
     #sp = SharePoint()
+
 def choose_open_file():
-    #QT file dialog
-    work_dir = 'test'
-    folder_check(work_dir)
-    if os.name == 'nt':
-        doc_name = local_file.split('\\')
-        doc_name = doc_name[len(doc_name) - 1]
+    files_filter_list = 'XLSX files (*.xlsx) ;; All files (*)'
+    local_file = QtWidgets.QFileDialog.getOpenFileName(None,"Choose spreadsheet file", "", files_filter_list)[0]
+    if local_file:
+        work_dir = 'work_folder'
+        folder_check(work_dir)
+        if os.name == 'nt':
+            doc_name = local_file.split('\\')
+            doc_name = doc_name[len(doc_name) - 1]
+        else:
+            doc_name = local_file.split('/')
+            doc_name = doc_name[len(doc_name) - 1]
+        doc_nospace = doc_name.replace(' ','_')
+        try:
+            shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
+        except shutil.SameFileError:
+            pass
+        if Grapher(work_dir, doc_nospace, doc_name).compile():
+            log.compile_tex(work_dir, doc_name, 'screen', upload=False)
     else:
-        doc_name = local_file.split('/')
-        doc_name = doc_name[len(doc_name) - 1]
-    doc_nospace = doc_name.replace(' ','_')
-    try:
-        shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
-    except shutil.SameFileError:
-        pass
-    if Grapher(work_dir, doc_nospace, doc_name).compile():
-        log.compile_tex(work_dir, doc_name, 'screen', upload=False)
+        return
         
 
 sys.exit(app.exec_())
