@@ -23,6 +23,7 @@ import sp_prompt #Credentials prompt
 import ui_log #Log window
 import iniedit
 import ini_storage
+import date_set
 
 if os.name == 'nt':
     os.chdir(os.path.dirname(sys.executable))
@@ -78,14 +79,27 @@ class EditConfig(QtWidgets.QDialog, iniedit.Ui_Dialog):
 
         #TODO make basic text editor for individual workbook configs
         # make example configs for each type, then based on input, open with example config pasted in
+        def is_not_empty(item):
+            try:
+                if os.path.getsize(item) > 0:
+                    return True
+                else:
+                    return False
+            except OSError:
+                return False
 
-        if mode == 'document':
-            self.textEdit.setText(ini_storage.ini_document)
-            pass
-        elif mode == 'program':
-            pass
+
+        if is_not_empty(file_to_save):
+            with open(file_to_save, 'r') as existing_file:
+                self.textEdit.setText(existing_file.read())
         else:
-            pass
+            if mode == 'document':
+                self.textEdit.setText(ini_storage.ini_document)
+                pass
+            elif mode == 'program':
+                pass
+            else:
+                pass
 
         #mode for what kind of ini to edit, the sharepoint ini or a document ini
     def save_file(self):
@@ -93,11 +107,11 @@ class EditConfig(QtWidgets.QDialog, iniedit.Ui_Dialog):
             ini_file.write(self.textEdit.toPlainText())
 
     def closeEvent(self, event):
+        trayIcon.rebuild_menu()
         #self.save_file()
         #self.hide()
         #event.ignore()
 
-        print('closed now')
 
 class Grapher(object):
 
@@ -147,7 +161,7 @@ class Grapher(object):
             if str(self.config['document']['date_column']).isalpha():
                 self.date_column = self.config['document']['date_column']
             else:
-                print('Date column but be a letter')
+                print('Date column must be a letter')
                 return
                 #exit()
         else:
@@ -444,53 +458,53 @@ class Grapher(object):
         return True
         #This true triggers XeLaTeX to be called
 
-    
-class SharePoint(object):
-
-    def __init__(self, *arg, **args):
-        #check is the session files exists
-        self.sp_url = 'pfaudlerazuread.sharepoint.com'
-        #self.file_path = 
-
-        if os.path.isfile(config_folder + '/sp-session.pkl'):
-            try:
-                self.session = sharepy.load(config_folder + '/sp-session.pkl')
-            except AttributeError:
-                self.session = sharepy.connect(self.sp_url, *self.get_cred())
-                self.session.save(config_folder + '/sp-session.pkl')
-
-        else:
-            self.session = sharepy.connect(self.sp_url, *self.get_cred())
-            self.session.save(config_folder + '/sp-session.pkl')
-
-
-    def get_cred(self):
-        """Returns packed login credentials
-        
-        use *self.get_cred() as input to function
-        asking for two variables"""
-        class Prompt(QtWidgets.QDialog, sp_prompt.Ui_Dialog):
-            def __init__(self):
-                super(Prompt, self).__init__()
-                self.setupUi(self)
-                self.setModal(True)
-                self.buttonBox.setEnabled(False)
-                self.lineEdit.textChanged.connect(self.btn_enable)
-                self.lineEdit_2.textChanged.connect(self.btn_enable)
-            def btn_enable(self):
-                if '@' and '.' in self.lineEdit.text() and self.lineEdit_2.text() != '':
-                    self.buttonBox.setEnabled(True)
-                else:
-                    self.buttonBox.setEnabled(False)
-        prompt = Prompt()
-        prompt.exec_()
-        if '@' and '.' in prompt.lineEdit.text() and prompt.lineEdit_2.text() != '':
-            return prompt.lineEdit.text(), prompt.lineEdit_2.text() 
-        else:
-            exit()
-
-    def upload(self, filename):
-        pass
+# SharePy no longer working, add later if auth can be fixed    
+#class SharePoint(object):
+#
+#    def __init__(self, *arg, **args):
+#        #check is the session files exists
+#        self.sp_url = 'pfaudlerazuread.sharepoint.com'
+#        #self.file_path = 
+#
+#        if os.path.isfile(config_folder + '/sp-session.pkl'):
+#            try:
+#                self.session = sharepy.load(config_folder + '/sp-session.pkl')
+#            except AttributeError:
+#                self.session = sharepy.connect(self.sp_url, *self.get_cred())
+#                self.session.save(config_folder + '/sp-session.pkl')
+#
+#        else:
+#            self.session = sharepy.connect(self.sp_url, *self.get_cred())
+#            self.session.save(config_folder + '/sp-session.pkl')
+#
+#
+#    def get_cred(self):
+#        """Returns packed login credentials
+#        
+#        use *self.get_cred() as input to function
+#        asking for two variables"""
+#        class Prompt(QtWidgets.QDialog, sp_prompt.Ui_Dialog):
+#            def __init__(self):
+#                super(Prompt, self).__init__()
+#                self.setupUi(self)
+#                self.setModal(True)
+#                self.buttonBox.setEnabled(False)
+#                self.lineEdit.textChanged.connect(self.btn_enable)
+#                self.lineEdit_2.textChanged.connect(self.btn_enable)
+#            def btn_enable(self):
+#                if '@' and '.' in self.lineEdit.text() and self.lineEdit_2.text() != '':
+#                    self.buttonBox.setEnabled(True)
+#                else:
+#                    self.buttonBox.setEnabled(False)
+#        prompt = Prompt()
+#        prompt.exec_()
+#        if '@' and '.' in prompt.lineEdit.text() and prompt.lineEdit_2.text() != '':
+#            return prompt.lineEdit.text(), prompt.lineEdit_2.text() 
+#        else:
+#            exit()
+#
+#    def upload(self, filename):
+#        pass
 
 class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
     """Normally hidden log window, also "hosts" the QProcess for calling XeLaTeX"""
@@ -507,9 +521,17 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.process_0.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.process_0.readyRead.connect(self.stdout_and_err_Ready)
         self.process_0.finished.connect(self.done_statement)
+        self.process_0.stateChanged.connect(self.menu_disable)
         self.proc_count = 0
 
         self.xelatex_config()
+
+    def menu_disable(self):
+        if self.process_0.state() == 0:
+            trayIcon.menu.setEnabled(True)
+        else:
+            trayIcon.menu.setEnabled(False)
+
     def done_statement(self):
         if self.process_0.exitCode() == 0:
             return
@@ -638,49 +660,95 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             if Grapher(work_dir, doc_nospace, doc_name).compile():
                 log.compile_tex(work_dir, doc_name, 'screen', upload=False)
 
-        def edit_doc_settings(doc):
-            print('Open editor for: ' + doc)
+        #def edit_doc_settings(doc):
+        #    print('Open editor for: ' + doc)
 
-        self.config_file = 'resource/PfaudSec_SpreadSheet.ini'
-        self.config = configparser.ConfigParser()
+        #self.config_file = 'resource/PfaudSec_SpreadSheet.ini'
+        #self.config = configparser.ConfigParser()
 
-        def try_config_read(): 
-            """Opens config maker, will keep opening if file not found"""
-            try:
-                with open(self.config_file) as f:
-                    self.config.read_file(f)
-            except IOError:
-                edit_config = EditConfig('program')
-                edit_config.exec_() #Block until closed
-                try_config_read() #keep trying until the file exists and is read
+        #def try_config_read(): 
+        #    """Opens config maker, will keep opening if file not found"""
+        #    try:
+        #        with open(self.config_file) as f:
+        #            self.config.read_file(f)
+        #    except IOError:
+        #        edit_config = EditConfig('program')
+        #        edit_config.exec_() #Block until closed
+        #        try_config_read() #keep trying until the file exists and is read
 
-        try_config_read()
+        #try_config_read()
 
-        config_list = ['1','2']
-        for i in config_list:
-            if str(i) == 'Default':
-                continue
-            self.menu.addAction(i).triggered.connect(functools.partial(menu_func, spreadsheet=i))
-            self.menu.addAction('Edit config for: ' + i).triggered.connect(functools.partial(edit_doc_settings, doc=i))
+        #config_list = ['1','2']
+        #for i in config_list:
+        #    if str(i) == 'Default':
+        #        continue
+        #    self.menu.addAction(i).triggered.connect(functools.partial(menu_func, spreadsheet=i))
+        #    self.menu.addAction('Edit config for: ' + i).triggered.connect(functools.partial(edit_doc_settings, doc=i))
 
-        delete_cookie = self.menu.addAction('Delete access cookie and exit')
-        delete_cookie.triggered.connect(lambda: os.remove(config_folder + '/sp-session.pkl'))
-        delete_cookie.triggered.connect(QtWidgets.qApp.quit)
+        #delete_cookie = self.menu.addAction('Delete access cookie and exit')
+        #delete_cookie.triggered.connect(lambda: os.remove(config_folder + '/sp-session.pkl'))
+        #delete_cookie.triggered.connect(QtWidgets.qApp.quit)
 
-        exitAction = self.menu.addAction("Exit")
-        exitAction.triggered.connect(QtWidgets.qApp.quit)
 
         self.setContextMenu(self.menu)
         self.activated.connect(self.tray_clicked)
         self.click_timer = QtCore.QTimer(self)
         self.click_timer.setSingleShot(True)
         self.click_timer.timeout.connect(self.single_click)
-        self.setToolTip('PfaudSec')
 
         #Used in write() for sys.stdout
         self.print_queue = []
         self.time_stamp = ''
         self.time_format_str = '%H:%M:%S: '
+        self.rebuild_menu()
+
+    def rebuild_menu(self):
+        def edit_base_function(config_file):
+            edit_config = EditConfig(None, config_file)
+            edit_config.exec_() #Block until closed
+        open_xlsx = self.menu.addAction('Open spreadsheet file')
+        open_xlsx.triggered.connect(self.choose_open_file)
+
+        self.menu.clear()
+        for item in os.listdir('resource'):
+            if item.endswith('.ini'):
+                self.menu.addAction('Edit ' + item).triggered.connect(functools.partial(edit_base_function, config_file = 'resource' + '/' + item))
+
+        run_month = self.menu.addAction('Set graph month')
+        run_month.triggered.connect(self.get_run_month)
+        exitAction = self.menu.addAction("Exit")
+        exitAction.triggered.connect(QtWidgets.qApp.quit)
+
+    def choose_open_file(self):
+        pass
+
+    def get_run_month(self):
+        class Prompt(QtWidgets.QDialog, date_set.Ui_Dialog):
+            def __init__(self):
+                super(Prompt, self).__init__()
+                self.setupUi(self)
+                self.setModal(True)
+                self.spinBox.valueChanged.connect(self.update_string)
+                font = QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
+                font.setPointSize(20)
+                self.label.setFont(font)
+                self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).clicked.connect(self.global_now)
+                self.label.setText(now.strftime('%B %Y'))
+
+            def update_string(self):
+                temp_now = (datetime.date.today() - dateutil.relativedelta.relativedelta(months=int(self.spinBox.value())))
+                temp_now = temp_now.strftime('%B %Y')
+                self.label.setText(temp_now)
+
+            def global_now(self, event):
+                global now
+                now = (datetime.date.today() - dateutil.relativedelta.relativedelta(months=int(self.spinBox.value())))
+                print('Setting Graph date to: ' + now.strftime('%B %Y'))
+
+
+        prompt = Prompt()
+        prompt.exec_()
+
 
     def flush(self, *arg, **args):
         """Used only to suppress errors"""
@@ -742,7 +810,6 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             log.show()
 
 sys.excepthook = except_box
-#os.chdir(sys.executable)
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
@@ -781,9 +848,27 @@ def local_or_sp():
 
 running_local = local_or_sp()
 if running_local == False:
-    config_folder = appdirs.user_config_dir('PfaudSec')
-    folder_check(config_folder)
-    sp = SharePoint()
+    pass #Sharepy not authenticating, uncomment to reimplement the auto-download/upload functionality
+    #config_folder = appdirs.user_config_dir('PfaudSec')
+    #folder_check(config_folder)
+    #sp = SharePoint()
+def choose_open_file():
+    #QT file dialog
+    work_dir = 'test'
+    folder_check(work_dir)
+    if os.name == 'nt':
+        doc_name = local_file.split('\\')
+        doc_name = doc_name[len(doc_name) - 1]
+    else:
+        doc_name = local_file.split('/')
+        doc_name = doc_name[len(doc_name) - 1]
+    doc_nospace = doc_name.replace(' ','_')
+    try:
+        shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
+    except shutil.SameFileError:
+        pass
+    if Grapher(work_dir, doc_nospace, doc_name).compile():
+        log.compile_tex(work_dir, doc_name, 'screen', upload=False)
         
 
 sys.exit(app.exec_())
