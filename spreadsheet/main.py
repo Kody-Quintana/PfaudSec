@@ -275,6 +275,8 @@ class Grapher(object):
                 continue
             if months_ago > (months - 1):
                 break
+            if months_ago < 0:
+                continue
             months_counter[months_ago] += 1
     
         #if any(x > 5 for x in months_counter):
@@ -317,6 +319,8 @@ class Grapher(object):
                 continue
             if months_ago > (months - 1):
                 break
+            if months_ago < 0:
+                continue
             if column_value not in catagories_index:
                 catagories_index[column_value] = len(catagories_index)
                 catagories.append([0] * months) #index is how many months ago
@@ -549,7 +553,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.outputbox.clear()
 
         def layout_name(work_dir, name, layout):
-            new_name = work_dir + '/' + filename_noext(name) + ' ' + layout + '.pdf'
+            new_name = work_dir + '/' + filename_noext(name) + ' ' + now.strftime('%b%y') + ' ' + layout + '.pdf'
 
             if self.process_0.exitCode() == 0:
                 os.replace(work_dir + '/present.pdf',
