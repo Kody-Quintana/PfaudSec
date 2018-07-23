@@ -14,7 +14,7 @@ r"""
 		tick label style={/pgf/number format/assume math mode},
 		every axis plot/.append style={ultra thick},
 		ymajorgrids,
-		bar width={0.06\textwidth},
+		bar width=1,%{0.06\textwidth},
 		legend style={
 			at={(0.5,-0.2)},
 			anchor=north,
@@ -62,7 +62,7 @@ r"""},
 		tick label style={/pgf/number format/assume math mode},
 		every axis plot/.append style={ultra thick},
 		ymajorgrids,
-		bar width={0.06\textwidth},
+		bar width={0.04\textwidth},
 		legend style={
 			at={(0.5,-0.2)},
 			anchor=north,

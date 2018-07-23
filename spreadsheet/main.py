@@ -21,6 +21,11 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 
 import sp_prompt #Credentials prompt
 import ui_log #Log window
+import iniedit
+import ini_storage
+
+if os.name == 'nt':
+    os.chdir(os.path.dirname(sys.executable))
 
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
@@ -59,13 +64,23 @@ def except_box(excType, excValue, tracebackobj):
     errorbox.setText(str(notice)+str(msg)+str(versionInfo))
     errorbox.exec_()
 
-class EditConfig(QtWidgets.QDialog):
-    def __init__(self, mode):
+class EditConfig(QtWidgets.QDialog, iniedit.Ui_Dialog):
+    def __init__(self, mode, file_to_save):
         super(EditConfig, self).__init__()
+        self.setupUi(self)
+        self.setModal(True)
+        font = QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
+        font.setPointSize(14)
+        self.textEdit.setFont(font)
+        self.file_to_save = file_to_save
+
+        self.buttonBox.button(QtWidgets.QDialogButtonBox.Save).clicked.connect(self.save_file)
+
         #TODO make basic text editor for individual workbook configs
         # make example configs for each type, then based on input, open with example config pasted in
 
         if mode == 'document':
+            self.textEdit.setText(ini_storage.ini_document)
             pass
         elif mode == 'program':
             pass
@@ -73,7 +88,12 @@ class EditConfig(QtWidgets.QDialog):
             pass
 
         #mode for what kind of ini to edit, the sharepoint ini or a document ini
+    def save_file(self):
+        with open(self.file_to_save, 'w') as ini_file:
+            ini_file.write(self.textEdit.toPlainText())
+
     def closeEvent(self, event):
+        #self.save_file()
         #self.hide()
         #event.ignore()
 
@@ -82,6 +102,7 @@ class EditConfig(QtWidgets.QDialog):
 class Grapher(object):
 
     def __init__(self, work_dir, work_file, doc_name):
+        self.ready = False
         try:
             os.remove(work_dir + '/graph.tex')
         except OSError:
@@ -97,7 +118,7 @@ class Grapher(object):
                 with open(self.config_file) as f:
                     self.config.read_file(f)
             except IOError:
-                edit_config = EditConfig('document')
+                edit_config = EditConfig('document', self.config_file)
                 print(self.config_file)
                 edit_config.exec_() #Block until closed
                 try_config_read() #keep trying until the file exists and is read
@@ -127,12 +148,15 @@ class Grapher(object):
                 self.date_column = self.config['document']['date_column']
             else:
                 print('Date column but be a letter')
-                exit()
+                return
+                #exit()
         else:
             print('No date column defined in ' + str(self.config_file))
-            exit()
+            return
+            #exit()
 
         self.cells_start, self.cells_end = self.date_cell_range(self.date_column)
+        self.ready = True
     
      
     def date_cell_range(self, column):
@@ -318,6 +342,7 @@ class Grapher(object):
             graphs_file.write(bar_graph_tex[0])
             graphs_file.write(title + ' - ' + now.strftime('%B, %Y'))
             graphs_file.write(bar_graph_tex[1])
+            #TODO make bar width = 0.5/num of bars
             graphs_file.write(symbolic_xcoords)
             graphs_file.write(bar_graph_tex[2])
             if ticks_distance_flag == 0:
@@ -384,6 +409,9 @@ class Grapher(object):
     
     def compile(self):
         """Calls graph functions based on what is found in config file"""
+
+        if self.ready == False:
+            return
 
         print('Starting PfaudSec Graph compiler.\nLoaded columns from '\
                 + str(self.config_file) + ':\n')
@@ -516,8 +544,8 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                 log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
             else:
                 self.proc_count = 0            
-                if running_local == True:
-                    QtWidgets.qApp.quit()
+                #if running_local == True:
+                #    QtWidgets.qApp.quit()
                     #exit()
 
             if upload == True:
@@ -551,6 +579,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             layout_file.write(self.layout_text.get(layout))
         with open(work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
             name_file.write(filename_noext(name).replace('_',' ') + r'\\' + '\n' + now.strftime('%B, %Y'))
+
  
         self.process_0.setWorkingDirectory(work_dir)
         self.process_0.start(self.xelatex_path, ['--halt-on-error', 'present'])
@@ -740,7 +769,10 @@ def local_or_sp():
             doc_name = local_file.split('/')
             doc_name = doc_name[len(doc_name) - 1]
         doc_nospace = doc_name.replace(' ','_')
-        shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
+        try:
+            shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
+        except shutil.SameFileError:
+            pass
         if Grapher(work_dir, doc_nospace, doc_name).compile():
             log.compile_tex(work_dir, doc_name, 'screen', upload=False)
         return True
