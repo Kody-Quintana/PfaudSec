@@ -19,18 +19,18 @@ from openpyxl.utils import column_index_from_string #,coordinate_from_string
 from collections import Counter
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-import sp_prompt #Credentials prompt
+#import sp_prompt #Credentials prompt
 import ui_log #Log window
 import iniedit
 import ini_storage
 import date_set
 import fontload
 
-if os.name == 'nt':
-    os.chdir(os.path.dirname(sys.executable))
-
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
+
+if os.name == 'nt': #for pyinstaller on windows
+    os.chdir(os.path.dirname(sys.executable))
 
 def folder_check(folder):
     pathlib.Path(folder).mkdir(parents = True, exist_ok = True)
@@ -67,6 +67,9 @@ def except_box(excType, excValue, tracebackobj):
     errorbox.exec_()
 
 class EditConfig(QtWidgets.QDialog, iniedit.Ui_Dialog):
+    """Basic text editor for document ini files
+
+    will open with an example config for any new documents without an ini file"""
     def __init__(self, mode, file_to_save):
         super(EditConfig, self).__init__()
         self.setupUi(self)
@@ -75,11 +78,7 @@ class EditConfig(QtWidgets.QDialog, iniedit.Ui_Dialog):
         font.setPointSize(14)
         self.textEdit.setFont(font)
         self.file_to_save = file_to_save
-
         self.buttonBox.button(QtWidgets.QDialogButtonBox.Save).clicked.connect(self.save_file)
-
-        #TODO make basic text editor for individual workbook configs
-        # make example configs for each type, then based on input, open with example config pasted in
         def is_not_empty(item):
             try:
                 if os.path.getsize(item) > 0:
@@ -428,6 +427,7 @@ class Grapher(object):
         if self.ready == False:
             return
 
+        print()
         print('Starting PfaudSec Graph compiler.\nLoaded config from '\
                 + str(self.config_file) + ':\n')
         
@@ -525,12 +525,15 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.process_0.readyRead.connect(self.stdout_and_err_Ready)
         self.process_0.finished.connect(self.done_statement)
         self.process_0.stateChanged.connect(self.menu_disable)
-        self.proc_count = 0
+        self.proc_count = 0 #Counter to run XeLaTeX twice (one for each layout)
         self.outputbox_2.setMaximumBlockCount(50)
+        self.outputbox.setReadOnly(True)
+        self.outputbox_2.setReadOnly(True)
 
         self.xelatex_config()
 
     def menu_disable(self):
+        """Disable menu and set running icon animation while XeLaTeX is running"""
         if self.process_0.state() == 0:
             trayIcon.menu.setEnabled(True)
             trayIcon.anim_icon.stop()
@@ -541,6 +544,9 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             trayIcon.setIcon(trayIcon.still_icon)
 
     def done_statement(self):
+        """Show log if XeLaTeX exits with error
+
+        XeLaTeX is called with '--halt-on-error' for this to work"""
         if self.process_0.exitCode() == 0:
             return
         else:
@@ -556,6 +562,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             self.xelatex_path = 'xelatex'
 
     def compile_tex(self, work_dir, name, layout, upload):
+        """Called to run XeLaTeX if Grapher succesfully runs"""
 
         self.outputbox.clear()
 
@@ -566,7 +573,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                 os.replace(work_dir + '/present.pdf',
                         new_name)
 
-                print('XeLaTeX: ' + layout + ' done')
+                print('XeLaTeX: ' + ' ' + now.strftime('%B %Y') + ' "' + layout + '" done')
                 self.proc_count += 1
                 if self.proc_count < 2:
                     log.compile_tex(work_dir, name, 'paper', upload)
@@ -579,8 +586,6 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                 #if running_local == True:
                 #    QtWidgets.qApp.quit()
                     #exit()
-            else:
-                log.show()
 
            # if upload == True:
 
@@ -713,6 +718,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         #self.anim_icon.start()
 
     def rebuild_menu(self):
+        """Rebuilds menu to add an edit option for any ini files found"""
         def edit_base_function(config_file):
             edit_config = EditConfig(None, config_file)
             edit_config.exec_() #Block until closed
@@ -733,15 +739,20 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         exitAction.triggered.connect(self.hide_and_quit)#QtWidgets.qApp.quit)
 
     def hide_and_quit(self):
+        """hide tray icon before quitting so it doesnt linger in windows taskbar"""
         self.hide()
         QtWidgets.qApp.quit()
 
     def update_icon(self):
+        """called while animated icon (QMovie) is playing"""
         temp_anim_icon = QtGui.QIcon()
         temp_anim_icon.addPixmap(self.anim_icon.currentPixmap())
         self.setIcon(temp_anim_icon)
 
     def get_run_month(self):
+        """Get number as "months ago" for running a graph for the past
+
+        "now" is global"""
         class Prompt(QtWidgets.QDialog, date_set.Ui_Dialog):
             def __init__(self):
                 super(Prompt, self).__init__()
@@ -754,15 +765,18 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).clicked.connect(self.global_now)
 
             def showEvent(self, event):
+                """Make month label and spinbox match when reopening window"""
                 super(Prompt, self).showEvent(event)
                 self.update_string()
 
             def update_string(self):
+                """match date string to spinbox current value"""
                 temp_now = (datetime.date.today() - dateutil.relativedelta.relativedelta(months=int(self.spinBox.value())))
                 temp_now = temp_now.strftime('%B %Y')
                 self.label.setText(temp_now)
 
             def global_now(self, event):
+                """set global now variable and print date"""
                 global now
                 now = (datetime.date.today() - dateutil.relativedelta.relativedelta(months=int(self.spinBox.value())))
                 print('Setting Graph date to: ' + now.strftime('%B %Y'))
@@ -777,8 +791,14 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         pass
 
     def write(self, text):
-        """sys.stdout directed to a system tray message"""
+        """sys.stdout directed to a system tray message
+
+        system tray message is printed from a queue,
+        old lines in the queue are cleared by a QTimer.
+        time stamp added to tray message to differentiate between two messages in queue.
+        Full stdout with no queue is appended to log window"""
         def append(text):
+            """Write to right side text box"""
             cursor = log.outputbox_2.textCursor()
             cursor.movePosition(cursor.End)
             cursor.insertText(text)
@@ -807,7 +827,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.showMessage('PfaudSec spreadsheet:', '\n'.join([str(i) for i in self.print_queue]), icon)
 
     def clear_queue_line(self):
-        """Called from a QTimer to reduce lines displayed in system tray message"""
+        """Called from a QTimer to remove old lines from system tray message queue"""
         try:
             del self.print_queue[0]
         except IndexError:
@@ -848,9 +868,9 @@ if font_decrypt.check_success() == False:
     if 'Cryptodome' in sys.modules:
         font_decrypt.show()
 
-now = datetime.date.today()
+now = datetime.date.today() #this will change if user sets a different month
 
-icon = QtGui.QIcon('resource/logo.ico')  # need a icon
+icon = QtGui.QIcon('resource/logo.ico')
 trayIcon = SystemTrayIcon(icon)
 trayIcon.show()
 sys.stdout = trayIcon
