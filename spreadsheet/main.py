@@ -529,6 +529,9 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.outputbox_2.setMaximumBlockCount(50)
         self.outputbox.setReadOnly(True)
         self.outputbox_2.setReadOnly(True)
+        font = QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
+        self.outputbox.setFont(font)
+        self.outputbox_2.setFont(font)
 
         self.xelatex_config()
 
