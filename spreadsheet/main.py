@@ -428,14 +428,14 @@ class Grapher(object):
         if self.ready == False:
             return
 
-        print('Starting PfaudSec Graph compiler.\nLoaded columns from '\
+        print('Starting PfaudSec Graph compiler.\nLoaded config from '\
                 + str(self.config_file) + ':\n')
         
         # Totals from date column
         if self.config.getboolean('document', 'show_totals', fallback=False):
             self.totals_by_month_graph(title = self.doc_name.replace('_',' '))
     
-        non_column_sections = frozenset(('document', 'sharepoint'))
+        non_column_sections = 'document'
         for column in self.config.sections():
     
             if str(column).lower() in non_column_sections:
@@ -452,7 +452,9 @@ class Grapher(object):
                     self.monthly_graph(str(column), str(self.config.get(column, 'title', fallback = '')))
             else:
                 print('UserWarning: Column '
+                        + '"'
                         + str(column)
+                        + '"'
                         + ' specified in '
                         + str(self.config_file)
                         + ' does not contain valid data')
@@ -524,6 +526,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.process_0.finished.connect(self.done_statement)
         self.process_0.stateChanged.connect(self.menu_disable)
         self.proc_count = 0
+        self.outputbox_2.setMaximumBlockCount(50)
 
         self.xelatex_config()
 
@@ -571,6 +574,8 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                     log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
                 else:
                     self.proc_count = 0            
+                    if os.name == 'nt':
+                        os.startfile('output_folder')
                 #if running_local == True:
                 #    QtWidgets.qApp.quit()
                     #exit()
@@ -725,10 +730,11 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         run_month = self.menu.addAction('Set graph month')
         run_month.triggered.connect(self.get_run_month)
         exitAction = self.menu.addAction("Exit")
-        exitAction.triggered.connect(QtWidgets.qApp.quit)
+        exitAction.triggered.connect(self.hide_and_quit)#QtWidgets.qApp.quit)
 
-    def choose_open_file(self):
-        pass
+    def hide_and_quit(self):
+        self.hide()
+        QtWidgets.qApp.quit()
 
     def update_icon(self):
         temp_anim_icon = QtGui.QIcon()
