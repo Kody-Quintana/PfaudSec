@@ -817,7 +817,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             self.double_click()
 
     def double_click(self):
-        print('double click')
+        choose_open_file()
 
     def single_click(self):
         if log.isVisible():
