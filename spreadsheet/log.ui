@@ -26,7 +26,7 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <widget class="QTextEdit" name="outputbox"/>
+         <widget class="QPlainTextEdit" name="outputbox"/>
         </item>
        </layout>
       </widget>
@@ -41,7 +41,7 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QTextEdit" name="outputbox_2"/>
+         <widget class="QPlainTextEdit" name="outputbox_2"/>
         </item>
        </layout>
       </widget>

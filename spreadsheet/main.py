@@ -571,6 +571,8 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                     log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
                 else:
                     self.proc_count = 0            
+                    if os.name == 'nt':
+                        os.startfile('output_folder')
                 #if running_local == True:
                 #    QtWidgets.qApp.quit()
                     #exit()
