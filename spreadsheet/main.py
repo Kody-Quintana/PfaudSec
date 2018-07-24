@@ -530,8 +530,12 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
     def menu_disable(self):
         if self.process_0.state() == 0:
             trayIcon.menu.setEnabled(True)
+            trayIcon.anim_icon.stop()
+            trayIcon.setIcon(trayIcon.still_icon)
         else:
             trayIcon.menu.setEnabled(False)
+            trayIcon.anim_icon.start()
+            trayIcon.setIcon(trayIcon.still_icon)
 
     def done_statement(self):
         if self.process_0.exitCode() == 0:
@@ -698,6 +702,11 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.time_format_str = '%H:%M:%S: '
         self.rebuild_menu()
 
+        self.still_icon = icon
+        self.anim_icon = QtGui.QMovie('resource/spin.gif', parent = self)
+        self.anim_icon.frameChanged.connect(self.update_icon)
+        #self.anim_icon.start()
+
     def rebuild_menu(self):
         def edit_base_function(config_file):
             edit_config = EditConfig(None, config_file)
@@ -721,6 +730,11 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
     def choose_open_file(self):
         pass
 
+    def update_icon(self):
+        temp_anim_icon = QtGui.QIcon()
+        temp_anim_icon.addPixmap(self.anim_icon.currentPixmap())
+        self.setIcon(temp_anim_icon)
+
     def get_run_month(self):
         class Prompt(QtWidgets.QDialog, date_set.Ui_Dialog):
             def __init__(self):
@@ -732,7 +746,10 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 font.setPointSize(20)
                 self.label.setFont(font)
                 self.buttonBox.button(QtWidgets.QDialogButtonBox.Ok).clicked.connect(self.global_now)
-                self.label.setText(now.strftime('%B %Y'))
+
+            def showEvent(self, event):
+                super(Prompt, self).showEvent(event)
+                self.update_string()
 
             def update_string(self):
                 temp_now = (datetime.date.today() - dateutil.relativedelta.relativedelta(months=int(self.spinBox.value())))
