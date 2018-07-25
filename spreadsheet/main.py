@@ -21,10 +21,10 @@ from collections import Counter
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 import ui_log #Log window
-import iniedit
+import ini_edit
 import ini_storage
 import date_set
-import fontload
+import font_load
 
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
@@ -68,7 +68,7 @@ def except_box(excType, excValue, tracebackobj):
     errorbox.setText(str(notice)+str(msg)+str(versionInfo))
     errorbox.exec_()
 
-class EditConfig(QtWidgets.QDialog, iniedit.Ui_Dialog):
+class EditConfig(QtWidgets.QDialog, ini_edit.Ui_Dialog):
     """Basic text editor for document ini files
 
     will open with an example config for any new documents without an ini file"""
@@ -721,7 +721,7 @@ app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
 output_folder = folder_check('output_folder')
 
-font_decrypt = fontload.Prompt()
+font_decrypt = font_load.Prompt()
 if font_decrypt.check_success() == False:
     try:
         import Cryptodome
