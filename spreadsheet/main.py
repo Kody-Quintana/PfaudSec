@@ -33,7 +33,9 @@ if os.name == 'nt': #for pyinstaller on windows
     os.chdir(os.path.dirname(sys.executable))
 
 def folder_check(folder):
+    """Convenience function to make sure folder exists and define variable in one line"""
     pathlib.Path(folder).mkdir(parents = True, exist_ok = True)
+    return folder #so you can just do: folder_var = folder_check('string_path')
 
 def filename_noext(filename):
     """Returns filename with no extension"""
@@ -115,9 +117,11 @@ class Grapher(object):
         self.doc_name = filename_noext(doc_name)
         self.work_dir = work_dir
         self.work_file = work_file
+
+
+        #Config file is just name of file with ini extension
         self.config_file = 'resource/' + filename_noext(self.work_file) + '.ini'
         self.config = configparser.ConfigParser()
-
         def try_config_read(): 
             try:
                 with open(self.config_file) as f:
@@ -127,8 +131,8 @@ class Grapher(object):
                 print(self.config_file)
                 edit_config.exec_() #Block until closed
                 try_config_read() #keep trying until the file exists and is read
-
         try_config_read()
+
 
         # Worksheet number config
         if self.config.has_option('document', 'worksheet'):
@@ -143,7 +147,6 @@ class Grapher(object):
         else:
             print('No worksheet specified in ' + str(self.config_file) + ' defaulting to sheet 1')
             sheet_number = 1
-
         self.ws = load_workbook(work_dir + '/' + work_file).worksheets[sheet_number - 1]
 
 
@@ -157,7 +160,6 @@ class Grapher(object):
         else:
             print('No date column defined in ' + str(self.config_file))
             return
-
         self.cells_start, self.cells_end = self.date_cell_range(self.date_column)
         self.ready = True
     
@@ -168,9 +170,9 @@ class Grapher(object):
         first_date_cell = None
         last_date_counter = 0
     
-        for r in self.ws[column + '1':\
+        for row in self.ws[column + '1':\
                 column + str(len(self.ws[column]))]:
-            for cell in r:
+            for cell in row:
                 last_date_counter = last_date_counter + 1
                 if cell.value != None:
                     if isinstance(cell.value, datetime.datetime):
@@ -185,8 +187,8 @@ class Grapher(object):
         """For readability, returns a list of all cell.value
         for input column, range determined by date_cell_range()"""
         row_cells = []
-        for i in self.ws[column + self.cells_start : column + self.cells_end]:
-            for cell in i:
+        for row in self.ws[column + self.cells_start : column + self.cells_end]:
+            for cell in row:
                 row_cells.append(cell.value)
         return row_cells
     
@@ -196,7 +198,7 @@ class Grapher(object):
         if isinstance(input_date, datetime.datetime) or isinstance(input_date, datetime.date):
             return input_date.strftime('%b %y')
         else:
-            print('Cant convert ' + str(type(i)) + ' to month string')
+            print('Cant convert ' + str(type(input_date)) + ' to month string')
             return None
     
     
@@ -227,15 +229,15 @@ class Grapher(object):
         """Totals for input column for this month"""
         this_month = []
         total_occurances = 0
-        for i, j in self.cell_enumerate(self.column_list(column)):
-            date_cell = self.ws.cell(i,column_index_from_string(self.date_column)).value
+        for index, value in self.cell_enumerate(self.column_list(column)):
+            date_cell = self.ws.cell(index, column_index_from_string(self.date_column)).value
     
-            if blanks == False and str(j) == 'None':
+            if blanks == False and str(value) == 'None':
                 continue #Skips blank cells
     
             if date_cell.month == now.month\
                     and date_cell.year == now.year:
-                this_month.append(j)
+                this_month.append(value)
                 total_occurances  += 1
         return Counter(this_month), total_occurances
     
@@ -301,10 +303,10 @@ class Grapher(object):
         catagories_index = {} #dict to get index from string for catagories
         catagories = []       #list of lists for each catagory
         return_dict = {}
-        for k, i in reversed(list(self.cell_enumerate(self.column_list(self.date_column)))):
-            column_value = str(self.ws[column + str(k)].value) #This must be str to allow sorted()
+        for index, value in reversed(list(self.cell_enumerate(self.column_list(self.date_column)))):
+            column_value = str(self.ws[column + str(index)].value) #This must be str to allow sorted()
             try:
-                months_ago = self.diff_month(now, i)
+                months_ago = self.diff_month(now, value)
             except AttributeError:
                 continue
             if months_ago > (months - 1):
@@ -717,8 +719,7 @@ app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
-output_folder = 'output_folder'
-folder_check(output_folder)
+output_folder = folder_check('output_folder')
 
 font_decrypt = fontload.Prompt()
 if font_decrypt.check_success() == False:
@@ -742,8 +743,7 @@ def run_args():
         if '.xlsx' in arg:
             local_file = arg
     if 'local_file' in locals():
-        work_dir = 'work_folder'
-        folder_check(work_dir)
+        work_dir = folder_check('work_folder')
         if os.name == 'nt':
             doc_name = local_file.split('\\')
             doc_name = doc_name[len(doc_name) - 1]
@@ -763,10 +763,9 @@ if len(sys.argv) > 1:
 
 def choose_open_file():
     files_filter_list = 'XLSX files (*.xlsx) ;; All files (*)'
-    local_file = QtWidgets.QFileDialog.getOpenFileName(None,"Choose spreadsheet file", "", files_filter_list)[0]
+    local_file = QtWidgets.QFileDialog.getOpenFileName(None, "Choose spreadsheet file", "", files_filter_list)[0]
     if local_file:
-        work_dir = 'work_folder'
-        folder_check(work_dir)
+        work_dir = folder_check('work_folder')
         doc_name = local_file.split('/')
         doc_name = doc_name[len(doc_name) - 1]
         doc_nospace = doc_name.replace(' ','_')
