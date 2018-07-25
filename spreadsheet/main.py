@@ -1,25 +1,25 @@
-import datetime
+#import Cryptodome (imported in a try statement below)
 import dateutil.relativedelta
-import itertools
 import configparser
-import os
+import qdarkstyle
+import traceback
+import functools
+import itertools
+import datetime
+import pathlib
+import appdirs
+import sharepy
+import shutil
 import time
 import sys
-#import tempfile
-import functools
-import shutil
-import sharepy
-import traceback
 import io
-import appdirs
-import pathlib
-import qdarkstyle
+import os
+
 from openpyxl import load_workbook
-from openpyxl.utils import column_index_from_string #,coordinate_from_string
+from openpyxl.utils import column_index_from_string
 from collections import Counter
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-#import sp_prompt #Credentials prompt
 import ui_log #Log window
 import iniedit
 import ini_storage
@@ -97,17 +97,12 @@ class EditConfig(QtWidgets.QDialog, iniedit.Ui_Dialog):
                 self.textEdit.setText(ini_storage.ini_document)
                 pass
 
-        #mode for what kind of ini to edit, the sharepoint ini or a document ini
     def save_file(self):
         with open(self.file_to_save, 'w') as ini_file:
             ini_file.write(self.textEdit.toPlainText())
 
     def closeEvent(self, event):
         trayIcon.rebuild_menu()
-        #self.save_file()
-        #self.hide()
-        #event.ignore()
-
 
 class Grapher(object):
 
@@ -159,11 +154,9 @@ class Grapher(object):
             else:
                 print('Date column must be a letter')
                 return
-                #exit()
         else:
             print('No date column defined in ' + str(self.config_file))
             return
-            #exit()
 
         self.cells_start, self.cells_end = self.date_cell_range(self.date_column)
         self.ready = True
@@ -198,22 +191,21 @@ class Grapher(object):
         return row_cells
     
     
-    def month_string(self, i):
+    def month_string(self, input_date):
         """returns month as 3 letter string"""
-        out = None
-        if isinstance(i, datetime.datetime) or isinstance(i, datetime.date):
-            out = i.strftime('%b %y')
+        if isinstance(input_date, datetime.datetime) or isinstance(input_date, datetime.date):
+            return input_date.strftime('%b %y')
         else:
             print('Cant convert ' + str(type(i)) + ' to month string')
-        return out
+            return None
     
     
-    def cell_enumerate(self, item):
+    def cell_enumerate(self, column):
         """enumerate() but index starts at first cell
 
         as determined by date_cell_range()"""
         i = int(self.cells_start)
-        it = iter(item)
+        it = iter(column)
         while True:
             yield (i, it.__next__())
             i += 1
@@ -278,11 +270,10 @@ class Grapher(object):
                 continue
             months_counter[months_ago] += 1
     
-        #if any(x > 5 for x in months_counter):
-        #    ticks_distance_flag = 1
         for i in months_counter:
-            if int(i) > 5:
+            if i > 5:
                 ticks_distance_flag = 1
+                break
     
         for index, data in reversed(list(enumerate(months_counter))):
             xcoord_name = self.relative_month_to_string(index)
@@ -344,8 +335,9 @@ class Grapher(object):
         occurances = sorted(current_data.values(), reverse=True)
 
         for i in occurances:
-            if int(i) > 5:
+            if i > 5:
                 ticks_distance_flag = 1
+                break
     
         pareto = list(itertools.accumulate(occurances))
         pareto = [round(x / total_occurances * 100) for x in pareto]
@@ -461,57 +453,8 @@ class Grapher(object):
         return True
         #This true triggers XeLaTeX to be called
 
-# SharePy no longer working, add later if auth can be fixed    
-#class SharePoint(object):
-#
-#    def __init__(self, *arg, **args):
-#        #check is the session files exists
-#        self.sp_url = 'pfaudlerazuread.sharepoint.com'
-#        #self.file_path = 
-#
-#        if os.path.isfile(config_folder + '/sp-session.pkl'):
-#            try:
-#                self.session = sharepy.load(config_folder + '/sp-session.pkl')
-#            except AttributeError:
-#                self.session = sharepy.connect(self.sp_url, *self.get_cred())
-#                self.session.save(config_folder + '/sp-session.pkl')
-#
-#        else:
-#            self.session = sharepy.connect(self.sp_url, *self.get_cred())
-#            self.session.save(config_folder + '/sp-session.pkl')
-#
-#
-#    def get_cred(self):
-#        """Returns packed login credentials
-#        
-#        use *self.get_cred() as input to function
-#        asking for two variables"""
-#        class Prompt(QtWidgets.QDialog, sp_prompt.Ui_Dialog):
-#            def __init__(self):
-#                super(Prompt, self).__init__()
-#                self.setupUi(self)
-#                self.setModal(True)
-#                self.buttonBox.setEnabled(False)
-#                self.lineEdit.textChanged.connect(self.btn_enable)
-#                self.lineEdit_2.textChanged.connect(self.btn_enable)
-#            def btn_enable(self):
-#                if '@' and '.' in self.lineEdit.text() and self.lineEdit_2.text() != '':
-#                    self.buttonBox.setEnabled(True)
-#                else:
-#                    self.buttonBox.setEnabled(False)
-#        prompt = Prompt()
-#        prompt.exec_()
-#        if '@' and '.' in prompt.lineEdit.text() and prompt.lineEdit_2.text() != '':
-#            return prompt.lineEdit.text(), prompt.lineEdit_2.text() 
-#        else:
-#            exit()
-#
-#    def upload(self, filename):
-#        pass
-
 class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
     """Normally hidden log window, also "hosts" the QProcess for calling XeLaTeX"""
-    #TODO on xelatex finish, copy pdfs to a folder for upload
 
     layout_text = {'paper' : r'\usepackage[paperwidth=8.27in, paperheight=11.69in, landscape]{geometry}',
             'screen' : r'\usepackage[paperwidth=7.5in, paperheight=13.33in, landscape]{geometry}'}
@@ -519,7 +462,6 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
         self.setupUi(self)
-        #TODO set outputbox to readonly
         self.process_0 = QtCore.QProcess(self)
         self.process_0.setProcessChannelMode(QtCore.QProcess.MergedChannels)
         self.process_0.readyRead.connect(self.stdout_and_err_Ready)
@@ -586,36 +528,6 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                     self.proc_count = 0            
                     if os.name == 'nt':
                         os.startfile('output_folder')
-                #if running_local == True:
-                #    QtWidgets.qApp.quit()
-                    #exit()
-
-           # if upload == True:
-
-           #     headers = {"accept": "application/json;odata=verbose",
-           #     "content-type": "application/x-www-urlencoded; charset=UTF-8"}
-           #      
-           #     with open(new_name, 'rb') as read_file:
-           #         content = read_file.read()
-           #      
-           #     r = sp.session.post(r"https://"
-           #             + sp.sp_url
-           #             + r"/sites/"
-           #             + r"PfaudlerUS"
-           #             + r"/_api/web/GetFolderByServerRelativeUrl('"
-           #             + r"QC_CAR" #TODO un-hardcode this
-           #             + r"/"
-           #             + r'Graphs'
-           #             + r"')/Files/add(url='"
-           #             + filename_noext(name).replace("'",'') + ' ' + layout + '.pdf'
-           #             + r"',overwrite=true)"
-           #             , data=content
-           #             , headers=headers)
-
-           #     if '200' in str(r):
-           #         print('Upload successful')
-           #     else:
-           #         print('Upload Error!')
 
         with open(work_dir + '/layout.tex', 'w', encoding='utf-8') as layout_file:
             layout_file.write(self.layout_text.get(layout))
@@ -652,56 +564,6 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         QtWidgets.QSystemTrayIcon.__init__(self, icon, parent)
 
         self.menu = QtWidgets.QMenu(parent)
-        #def menu_func(spreadsheet):
-        #    """Base function to compile graph
-
-        #    fed to functools.partial to make a button for each spreadsheet based on the config file"""
-        #    print(spreadsheet)
-        #    #with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
-        #    work_dir = 'test'
-        #    folder_check(work_dir)
-
-        #    doc_name = "MANUFACTURING CAR's Log.xlsx"
-        #    doc_nospace = doc_name.replace(' ','_')
-        #    sp.session.getfile('https://pfaudlerazuread.sharepoint.com/sites/PfaudlerUS/'
-        #            + "QC_CAR/"
-        #            + doc_name,
-        #            filename = work_dir + '/' + doc_nospace)
-
-        #    #Sequentially compile documents with both sizes
-        #    log.proc_count = 0 #Reset count incase of previous error before count reset natually
-        #    if Grapher(work_dir, doc_nospace, doc_name).compile():
-        #        log.compile_tex(work_dir, doc_name, 'screen', upload=False)
-
-        #def edit_doc_settings(doc):
-        #    print('Open editor for: ' + doc)
-
-        #self.config_file = 'resource/PfaudSec_SpreadSheet.ini'
-        #self.config = configparser.ConfigParser()
-
-        #def try_config_read(): 
-        #    """Opens config maker, will keep opening if file not found"""
-        #    try:
-        #        with open(self.config_file) as f:
-        #            self.config.read_file(f)
-        #    except IOError:
-        #        edit_config = EditConfig('program')
-        #        edit_config.exec_() #Block until closed
-        #        try_config_read() #keep trying until the file exists and is read
-
-        #try_config_read()
-
-        #config_list = ['1','2']
-        #for i in config_list:
-        #    if str(i) == 'Default':
-        #        continue
-        #    self.menu.addAction(i).triggered.connect(functools.partial(menu_func, spreadsheet=i))
-        #    self.menu.addAction('Edit config for: ' + i).triggered.connect(functools.partial(edit_doc_settings, doc=i))
-
-        #delete_cookie = self.menu.addAction('Delete access cookie and exit')
-        #delete_cookie.triggered.connect(lambda: os.remove(config_folder + '/sp-session.pkl'))
-        #delete_cookie.triggered.connect(QtWidgets.qApp.quit)
-
 
         self.setContextMenu(self.menu)
         self.activated.connect(self.tray_clicked)
@@ -718,14 +580,12 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.still_icon = icon
         self.anim_icon = QtGui.QMovie('resource/spin.gif', parent = self)
         self.anim_icon.frameChanged.connect(self.update_icon)
-        #self.anim_icon.start()
 
     def rebuild_menu(self):
         """Rebuilds menu to add an edit option for any ini files found"""
         def edit_base_function(config_file):
             edit_config = EditConfig(None, config_file)
             edit_config.exec_() #Block until closed
-
 
         self.menu.clear()
 
@@ -783,8 +643,6 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
                 global now
                 now = (datetime.date.today() - dateutil.relativedelta.relativedelta(months=int(self.spinBox.value())))
                 print('Setting Graph date to: ' + now.strftime('%B %Y'))
-
-
         prompt = Prompt()
         prompt.exec_()
 
@@ -879,7 +737,7 @@ trayIcon.show()
 sys.stdout = trayIcon
 log = LogWindow()
 
-def local_or_sp():
+def run_args():
     for arg in sys.argv:
         if '.xlsx' in arg:
             local_file = arg
@@ -899,16 +757,9 @@ def local_or_sp():
             pass
         if Grapher(work_dir, doc_nospace, doc_name).compile():
             log.compile_tex(work_dir, doc_name, 'screen', upload=False)
-        return True
-    else:
-        return False
 
-running_local = local_or_sp()
-if running_local == False:
-    pass #Sharepy not authenticating, uncomment to reimplement the auto-download/upload functionality
-    #config_folder = appdirs.user_config_dir('PfaudSec')
-    #folder_check(config_folder)
-    #sp = SharePoint()
+if len(sys.argv) > 1:
+    run_args()
 
 def choose_open_file():
     files_filter_list = 'XLSX files (*.xlsx) ;; All files (*)'
@@ -928,5 +779,4 @@ def choose_open_file():
     else:
         return
         
-
 sys.exit(app.exec_())
