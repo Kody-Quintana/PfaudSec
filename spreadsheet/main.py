@@ -15,16 +15,16 @@ import sys
 import io
 import os
 
-from openpyxl import load_workbook
 from openpyxl.utils import column_index_from_string
-from collections import Counter
 from PyQt5 import QtWidgets, QtCore, QtGui
+from openpyxl import load_workbook
+from collections import Counter
 
-import ui_log #Log window
-import ini_edit
-import ini_storage
-import date_set
-import font_load
+import ini_storage # Stores example config
+import font_load   # Decrypt fonts
+import ini_edit    # Basic text editor for ini files
+import date_set    # QDialog to change date
+import ui_log      # Log window
 
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
@@ -286,6 +286,7 @@ class Grapher(object):
         coordinates = '\n'.join([str(i) for i in coordinates])
     
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
+            graphs_file.write(r'\newpage\addsection{' + 'Totals' + '}')
             graphs_file.write(line_graph_tex[0])
             graphs_file.write(title + ' - ' + now.strftime('%B, %Y'))
             graphs_file.write(line_graph_tex[1])
@@ -347,6 +348,7 @@ class Grapher(object):
                 for index, percent in enumerate(pareto)])
     
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
+            graphs_file.write(r'\newpage\addsection{' + title + '}')
             graphs_file.write(bar_graph_tex[0])
             graphs_file.write(title + ' - ' + now.strftime('%B, %Y'))
             graphs_file.write(bar_graph_tex[1])
@@ -365,6 +367,9 @@ class Grapher(object):
     #Uses line graph for one catagory over time
     def monthly_graph(self, column, title, months=12, blanks=False):
         """Writes line pgfplot to graph.tex for one catagory over time"""
+        with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
+            graphs_file.write(r'\newpage\addsection{' + title + ' monthly graphs}\n')
+
         for catagory, month_count_tuple in sorted(self.values_by_month(column, months).items()):
     
             if blanks == False and str(catagory) == 'None':
@@ -391,6 +396,7 @@ class Grapher(object):
             coordinates = '\n'.join([str(i) for i in coordinates])
     
             with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
+                graphs_file.write(r'\addsubsection{' + catagory + '}')
                 graphs_file.write(line_graph_tex[0])
                 graphs_file.write(title + ' - ' + catagory)
                 graphs_file.write(line_graph_tex[1])
@@ -469,7 +475,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.process_0.readyRead.connect(self.stdout_and_err_Ready)
         self.process_0.finished.connect(self.done_statement)
         self.process_0.stateChanged.connect(self.menu_disable)
-        self.proc_count = 0 #Counter to run XeLaTeX twice (one for each layout)
+        self.proc_count = 0 #Counter to run XeLaTeX four time (three for accurate TOC, fourth for other layout)
         self.outputbox_2.setMaximumBlockCount(50)
         self.outputbox.setReadOnly(True)
         self.outputbox_2.setReadOnly(True)
@@ -497,9 +503,9 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         if self.process_0.exitCode() == 0:
             return
         else:
-            print('XeLaTeX error!')
+            print('XeLaTeX Error!')
             self.show()
-            self.proc_count = 2
+            self.proc_count = 4
 
     def xelatex_config(self):
         """Set path to XeLaTeX based on what system is running"""
@@ -508,7 +514,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         elif os.name == "posix":
             self.xelatex_path = 'xelatex'
 
-    def compile_tex(self, work_dir, name, layout, upload):
+    def compile_tex(self, work_dir, name, layout):
         """Called to run XeLaTeX if Grapher succesfully runs"""
 
         self.outputbox.clear()
@@ -517,13 +523,23 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             new_name = output_folder + '/' + filename_noext(name) + ' ' + now.strftime('%b%y') + ' ' + layout + '.pdf'
 
             if self.process_0.exitCode() == 0:
-                os.replace(work_dir + '/present.pdf',
-                        new_name)
+                # After third and fourth runs, copy the file and print message
+                if self.proc_count in (2, 3):
+                    os.replace(work_dir + '/present.pdf', new_name)
+                    print('XeLaTeX: ' + ' ' + now.strftime('%B %Y') + ' "' + layout + '" done')
 
-                print('XeLaTeX: ' + ' ' + now.strftime('%B %Y') + ' "' + layout + '" done')
                 self.proc_count += 1
-                if self.proc_count < 2:
-                    log.compile_tex(work_dir, name, 'paper', upload)
+
+                # Run three times to build table of contents
+                # if only ran twice, and toc takes two pages, the toc page numbers will be off by one
+                if self.proc_count in (1, 2):
+                    log.compile_tex(work_dir, name, 'screen')
+                    log.process_0.finished.disconnect()
+                    log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'screen'))
+
+                # Fourth time for paper layout
+                elif self.proc_count == 3:
+                    log.compile_tex(work_dir, name, 'paper')
                     log.process_0.finished.disconnect()
                     log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
                 else:
@@ -636,14 +652,14 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
             def update_string(self):
                 """match date string to spinbox current value"""
-                temp_now = (datetime.date.today() - dateutil.relativedelta.relativedelta(months=int(self.spinBox.value())))
+                temp_now = (datetime.date.today() - dateutil.relativedelta.relativedelta(months = self.spinBox.value()))
                 temp_now = temp_now.strftime('%B %Y')
                 self.label.setText(temp_now)
 
             def global_now(self, event):
                 """set global now variable and print date"""
                 global now
-                now = (datetime.date.today() - dateutil.relativedelta.relativedelta(months=int(self.spinBox.value())))
+                now = (datetime.date.today() - dateutil.relativedelta.relativedelta(months = self.spinBox.value()))
                 print('Setting Graph date to: ' + now.strftime('%B %Y'))
         prompt = Prompt()
         prompt.exec_()
@@ -679,8 +695,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             self.print_queue.append(text)
         else:
             self.print_queue.append(datetime.datetime.strftime(datetime.datetime.now(),
-                self.time_format_str)
-                    + text)
+                self.time_format_str) + text)
 
         self.time_stamp = datetime.datetime.strftime(datetime.datetime.now(), self.time_format_str)
         queue_timer = QtCore.QTimer(self)
@@ -755,8 +770,9 @@ def run_args():
             shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
         except shutil.SameFileError:
             pass
+        log.proc_count = 0
         if Grapher(work_dir, doc_nospace, doc_name).compile():
-            log.compile_tex(work_dir, doc_name, 'screen', upload=False)
+            log.compile_tex(work_dir, doc_name, 'screen')
 
 if len(sys.argv) > 1:
     run_args()
@@ -773,8 +789,9 @@ def choose_open_file():
             shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
         except shutil.SameFileError:
             pass
+        log.proc_count = 0
         if Grapher(work_dir, doc_nospace, doc_name).compile():
-            log.compile_tex(work_dir, doc_name, 'screen', upload=False)
+            log.compile_tex(work_dir, doc_name, 'screen')
     else:
         return
         

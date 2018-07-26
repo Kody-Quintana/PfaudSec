@@ -8,7 +8,9 @@
 \usepackage{xstring,ifthen,xifthen}     %-to manipulate strings
 \usepackage{graphicx}           %-to add images
 \usepackage{newunicodechar}
+\usepackage{lipsum}
 \usepackage{tabularx}
+%\usepackage{bookmark}
 \usepackage{tikz}               %-to create Pfaudler logo
 	\usetikzlibrary{shapes.geometric} %-for creating hexagon
 	\usetikzlibrary{calc}
@@ -34,6 +36,8 @@
             pdfproducer={},
             pdfcreator={}]{hyperref}
 
+\usepackage{bookmark}
+
 \newdateformat{monthyeardate}{%
   \monthname[\THEMONTH], \THEYEAR}
 
@@ -52,14 +56,11 @@
 ]{Pfaudler}
 %----------------------------%
 
-
-%\newfontfamily{\lucida}{Lucida Sans Unicode}
-
 %-----Margin formatting-----%
 
 %\usepackage[paperwidth=8.27in, paperheight=11.69in, landscape]{geometry}
 %\usepackage[paperwidth=7.5in, paperheight=13.33in, landscape]{geometry}
-\input{layout}
+\input{layout}%  ^one of these written to layout.tex by the Python script
 \geometry{top=0.9in, bottom=0.9in, left=0.9in, right=0.9in}
 %---------------------------%
 
@@ -153,13 +154,6 @@ r}%
 \fancypagestyle{style1}{
 \fancyhf{}
 \fancyhead[L]{\pflogowhite}
-\fancyhead[R]{
-P.O. Box 23600, Rochester, NY 14692-3600\\
-1000 West Ave. Rochester, NY 14611 USA\\
-\begin{tabular}{@{}l r@{}}
-Telephone:&\href{tel:5852351000}{1-585-235-1000}\\
-Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
-\end{tabular}}
 \fancyfoot[R]{}
 \renewcommand{\headrulewidth}{0.4pt}}
 
@@ -167,13 +161,9 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 \fancypagestyle{style2}{
 \fancyhf{}
 \fancyhead[L]{\fontsize{25}{25}\selectfont\color{pfblue}\textbf{\the\year \xspace QA}}
-\fancyfoot[R]{\thepage}
-%\fancyfoot[R]{%
-%\begin{tikzpicture}%
-%\node [opacity=1] (0,0) {\textbf{Quality Review: }\thepage\xspace of \pageref{LastPage}};
-%\end{tikzpicture}}
 \renewcommand{\headrulewidth}{1pt}}
 %-----------------------------------------------------------------------------------%
+
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
 
@@ -201,7 +191,7 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 
 %--section toc format--%
 \titlecontents{section}
-[1.5em]
+[6.6in]% Indentation of section name
 {}
 {\contentslabel{2.3em}}
 {}
@@ -209,34 +199,22 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 
 %--subsecion toc format--%
 \titlecontents{subsection}
-[4em]
+[6.9in]% Indentation of subsection name
 {\hangindent1em}
-{\contentslabel{2.3em}}
+{}%{\contentslabel{2.3em}}
 {}
 {\titlerule*[0.7pc]{.}\contentspage}
 
 %--Page number formatting--%
 \makeatletter
 \renewcommand{\contentspage}[1][\thecontentspage]{\hb@xt@\@pnumwidth{#1\hfil}\hspace*{-\@pnumwidth}}
-\renewcommand{\@pnumwidth}{3em}
+\renewcommand{\@pnumwidth}{0em} %distance of page number from right margin
 \makeatother
 
 %--------------------------------------------------%
 
-
-
-%%-----External job info (jobinfo.dat)-----%
-%\usepackage{datatool}
-%\DTLsetseparator{ = } %-Spaces must be included
-%\DTLloaddb[noheader, keys={thekey,thevalue}]{jobinfo}{jobinfo.dat}
-%\newcommand{\jobinfofill}[1]{\DTLfetch{jobinfo}{thekey}{#1}{thevalue}}
-%%-----------------------------------------%
-
-
-
 \setlength{\parskip}{0pt}
-\setlength\headheight{62pt}
-
+%\setlength\headheight{62pt}
 
 
 %-------------Page embedder-------------%
@@ -244,6 +222,7 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 
 %--newcommand for sections--%
 \newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
+\newcommand\addsubsection[1]{\addtocounter{subsection}{1}\phantomsection\addcontentsline{toc}{subsection}{{\arabic{section}.\arabic{subsection}.\xspace } {#1}}}
 
 %--newcommand for subsections--%
 \newcommand\addpage[1]{%
@@ -253,8 +232,6 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 	\includepdf[scale=0.95,pages=-,addtotoc={1,subsection,1,\temp,\temp},pagecommand=\phantomsection]{#1}}
 
 %---------------------------------------%
-
-%\newunicodechar{≥}{\makebox[.5em]{\lucida≥}}
 
 
 %%%%%                                                                                                       %%%%%
@@ -268,30 +245,45 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 %%%%%                 |___/                                                                                 %%%%%
 
 \begin{document}
-\AddToShipoutPictureBG*{\pflogoart}
-
+\AddToShipoutPictureBG{\pflogoart}
 \renewcommand{\headrulewidth}{0pt}
-\setlength{\footskip}{20pt}
+\setlength{\footskip}{0pt}
 \pagestyle{style1}
 
 \renewcommand{\headrulewidth}{0pt}
 \newcolumntype{Y}{>{\centering\arraybackslash}X}
 
 
-%%-----Table of Contents-----%
-%\setcounter{tocdepth}{2}
-%\setcounter{secnumdepth}{-2}
-%\startcontents[section]
-%\begin{center}
-%\setlength{\parskip}{0.5em}
-%\addsection{Table of Contents}
-%\printcontents[section]{}{1}{}
-%\setlength{\parskip}{1em}
-%\end{center}
-%%---------------------------%
-\phantom{Placeholder for first page}
+
+%-----Table of Contents-----%
+\newcommand{\nocontentsline}[3]{}
+\newcommand{\tocless}[2]{\bgroup\let\addcontentsline=\nocontentsline#1{#2}\egroup}
+
+\setlength\headheight{0pt}
+\vspace*{\fill}
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{-2}
+\startcontents[section]
+
+\belowpdfbookmark{Table of Contents}{}
+
+
+\begin{tabularx}{1\textwidth}{@{}l Y@{}}
+\hspace{6.1in} %section indent minus parindent
+&%
+\LARGE\textbf{Charts Index}
+\end{tabularx}
+\large
+\large\printcontents[section]{}{1}{}
+\vspace*{\fill}
+%---------------------------%
+
+
+
+%\phantom{Placeholder for first page}
 %-----Begin Embedded Documents-----%
 \newpage %page style1 doesnt work without this newpage for some reason
+\ClearShipoutPicture
 %\setlength{\footskip}{20pt}
 \pagestyle{style2}
 \setlength\headheight{24pt}
