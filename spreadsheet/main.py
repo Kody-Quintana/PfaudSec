@@ -29,8 +29,8 @@ import ui_log      # Log window
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
 
-if os.name == 'nt': #for pyinstaller on windows
-    os.chdir(os.path.dirname(sys.executable))
+#if os.name == 'nt': #for pyinstaller on windows
+#    os.chdir(os.path.dirname(sys.executable))
 
 def folder_check(folder):
     """Convenience function to make sure folder exists and define variable in one line"""
@@ -435,10 +435,9 @@ class Grapher(object):
         if self.config.getboolean('document', 'show_totals', fallback=False):
             self.totals_by_month_graph(title = self.doc_name.replace('_',' '))
     
-        non_column_sections = 'document'
         for column in self.config.sections():
     
-            if str(column).lower() in non_column_sections:
+            if str(column).lower() == 'document':
                 continue
     
             if self.column_has_data(column):
