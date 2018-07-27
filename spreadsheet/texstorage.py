@@ -117,12 +117,6 @@ r"""
 		x tick label style={},]
 	\addplot [draw=orange,
 		nodes near coords={}
-%			\pgfmathfloatifflags
-%			{\pgfplotspointmeta}{0}{}
-%			{\pgfmathprintnumber{\pgfplotspointmeta}}},
-%		nodes near coords align={south},
-%		nodes near coords style={font=\Large,/pgf/number format/assume math mode},
-%		every node near coord/.append style={xshift=0pt,yshift=0pt,anchor=south,font=\color{orange}\Large}
 ]
 		coordinates{""",
 
