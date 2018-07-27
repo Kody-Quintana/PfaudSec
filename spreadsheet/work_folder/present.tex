@@ -1,27 +1,19 @@
 \documentclass{article}
 \usepackage{eso-pic}
 \usepackage{datetime}
-\usepackage{grffile}
 \usepackage{lastpage}           %-to identify last page
 \usepackage{xspace}             %-to force add a space
-\usepackage[abspath]{currfile}  %-to find path to this file
-\usepackage{xstring,ifthen,xifthen}     %-to manipulate strings
-\usepackage{graphicx}           %-to add images
-\usepackage{newunicodechar}
-\usepackage{lipsum}
 \usepackage{tabularx}
-%\usepackage{bookmark}
 \usepackage{tikz}               %-to create Pfaudler logo
 	\usetikzlibrary{shapes.geometric} %-for creating hexagon
 	\usetikzlibrary{calc}
 \usepackage{pgfplots} 
-\pgfplotsset
+\pgfplotsset %-Global settings for pgfplots
   {
-    compat                   = newest,
-    xtick style={draw=none},
-    %every tick/.append style = thin,
-    width= .95 \textwidth,
-    height= .80 \textheight
+    compat = newest,
+    xtick style = {draw=none},
+    width = .95 \textwidth,
+    height = .81 \textheight
   }
 
 \usepackage[linktoc=all,        %-for clickable links and pdf metadata
@@ -40,21 +32,23 @@
 
 \newdateformat{monthyeardate}{%
   \monthname[\THEMONTH], \THEYEAR}
-
-
 \newcommand*{\fyyear}{\Roman{year}}
+
+
 
 %-----Font configuration-----%
 \usepackage{fontspec}
+\defaultfontfeatures{Ligatures={NoCommon,TeX}}
 \setmainfont[
   Path          = ./,
-  Ligatures     = TeX,
   UprightFont   = font/OTF/Pfaudler-Book.otf,
   BoldItalicFont= font/OTF/Pfaudler-BoldItalic.otf,
   BoldFont      = font/OTF/Pfaudler-Bold.otf,
   ItalicFont    = font/OTF/Pfaudler-BookItalic.otf
 ]{Pfaudler}
 %----------------------------%
+
+
 
 %-----Margin formatting-----%
 
@@ -66,15 +60,16 @@
 
 
 
+
 %-----Pfaudler colorscheme-----%
 \definecolor{pfblue}{RGB}{52,134,199}
 \definecolor{pfgrey}{RGB}{125,125,130}
 %------------------------------%
 
 
+
 %--------------Pfaudler logo (invoke with \pflogo)---------------%
 %---(Must be contained in one paragraph for use in the header)---%
-
 \newcommand\pflogo{%
 \raisebox{-9pt}{%
 \begin{tikzpicture}
@@ -108,7 +103,6 @@ r}%
 %--Pf hexagon text--%
 \node [text=white, scale=1.1] at (4.70,1.32) {\large{\textbf{Pf}}};
 \end{tikzpicture}}}
-
 %----------------------------------------------------------------%
 \newcommand\pflogowhite{%
 \raisebox{-9pt}{%
@@ -146,6 +140,8 @@ r}%
 %----------------------------------------------------------------%
 
 
+
+
 %---------------------------------Header Formatting---------------------------------%
 \usepackage{fancyhdr}
 \pagestyle{fancy}
@@ -154,19 +150,22 @@ r}%
 \fancypagestyle{style1}{
 \fancyhf{}
 \fancyhead[L]{\pflogowhite}
-\fancyfoot[R]{\raisebox{-2em}{\input{pfroc}}}
+\fancyfoot[R]{\raisebox{-2.5em}{\input{pfroc}}}
 \renewcommand{\headrulewidth}{0.4pt}}
 
 %--Embedded documents overlay header--%
 \fancypagestyle{style2}{
 \fancyhf{}
 \fancyhead[L]{\fontsize{25}{25}\selectfont{\hypersetup{linkcolor=pfblue}\hyperref[sec:firstpage]{\textbf{\the\year \xspace QA}}}}
+%\fancyhead[L]{\fontsize{25}{25}\selectfont{\hypersetup{linkcolor=pfblue}\hyperref[sec:firstpage]{\textbf{\input{name}}}}}
+\fancyfoot[R]{\raisebox{0em}{\input{pfroc}}}
 \renewcommand{\headrulewidth}{1pt}}
 %-----------------------------------------------------------------------------------%
 
+
+
+%---------------Cover page tikz picture----------------%
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
-
-
 \newcommand{\pflogoart}{
 \begin{tikzpicture}[remember picture, overlay]
 \draw node[
@@ -177,12 +176,14 @@ r}%
 	minimum size=14in,
 	text=white
 ](inner) at (current page.west) {};
-\path  ($(inner.center)!0.44!(inner.east)$) node[text=white]{\fontsize{45}{45}\selectfont\textbf{
+\path  ($(inner.center)!0.44!(inner.east)$) node[text=white]{\fontsize{50}{50}\selectfont\textbf{
 \begin{tabular}{C{6in}}
 \input{name}
 \end{tabular}}};
-\end{tikzpicture}
-}
+\end{tikzpicture}}
+%------------------------------------------------------%
+
+
 
 
 %-----------Table of Contents Formatting-----------%
@@ -213,25 +214,14 @@ r}%
 
 %--------------------------------------------------%
 
+
 \setlength{\parskip}{0pt}
-%\setlength\headheight{62pt}
 
 
-%-------------Page embedder-------------%
-\usepackage{pdfpages}
-
-%--newcommand for sections--%
+%--newcommand for sections & subsections--%
 \newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
 \newcommand\addsubsection[1]{\addtocounter{subsection}{1}\phantomsection\addcontentsline{toc}{subsection}{{} {#1}}}
-
-%--newcommand for subsections--%
-\newcommand\addpage[1]{%
-	\StrBefore[1]{#1}{.}[\temp]%-Display name must be stored in \temp because of expansion behavior in \includepdf
-	\IfSubStr{\temp}{/}{\StrBehind{\temp}{/}[\temp]}{}%
-	\StrSubstitute{\temp}{!}{ }[\temp]
-	\includepdf[scale=0.95,pages=-,addtotoc={1,subsection,1,\temp,\temp},pagecommand=\phantomsection]{#1}}
-
-%---------------------------------------%
+%-----------------------------------------%
 
 
 %%%%%                                                                                                       %%%%%
@@ -255,9 +245,6 @@ r}%
 
 
 %-----Table of Contents-----%
-\newcommand{\nocontentsline}[3]{}
-\newcommand{\tocless}[2]{\bgroup\let\addcontentsline=\nocontentsline#1{#2}\egroup}
-
 \setlength\headheight{0pt}
 \vspace*{\fill}
 \setcounter{tocdepth}{2}
@@ -272,7 +259,6 @@ r}%
 \hspace{6.1in} %section indent minus parindent
 &%
 \input{clipboard2}\\
-%&\LARGE\textbf{Charts Index}
 \end{tabularx}
 \Large\printcontents[section]{}{1}{}
 \vspace*{\fill}
@@ -280,18 +266,18 @@ r}%
 
 
 
-%\phantom{Placeholder for first page}
-%-----Begin Embedded Documents-----%
+%-----Begin Embedded Graphs-----%
 \newpage %page style1 doesnt work without this newpage for some reason
 \ClearShipoutPicture
-%\setlength{\footskip}{20pt}
 \pagestyle{style2}
-\setlength\headheight{24pt}
+\setlength\headheight{1.5em}
 \renewcommand{\headrulewidth}{0pt}
 \include{graph}
 %----------------------------------%
 
 
+
+%----------Pgfplots templates, uncomment for testing----------%
 %\LARGE
 %\begin{tikzpicture}% Line graph, use for data over time
 %	\begin{axis}
