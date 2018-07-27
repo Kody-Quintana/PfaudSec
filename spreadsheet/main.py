@@ -29,8 +29,23 @@ import ui_log      # Log window
 #pgfplots tex file stored as list in a python file
 from texstorage import line_graph_tex, bar_graph_tex 
 
-#if os.name == 'nt': #for pyinstaller on windows
-#    os.chdir(os.path.dirname(sys.executable))
+if getattr(sys, 'frozen', False):
+    os.chdir(os.path.dirname(sys.executable))
+
+def fy_date(date):
+    month = date.strftime('%B')
+    if date.month in (10,11,12):
+        year = str(int(date.strftime('%Y')) + 1)
+    else:
+        year = date.strftime('%Y')
+    return month + ', FY' + year
+
+def fy_year(date):
+    if date.month in (10,11,12):
+        year = str(int(date.strftime('%Y')) + 1)
+    else:
+        year = date.strftime('%Y')
+    return 'FY' + year
 
 def folder_check(folder):
     """Convenience function to make sure folder exists and define variable in one line"""
@@ -286,7 +301,7 @@ class Grapher(object):
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
             graphs_file.write(r'\newpage\addsection{' + title + '}')
             graphs_file.write(line_graph_tex[0])
-            graphs_file.write(title + ' - ' + now.strftime('%B, %Y'))
+            graphs_file.write(title + ' - ' + fy_date(now))
             graphs_file.write(line_graph_tex[1])
             graphs_file.write(symbolic_xcoords)
             graphs_file.write(line_graph_tex[2])
@@ -348,7 +363,7 @@ class Grapher(object):
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
             graphs_file.write(r'\newpage\addsection{' + title + '}')
             graphs_file.write(bar_graph_tex[0])
-            graphs_file.write(title + ' - ' + now.strftime('%B, %Y'))
+            graphs_file.write(title + ' - ' + fy_date(now))
             graphs_file.write(bar_graph_tex[1])
             #TODO make bar width = 0.5/num of bars
             graphs_file.write(symbolic_xcoords)
@@ -435,7 +450,7 @@ class Grapher(object):
                     self.config.get('document', 'totals_title', fallback = self.doc_name.replace('_',' ')))
 
         with open(self.work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
-            name_file.write(self.config.get('document', 'cover_title', fallback = self.doc_name.replace('_',' ')) + r'\\' + '\n' + now.strftime('%B, %Y'))#TODO Fiscal
+            name_file.write(self.config.get('document', 'cover_title', fallback = self.doc_name.replace('_',' ')) + r'\\' + '\n' + fy_date(now))
 
         for column in self.config.sections():
     
