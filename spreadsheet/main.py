@@ -102,8 +102,6 @@ class EditConfig(QtWidgets.QDialog, ini_edit.Ui_Dialog):
     def save_file(self):
         with open(self.file_to_save, 'w') as ini_file:
             ini_file.write(self.textEdit.toPlainText())
-
-    def closeEvent(self, event):
         trayIcon.rebuild_menu()
 
 class Grapher(object):
@@ -251,7 +249,7 @@ class Grapher(object):
                         months=int(relative_month)))
     
     
-    def totals_by_month_graph(self, months=12, title='Totals by month'):
+    def totals_by_month_graph(self, title, months=12):
         """Writes line pgfplot to graph.tex of totals by month"""
         column = self.date_column
         months_counter = [0] * months
@@ -286,7 +284,7 @@ class Grapher(object):
         coordinates = '\n'.join([str(i) for i in coordinates])
     
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
-            graphs_file.write(r'\newpage\addsection{' + 'Totals' + '}')
+            graphs_file.write(r'\newpage\addsection{' + title + '}')
             graphs_file.write(line_graph_tex[0])
             graphs_file.write(title + ' - ' + now.strftime('%B, %Y'))
             graphs_file.write(line_graph_tex[1])
@@ -433,8 +431,12 @@ class Grapher(object):
         
         # Totals from date column
         if self.config.getboolean('document', 'show_totals', fallback=False):
-            self.totals_by_month_graph(title = self.doc_name.replace('_',' '))
-    
+            self.totals_by_month_graph(title =\
+                    self.config.get('document', 'totals_title', fallback = self.doc_name.replace('_',' ')))
+
+        with open(self.work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
+            name_file.write(self.config.get('document', 'cover_title', fallback = self.doc_name.replace('_',' ')) + r'\\' + '\n' + now.strftime('%B, %Y'))#TODO Fiscal
+
         for column in self.config.sections():
     
             if str(column).lower() == 'document':
@@ -548,8 +550,6 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
 
         with open(work_dir + '/layout.tex', 'w', encoding='utf-8') as layout_file:
             layout_file.write(self.layout_text.get(layout))
-        with open(work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
-            name_file.write(filename_noext(name).replace('_',' ') + r'\\' + '\n' + now.strftime('%B, %Y'))
 
  
         self.process_0.setWorkingDirectory(work_dir)
