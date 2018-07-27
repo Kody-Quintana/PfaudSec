@@ -491,7 +491,10 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.process_0.readyRead.connect(self.stdout_and_err_Ready)
         self.process_0.finished.connect(self.done_statement)
         self.process_0.stateChanged.connect(self.menu_disable)
-        self.proc_count = 0 #Counter to run XeLaTeX four time (three for accurate TOC, fourth for other layout)
+        self.proc_count = 0 #Counter to run XeLaTeX four times (three for accurate TOC, fourth for other layout)
+        self.xelatex_config()
+        self.buttonBox.button(QtWidgets.QDialogButtonBox.Abort).clicked.connect(self.process_0.kill)
+
         self.outputbox_2.setMaximumBlockCount(50)
         self.outputbox.setReadOnly(True)
         self.outputbox_2.setReadOnly(True)
@@ -499,7 +502,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.outputbox.setFont(font)
         self.outputbox_2.setFont(font)
 
-        self.xelatex_config()
+
 
     def menu_disable(self):
         """Disable menu and set running icon animation while XeLaTeX is running"""

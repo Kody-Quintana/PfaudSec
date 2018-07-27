@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'log.ui'
 #
-# Created by: PyQt5 UI code generator 5.10.1
+# Created by: PyQt5 UI code generator 5.11.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -46,8 +46,9 @@ class Ui_Dialog(object):
         sizePolicy.setHeightForWidth(self.buttonBox.sizePolicy().hasHeightForWidth())
         self.buttonBox.setSizePolicy(sizePolicy)
         self.buttonBox.setLayoutDirection(QtCore.Qt.LeftToRight)
-        self.buttonBox.setOrientation(QtCore.Qt.Vertical)
-        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Close)
+        self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Abort|QtWidgets.QDialogButtonBox.Close)
+        self.buttonBox.setCenterButtons(False)
         self.buttonBox.setObjectName("buttonBox")
         self.horizontalLayout_2.addWidget(self.buttonBox)
         self.verticalLayout_3.addLayout(self.horizontalLayout_2)
