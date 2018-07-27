@@ -154,13 +154,13 @@ r}%
 \fancypagestyle{style1}{
 \fancyhf{}
 \fancyhead[L]{\pflogowhite}
-\fancyfoot[R]{}
+\fancyfoot[R]{\raisebox{-2em}{\input{pfroc}}}
 \renewcommand{\headrulewidth}{0.4pt}}
 
 %--Embedded documents overlay header--%
 \fancypagestyle{style2}{
 \fancyhf{}
-\fancyhead[L]{\fontsize{25}{25}\selectfont\color{pfblue}\textbf{\the\year \xspace QA}}
+\fancyhead[L]{\fontsize{25}{25}\selectfont{\hypersetup{linkcolor=pfblue}\hyperref[sec:firstpage]{\textbf{\the\year \xspace QA}}}}
 \renewcommand{\headrulewidth}{1pt}}
 %-----------------------------------------------------------------------------------%
 
@@ -177,7 +177,7 @@ r}%
 	minimum size=14in,
 	text=white
 ](inner) at (current page.west) {};
-\path  ($(inner.center)!0.44!(inner.east)$) node[text=white]{\fontsize{40}{40}\selectfont\textbf{
+\path  ($(inner.center)!0.44!(inner.east)$) node[text=white]{\fontsize{45}{45}\selectfont\textbf{
 \begin{tabular}{C{6in}}
 \input{name}
 \end{tabular}}};
@@ -222,7 +222,7 @@ r}%
 
 %--newcommand for sections--%
 \newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
-\newcommand\addsubsection[1]{\addtocounter{subsection}{1}\phantomsection\addcontentsline{toc}{subsection}{{\arabic{section}.\arabic{subsection}.\xspace } {#1}}}
+\newcommand\addsubsection[1]{\addtocounter{subsection}{1}\phantomsection\addcontentsline{toc}{subsection}{{} {#1}}}
 
 %--newcommand for subsections--%
 \newcommand\addpage[1]{%
@@ -247,7 +247,6 @@ r}%
 \begin{document}
 \AddToShipoutPictureBG{\pflogoart}
 \renewcommand{\headrulewidth}{0pt}
-\setlength{\footskip}{0pt}
 \pagestyle{style1}
 
 \renewcommand{\headrulewidth}{0pt}
@@ -265,16 +264,17 @@ r}%
 \setcounter{secnumdepth}{-2}
 \startcontents[section]
 
+\label{sec:firstpage}
 \belowpdfbookmark{Table of Contents}{}
 
 
 \begin{tabularx}{1\textwidth}{@{}l Y@{}}
 \hspace{6.1in} %section indent minus parindent
 &%
-\LARGE\textbf{Charts Index}
+\input{clipboard2}\\
+%&\LARGE\textbf{Charts Index}
 \end{tabularx}
-\large
-\large\printcontents[section]{}{1}{}
+\Large\printcontents[section]{}{1}{}
 \vspace*{\fill}
 %---------------------------%
 
