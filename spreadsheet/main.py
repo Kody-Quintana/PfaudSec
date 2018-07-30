@@ -308,7 +308,7 @@ class Grapher(object):
             graphs_file.write(line_graph_tex[4])
     
     def totals_by_month_percent_graph(self, title, months=12):
-        """Writes line pgfplot to graph.tex of totals by month"""
+        """Writes percent line pgfplot to graph.tex of totals by month compared to a total from adjacent column"""
         column = self.date_column
         total_column = get_column_letter(column_index_from_string(self.date_column) + 1)
         months_counter = [0] * months
@@ -320,6 +320,7 @@ class Grapher(object):
     
         for index, data in reversed(list(self.cell_enumerate(self.column_list(self.date_column)))):
             column_value = self.ws[column + str(index)].value
+            total_column_value = self.ws[total_column + str(index)].value
             try:
                 months_ago = self.diff_month(now, column_value)
             except AttributeError:
@@ -329,19 +330,8 @@ class Grapher(object):
             if months_ago < 0:
                 continue
             months_counter[months_ago] += 1
-
-        for index, data in reversed(list(self.cell_enumerate(self.column_list(self.date_column)))):
-            column_value = self.ws[total_column + str(index)].value
-            try:
-                months_ago = self.diff_month(now, data)
-            except AttributeError:
-                continue
-            if months_ago > (months - 1):
-                break
-            if months_ago < 0:
-                continue
-            if column_value != None:
-                months_total_counter[months_ago] = column_value
+            if total_column_value != None:
+                months_total_counter[months_ago] = total_column_value
     
         for i in months_counter:
             if i > 5:
@@ -505,8 +495,7 @@ class Grapher(object):
             return
 
         print()
-        print('Starting PfaudSec Graph compiler.\nLoaded config from '\
-                + str(self.config_file) + ':\n')
+        print('\nLoaded config from ' + str(self.config_file) + ':\n')
         
 
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as name_file:
@@ -518,6 +507,7 @@ class Grapher(object):
             self.totals_by_month_graph(title =\
                     self.config.get('document', 'totals_title', fallback = self.doc_name.replace('_',' ')))
 
+        # Totals of date column compared to a total from adjacent column
         if self.config.getboolean('document', 'show_percent_totals', fallback=False):
             self.totals_by_month_percent_graph(title =\
                     self.config.get('document', 'percent_totals_title', fallback = self.doc_name.replace('_',' ')))
@@ -699,7 +689,8 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.menu.addSeparator()
         for item in os.listdir('resource'):
             if item.endswith('.ini'):
-                self.menu.addAction('Edit ' + item).triggered.connect(functools.partial(edit_base_function, config_file = 'resource' + '/' + item))
+                self.menu.addAction('Edit ' + item).triggered.connect\
+                        (functools.partial(edit_base_function, config_file = 'resource' + '/' + item))
         self.menu.addSeparator()
         run_month = self.menu.addAction('Set graph month')
         run_month.triggered.connect(self.get_run_month)
@@ -809,7 +800,6 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def double_click(self):
         choose_open_folder()
-        #choose_open_file()
 
     def single_click(self):
         if log.isVisible():
