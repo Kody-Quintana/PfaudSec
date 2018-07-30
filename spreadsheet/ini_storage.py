@@ -11,9 +11,13 @@ ini_document = """
 ; <-- Comment character (all text after will be ignored)
 ;
 ; [document]        <-- document information section (only one per ini file)
+; name = Name       <-- display name of document
 ; worksheet = 1     <-- which worksheet contains the information
 ; date_column = B   <-- which column has the entry dates
-; show_totals = yes <-- create a totals graph
+; show_totals = yes  <-- create a totals graph
+; totals_title = Title  <-- title for totals graph
+; show_percent_totals = yes  <-- compare totals to a total entered in next column
+; percent_totals_title = Title  <-- title for percent totals graph
 ; 
 ; [I]                 <-- column info section (many per ini file)
 ; title = Item Type   <-- title of graphs for this column

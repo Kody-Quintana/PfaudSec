@@ -12,7 +12,7 @@
   {
     compat = newest,
     xtick style = {draw=none},
-    width = .95 \textwidth,
+    width = .92 \textwidth,
     height = .80 \textheight
   }
 
@@ -55,7 +55,7 @@
 %\usepackage[paperwidth=8.27in, paperheight=11.69in, landscape]{geometry}
 %\usepackage[paperwidth=7.5in, paperheight=13.33in, landscape]{geometry}
 \input{layout}%  ^one of these written to layout.tex by the Python script
-\geometry{top=0.9in, bottom=0.9in, left=0.9in, right=0.9in}
+\geometry{top=0.9in, bottom=0.9in, left=0.5in, right=0.5in}
 %---------------------------%
 
 
@@ -150,16 +150,14 @@ r}%
 \fancypagestyle{style1}{
 \fancyhf{}
 \fancyhead[L]{\pflogowhite}
-\fancyfoot[R]{\raisebox{-2.5em}{\input{pfroc}}}
-\renewcommand{\headrulewidth}{0.4pt}}
+}
 
 %--Embedded documents overlay header--%
 \fancypagestyle{style2}{
 \fancyhf{}
+\fancyhead[R]{\fontsize{30}{30}\selectfont\color{pfblue}\textbf{\rightmark}}
 \fancyhead[L]{\fontsize{30}{30}\selectfont{\hypersetup{linkcolor=pfblue}\hyperref[sec:firstpage]{\textbf{\the\year \xspace QA}}}}
-%\fancyhead[L]{\fontsize{25}{25}\selectfont{\hypersetup{linkcolor=pfblue}\hyperref[sec:firstpage]{\textbf{\input{name}}}}}
-%\fancyfoot[R]{\raisebox{0em}{\input{pfroc}}}
-\renewcommand{\headrulewidth}{1pt}}
+}
 %-----------------------------------------------------------------------------------%
 
 
@@ -180,10 +178,15 @@ r}%
 \begin{tabular}{C{6in}}
 \input{name}
 \end{tabular}}};
+\path (current page.south east) node[outer xsep = 0.5in, outer ysep = 20pt, anchor=south east, text=black]{\input{pfroc}};
 \end{tikzpicture}}
 %------------------------------------------------------%
 
 
+\newcommand{\pflogoarttwo}{
+\begin{tikzpicture}[remember picture, overlay]
+\path (current page.south east) node[outer xsep = 0.5in, outer ysep = 20pt, anchor=south east, text=black]{\input{pfroc}};
+\end{tikzpicture}}
 
 
 %-----------Table of Contents Formatting-----------%
@@ -192,7 +195,7 @@ r}%
 
 %--section toc format--%
 \titlecontents{section}
-[6.6in]% Indentation of section name
+[7in]% Indentation of section name
 {}
 {\contentslabel{2.3em}}
 {}
@@ -200,7 +203,15 @@ r}%
 
 %--subsecion toc format--%
 \titlecontents{subsection}
-[6.9in]% Indentation of subsection name
+[7.3in]% Indentation of subsection name
+{\hangindent1em}
+{}%{\contentslabel{2.3em}}
+{}
+{\titlerule*[0.7pc]{.}\contentspage}
+
+%--subsubsecion toc format--%
+\titlecontents{subsubsection}
+[7.7in]% Indentation of subsubsection name
 {\hangindent1em}
 {}%{\contentslabel{2.3em}}
 {}
@@ -209,7 +220,7 @@ r}%
 %--Page number formatting--%
 \makeatletter
 \renewcommand{\contentspage}[1][\thecontentspage]{\hb@xt@\@pnumwidth{#1\hfil}\hspace*{-\@pnumwidth}}
-\renewcommand{\@pnumwidth}{0em} %distance of page number from right margin
+\renewcommand{\@pnumwidth}{0.5in} %distance of page number from right margin
 \makeatother
 
 %--------------------------------------------------%
@@ -219,8 +230,12 @@ r}%
 
 
 %--newcommand for sections & subsections--%
-\newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
+%\newcommand{\sectiontitle}{}
+%\definecommand{setsectiontitle}[1]{\renewcommand{sectiontitle}{#1}}
+
+\newcommand\addsection[1]{\markright{#1}\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
 \newcommand\addsubsection[1]{\addtocounter{subsection}{1}\phantomsection\addcontentsline{toc}{subsection}{{} {#1}}}
+\newcommand\addsubsubsection[1]{\addtocounter{subsubsection}{1}\phantomsection\addcontentsline{toc}{subsubsection}{{} {#1}}}
 %-----------------------------------------%
 
 
@@ -234,22 +249,23 @@ r}%
 %%%%%                  __/ |                                                                                %%%%%
 %%%%%                 |___/                                                                                 %%%%%
 
+%\renewcommand{\sectionmark}[1]{\markright{\thesection\ #1}}
 \begin{document}
-\AddToShipoutPictureBG{\pflogoart}
-\renewcommand{\headrulewidth}{0pt}
+\setlength\headheight{0pt}
 \pagestyle{style1}
-
+\AddToShipoutPictureBG{\pflogoart}
 \renewcommand{\headrulewidth}{0pt}
 \newcolumntype{Y}{>{\centering\arraybackslash}X}
 
 
 
 %-----Table of Contents-----%
-\setlength\headheight{0pt}
+
 \vspace*{\fill}
 \setcounter{tocdepth}{2}
 \setcounter{secnumdepth}{-2}
 \startcontents[section]
+
 
 \label{sec:firstpage}
 \belowpdfbookmark{Table of Contents}{}
@@ -258,9 +274,9 @@ r}%
 \begin{tabularx}{1\textwidth}{@{}l Y@{}}
 \hspace{6.1in} %section indent minus parindent
 &%
-\input{clipboard2}\\
+\input{clipboard2}
 \end{tabularx}
-\Large\printcontents[section]{}{1}{}
+\large\printcontents[section]{}{1}{}
 \vspace*{\fill}
 %---------------------------%
 
@@ -269,7 +285,9 @@ r}%
 %-----Begin Embedded Graphs-----%
 \newpage %page style1 doesnt work without this newpage for some reason
 \ClearShipoutPicture
+\AddToShipoutPictureBG{\pflogoarttwo}
 \pagestyle{style2}
+%\renewcommand{\sectionmark}[1]{\markright{#1}}
 \setlength\headheight{1.5em}
 \renewcommand{\headrulewidth}{0pt}
 \include{graph}

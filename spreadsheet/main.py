@@ -15,7 +15,7 @@ import sys
 import io
 import os
 
-from openpyxl.utils import column_index_from_string
+from openpyxl.utils import column_index_from_string, get_column_letter
 from PyQt5 import QtWidgets, QtCore, QtGui
 from openpyxl import load_workbook
 from collections import Counter
@@ -27,21 +27,21 @@ import date_set    # QDialog to change date
 import ui_log      # Log window
 
 #pgfplots tex file stored as list in a python file
-from texstorage import line_graph_tex, bar_graph_tex 
+from texstorage import line_graph_tex, bar_graph_tex, percent_line_graph_tex
 
 if getattr(sys, 'frozen', False):
     os.chdir(os.path.dirname(sys.executable))
 
 def fy_date(date):
     month = date.strftime('%B')
-    if date.month in (10,11,12):
+    if date.month in (9,10,11,12):
         year = str(int(date.strftime('%Y')) + 1)
     else:
         year = date.strftime('%Y')
     return month + ', FY' + year
 
 def fy_year(date):
-    if date.month in (10,11,12):
+    if date.month in (9,10,11,12):
         year = str(int(date.strftime('%Y')) + 1)
     else:
         year = date.strftime('%Y')
@@ -123,10 +123,6 @@ class Grapher(object):
 
     def __init__(self, work_dir, work_file, doc_name):
         self.ready = False
-        try:
-            os.remove(work_dir + '/graph.tex')
-        except OSError:
-            pass
         self.doc_name = filename_noext(doc_name)
         self.work_dir = work_dir
         self.work_file = work_file
@@ -299,7 +295,7 @@ class Grapher(object):
         coordinates = '\n'.join([str(i) for i in coordinates])
     
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
-            graphs_file.write(r'\newpage\addsection{' + title + '}')
+            graphs_file.write(r'\newpage\addsubsection{' + title + '}')
             graphs_file.write(line_graph_tex[0])
             graphs_file.write(title + ' - ' + fy_date(now))
             graphs_file.write(line_graph_tex[1])
@@ -311,6 +307,74 @@ class Grapher(object):
             graphs_file.write(coordinates)
             graphs_file.write(line_graph_tex[4])
     
+    def totals_by_month_percent_graph(self, title, months=12):
+        """Writes line pgfplot to graph.tex of totals by month"""
+        column = self.date_column
+        total_column = get_column_letter(column_index_from_string(self.date_column) + 1)
+        months_counter = [0] * months
+        months_total_counter = [0] * months
+        return_dict = {}
+        symbolic_xcoords = [] # turns into string later
+        coordinates = []
+        ticks_distance_flag = 0
+    
+        for index, data in reversed(list(self.cell_enumerate(self.column_list(self.date_column)))):
+            column_value = self.ws[column + str(index)].value
+            try:
+                months_ago = self.diff_month(now, column_value)
+            except AttributeError:
+                continue
+            if months_ago > (months - 1):
+                break
+            if months_ago < 0:
+                continue
+            months_counter[months_ago] += 1
+
+        for index, data in reversed(list(self.cell_enumerate(self.column_list(self.date_column)))):
+            column_value = self.ws[total_column + str(index)].value
+            try:
+                months_ago = self.diff_month(now, data)
+            except AttributeError:
+                continue
+            if months_ago > (months - 1):
+                break
+            if months_ago < 0:
+                continue
+            if column_value != None:
+                months_total_counter[months_ago] = column_value
+    
+        for i in months_counter:
+            if i > 5:
+                ticks_distance_flag = 1
+                break
+
+        for index, count in enumerate(months_counter):
+            try:
+                months_counter[index] = float(count) / float(months_total_counter[index]) * 100
+            except ZeroDivisionError:
+                months_counter[index] = 0
+                print('Warning: no total specified for ' + self.relative_month_to_string(index))
+
+        for index, data in reversed(list(enumerate(months_counter))):
+            xcoord_name = self.relative_month_to_string(index)
+            coordinates.append('(' + xcoord_name + ',' + str(data) + ')')
+            symbolic_xcoords.append(xcoord_name + ',')
+    
+        symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
+        coordinates = '\n'.join([str(i) for i in coordinates])
+    
+        with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
+            graphs_file.write(r'\newpage\addsubsection{' + title + '}')
+            graphs_file.write(percent_line_graph_tex[0])
+            graphs_file.write(title + ' - ' + fy_date(now))
+            graphs_file.write(percent_line_graph_tex[1])
+            graphs_file.write(symbolic_xcoords)
+            graphs_file.write(percent_line_graph_tex[2])
+            if ticks_distance_flag == 0:
+                graphs_file.write('ytick distance=1,')
+            graphs_file.write(percent_line_graph_tex[3])
+            graphs_file.write(coordinates)
+            graphs_file.write(percent_line_graph_tex[4])
     
     def values_by_month(self, column, months=12):
         """returns dict of tuples, tuple index is how many months ago data is for"""
@@ -361,7 +425,7 @@ class Grapher(object):
                 for index, percent in enumerate(pareto)])
     
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
-            graphs_file.write(r'\newpage\addsection{' + title + '}')
+            graphs_file.write(r'\newpage\addsubsection{' + title + '}')
             graphs_file.write(bar_graph_tex[0])
             graphs_file.write(title + ' - ' + fy_date(now))
             graphs_file.write(bar_graph_tex[1])
@@ -381,7 +445,7 @@ class Grapher(object):
     def monthly_graph(self, column, title, months=12, blanks=False):
         """Writes line pgfplot to graph.tex for one catagory over time"""
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
-            graphs_file.write(r'\newpage\addsection{' + title + ' monthly graphs}\n')
+            graphs_file.write(r'\newpage\addsubsection{' + title + ' monthly graphs}\n')
 
         for catagory, month_count_tuple in sorted(self.values_by_month(column, months).items()):
     
@@ -409,7 +473,7 @@ class Grapher(object):
             coordinates = '\n'.join([str(i) for i in coordinates])
     
             with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
-                graphs_file.write(r'\addsubsection{' + catagory + '}')
+                graphs_file.write(r'\addsubsubsection{' + catagory + '}')
                 graphs_file.write(line_graph_tex[0])
                 graphs_file.write(title + ' - ' + catagory)
                 graphs_file.write(line_graph_tex[1])
@@ -444,13 +508,19 @@ class Grapher(object):
         print('Starting PfaudSec Graph compiler.\nLoaded config from '\
                 + str(self.config_file) + ':\n')
         
+
+        with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as name_file:
+            name_file.write(r'\newpage') #Without newpage the section name in header will be off by one
+            name_file.write(r'\addsection{' + self.config.get('document', 'name', fallback = self.doc_name.replace('_',' ')) + '}')
+
         # Totals from date column
         if self.config.getboolean('document', 'show_totals', fallback=False):
             self.totals_by_month_graph(title =\
                     self.config.get('document', 'totals_title', fallback = self.doc_name.replace('_',' ')))
 
-        with open(self.work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
-            name_file.write(self.config.get('document', 'cover_title', fallback = self.doc_name.replace('_',' ')) + r'\\' + '\n' + fy_date(now))
+        if self.config.getboolean('document', 'show_percent_totals', fallback=False):
+            self.totals_by_month_percent_graph(title =\
+                    self.config.get('document', 'percent_totals_title', fallback = self.doc_name.replace('_',' ')))
 
         for column in self.config.sections():
     
@@ -625,7 +695,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         self.menu.clear()
 
         open_xlsx = self.menu.addAction('Open spreadsheet file')
-        open_xlsx.triggered.connect(lambda: choose_open_file())
+        open_xlsx.triggered.connect(lambda: choose_open_folder())
         self.menu.addSeparator()
         for item in os.listdir('resource'):
             if item.endswith('.ini'):
@@ -738,7 +808,8 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             self.double_click()
 
     def double_click(self):
-        choose_open_file()
+        choose_open_folder()
+        #choose_open_file()
 
     def single_click(self):
         if log.isVisible():
@@ -770,46 +841,33 @@ trayIcon.show()
 sys.stdout = trayIcon
 log = LogWindow()
 
-def run_args():
-    for arg in sys.argv:
-        if '.xlsx' in arg:
-            local_file = arg
-    if 'local_file' in locals():
-        work_dir = folder_check('work_folder')
-        if os.name == 'nt':
-            doc_name = local_file.split('\\')
-            doc_name = doc_name[len(doc_name) - 1]
-        else:
-            doc_name = local_file.split('/')
-            doc_name = doc_name[len(doc_name) - 1]
-        doc_nospace = doc_name.replace(' ','_')
-        try:
-            shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
-        except shutil.SameFileError:
-            pass
-        log.proc_count = 0
-        if Grapher(work_dir, doc_nospace, doc_name).compile():
-            log.compile_tex(work_dir, doc_name, 'screen')
 
-if len(sys.argv) > 1:
-    run_args()
-
-def choose_open_file():
-    files_filter_list = 'XLSX files (*.xlsx) ;; All files (*)'
-    local_file = QtWidgets.QFileDialog.getOpenFileName(None, "Choose spreadsheet file", "", files_filter_list)[0]
-    if local_file:
+def choose_open_folder():
+    input_folder = str(QtWidgets.QFileDialog.getExistingDirectory(None, "Select Job Documents Directory"))
+    if input_folder:
         work_dir = folder_check('work_folder')
-        doc_name = local_file.split('/')
-        doc_name = doc_name[len(doc_name) - 1]
-        doc_nospace = doc_name.replace(' ','_')
+
+        folder_name = input_folder.split('/')
+        folder_name = folder_name[len(folder_name) - 1]
+        folder_name = folder_name.replace('_', ' ')
+        with open(work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
+            name_file.write(folder_name + r'\\' + '\n' + fy_date(now))
+
         try:
-            shutil.copyfile(local_file, work_dir + '/' + doc_nospace)
-        except shutil.SameFileError:
+            os.remove(work_dir + '/graph.tex')
+        except OSError:
             pass
+        for input_file in os.listdir(input_folder):
+            if input_file.endswith('.xlsx'):
+                doc_name = input_file.split('/')
+                doc_name = doc_name[len(doc_name) - 1]
+                doc_nospace = doc_name.replace(' ','_')
+                try:
+                    shutil.copyfile(input_folder + '/' + input_file, work_dir + '/' + doc_nospace)
+                except shutil.SameFileError:
+                    pass
+                Grapher(work_dir, doc_nospace, doc_name).compile()
         log.proc_count = 0
-        if Grapher(work_dir, doc_nospace, doc_name).compile():
-            log.compile_tex(work_dir, doc_name, 'screen')
-    else:
-        return
+        log.compile_tex(work_dir, folder_name, 'screen')
         
 sys.exit(app.exec_())
