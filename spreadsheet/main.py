@@ -264,12 +264,11 @@ class Grapher(object):
         """Writes line pgfplot to graph.tex of totals by month"""
         column = self.date_column
         months_counter = [0] * months
-        return_dict = {}
         symbolic_xcoords = [] # turns into string later
         coordinates = []
         ticks_distance_flag = 0
     
-        for index, data in reversed(list(self.cell_enumerate(self.column_list(self.date_column)))):
+        for index in range(int(self.cells_end), int(self.cells_start) - 1, -1):
             column_value = self.ws[column + str(index)].value
             try:
                 months_ago = self.diff_month(now, column_value)
@@ -313,12 +312,11 @@ class Grapher(object):
         total_column = get_column_letter(column_index_from_string(self.date_column) + 1)
         months_counter = [0] * months
         months_total_counter = [0] * months
-        return_dict = {}
         symbolic_xcoords = [] # turns into string later
         coordinates = []
         ticks_distance_flag = 0
     
-        for index, data in reversed(list(self.cell_enumerate(self.column_list(self.date_column)))):
+        for index in range(int(self.cells_end), int(self.cells_start) - 1, -1):
             column_value = self.ws[column + str(index)].value
             total_column_value = self.ws[total_column + str(index)].value
             try:
@@ -561,7 +559,6 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         font = QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
         self.outputbox.setFont(font)
         self.outputbox_2.setFont(font)
-
 
 
     def menu_disable(self):
