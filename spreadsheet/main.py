@@ -7,8 +7,6 @@ import functools
 import itertools
 import datetime
 import pathlib
-import appdirs
-import sharepy
 import shutil
 import time
 import sys
@@ -30,18 +28,21 @@ import ui_log      # Log window
 from texstorage import line_graph_tex, bar_graph_tex, percent_line_graph_tex
 
 if getattr(sys, 'frozen', False):
+    """Chdir to exe if frozen with pyinstaller"""
     os.chdir(os.path.dirname(sys.executable))
 
 def fy_date(date):
+    """Returns strftime('%B %Y') style date but with fiscal year"""
     month = date.strftime('%B')
-    if date.month in (9,10,11,12):
+    if date.month in (9, 10, 11, 12):
         year = str(int(date.strftime('%Y')) + 1)
     else:
         year = date.strftime('%Y')
     return month + ', FY' + year
 
 def fy_year(date):
-    if date.month in (9,10,11,12):
+    """Returns strftime('%Y') style year but with fiscal year"""
+    if date.month in (9, 10, 11, 12):
         year = str(int(date.strftime('%Y')) + 1)
     else:
         year = date.strftime('%Y')
@@ -49,7 +50,7 @@ def fy_year(date):
 
 def folder_check(folder):
     """Convenience function to make sure folder exists and define variable in one line"""
-    pathlib.Path(folder).mkdir(parents = True, exist_ok = True)
+    pathlib.Path(folder).mkdir(parents=True, exist_ok=True)
     return folder #so you can just do: folder_var = folder_check('string_path')
 
 def filename_noext(filename):
@@ -115,13 +116,16 @@ class EditConfig(QtWidgets.QDialog, ini_edit.Ui_Dialog):
                 pass
 
     def save_file(self):
+        """Save file and rebuild menu"""
         with open(self.file_to_save, 'w') as ini_file:
             ini_file.write(self.textEdit.toPlainText())
         trayIcon.rebuild_menu()
 
 class Grapher(object):
+    """Additional functions for openpyxl, LaTeX pgfplots writers, and a config file generator"""
 
     def __init__(self, work_dir, work_file, doc_name):
+        """sets attributes based on config file, or prompts for a config file"""
         self.ready = False
         self.doc_name = filename_noext(doc_name)
         self.work_dir = work_dir
@@ -131,7 +135,7 @@ class Grapher(object):
         #Config file is just name of file with ini extension
         self.config_file = 'resource/' + filename_noext(self.work_file) + '.ini'
         self.config = configparser.ConfigParser()
-        def try_config_read(): 
+        def try_config_read():
             try:
                 with open(self.config_file) as f:
                     self.config.read_file(f)
@@ -171,27 +175,27 @@ class Grapher(object):
             return
         self.cells_start, self.cells_end = self.date_cell_range(self.date_column)
         self.ready = True
-    
-     
+
+
     def date_cell_range(self, column):
         """Determines worksheet active rows by first date and last date in input column"""
         last_date_cell = None
         first_date_cell = None
         last_date_counter = 0
-    
+
         for row in self.ws[column + '1':\
                 column + str(len(self.ws[column]))]:
             for cell in row:
                 last_date_counter = last_date_counter + 1
-                if cell.value != None:
+                if cell.value is not None:
                     if isinstance(cell.value, datetime.datetime):
                         last_date_cell = last_date_counter
                         if first_date_cell == None:
                             first_date_cell = last_date_counter
-    
+
         return(str(first_date_cell), str(last_date_cell))
-    
-    
+
+
     def column_list(self, column):
         """For readability, returns a list of all cell.value
         for input column, range determined by date_cell_range()"""
@@ -200,8 +204,8 @@ class Grapher(object):
             for cell in row:
                 row_cells.append(cell.value)
         return row_cells
-    
-    
+
+
     def month_string(self, input_date):
         """returns month as 3 letter string"""
         if isinstance(input_date, datetime.datetime) or isinstance(input_date, datetime.date):
@@ -209,57 +213,57 @@ class Grapher(object):
         else:
             print('Cant convert ' + str(type(input_date)) + ' to month string')
             return None
-    
-    
+
+
     def cell_enumerate(self, column):
         """enumerate() but index starts at first cell
 
         as determined by date_cell_range()"""
-        i = int(self.cells_start)
-        it = iter(column)
+        index = int(self.cells_start)
+        it_column = iter(column)
         while True:
-            yield (i, it.__next__())
-            i += 1
-    
-    
+            yield (index, it_column.__next__())
+            index += 1
+
+
     def unique_column_list(self, column):
         """Returns set of column_list()"""
         values = list(set(self.column_list(column)))
         values.sort
         return values
-    
-    
-    def diff_month(self, d1, d2):
+
+
+    def diff_month(self, date_1, date_2):
         """Returns how many months apart two dates are"""
-        return (d1.year - d2.year) * 12 + d1.month - d2.month
-    
-    
+        return (date_1.year - date_2.year) * 12 + date_1.month - date_2.month
+
+
     def curr_month_values(self, column, blanks=False):
         """Totals for input column for this month"""
         this_month = []
         total_occurances = 0
         for index, value in self.cell_enumerate(self.column_list(column)):
             date_cell = self.ws.cell(index, column_index_from_string(self.date_column)).value
-    
+
             if blanks == False and str(value) == 'None':
                 continue #Skips blank cells
-    
+
             if date_cell.month == now.month\
                     and date_cell.year == now.year:
                 this_month.append(value)
-                total_occurances  += 1
+                total_occurances += 1
         return Counter(this_month), total_occurances
-    
-    
+
+
     def relative_month_to_string(self, relative_month):
         """Takes relative month as int, returns month string
 
         int is positive for time in past (think int(x) months ago)"""
-        return self.month_string(now 
+        return self.month_string(now
                 - dateutil.relativedelta.relativedelta(\
                         months=int(relative_month)))
-    
-    
+
+
     def totals_by_month_graph(self, title, months=12):
         """Writes line pgfplot to graph.tex of totals by month"""
         column = self.date_column
@@ -267,7 +271,7 @@ class Grapher(object):
         symbolic_xcoords = [] # turns into string later
         coordinates = []
         ticks_distance_flag = 0
-    
+
         for index in range(int(self.cells_end), int(self.cells_start) - 1, -1):
             column_value = self.ws[column + str(index)].value
             try:
@@ -279,20 +283,20 @@ class Grapher(object):
             if months_ago < 0:
                 continue
             months_counter[months_ago] += 1
-    
+
         for i in months_counter:
             if i > 5:
                 ticks_distance_flag = 1
                 break
-    
+
         for index, data in reversed(list(enumerate(months_counter))):
             xcoord_name = self.relative_month_to_string(index)
             coordinates.append('(' + xcoord_name + ',' + str(data) + ')')
             symbolic_xcoords.append(xcoord_name + ',')
-    
+
         symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
         coordinates = '\n'.join([str(i) for i in coordinates])
-    
+
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
             graphs_file.write(r'\newpage\addsubsection{' + title + '}')
             graphs_file.write(line_graph_tex[0])
@@ -305,7 +309,7 @@ class Grapher(object):
             graphs_file.write(line_graph_tex[3])
             graphs_file.write(coordinates)
             graphs_file.write(line_graph_tex[4])
-    
+
     def totals_by_month_percent_graph(self, title, months=12):
         """Writes percent line pgfplot to graph.tex of totals by month compared to a total from adjacent column"""
         column = self.date_column
@@ -315,7 +319,7 @@ class Grapher(object):
         symbolic_xcoords = [] # turns into string later
         coordinates = []
         ticks_distance_flag = 0
-    
+
         for index in range(int(self.cells_end), int(self.cells_start) - 1, -1):
             column_value = self.ws[column + str(index)].value
             total_column_value = self.ws[total_column + str(index)].value
@@ -328,9 +332,9 @@ class Grapher(object):
             if months_ago < 0:
                 continue
             months_counter[months_ago] += 1
-            if total_column_value != None:
+            if total_column_value is not None:
                 months_total_counter[months_ago] = total_column_value
-    
+
         for i in months_counter:
             if i > 5:
                 ticks_distance_flag = 1
@@ -347,10 +351,10 @@ class Grapher(object):
             xcoord_name = self.relative_month_to_string(index)
             coordinates.append('(' + xcoord_name + ',' + str(data) + ')')
             symbolic_xcoords.append(xcoord_name + ',')
-    
+
         symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
         coordinates = '\n'.join([str(i) for i in coordinates])
-    
+
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
             graphs_file.write(r'\newpage\addsubsection{' + title + '}')
             graphs_file.write(percent_line_graph_tex[0])
@@ -363,7 +367,7 @@ class Grapher(object):
             graphs_file.write(percent_line_graph_tex[3])
             graphs_file.write(coordinates)
             graphs_file.write(percent_line_graph_tex[4])
-    
+
     def values_by_month(self, column, months=12):
         """returns dict of tuples, tuple index is how many months ago data is for"""
         catagories_index = {} #dict to get index from string for catagories
@@ -383,20 +387,20 @@ class Grapher(object):
                 catagories_index[column_value] = len(catagories_index)
                 catagories.append([0] * months) #index is how many months ago
             catagories[catagories_index.get(column_value)][months_ago] += 1
-        
+
         for i in catagories_index:
             return_dict[i] = tuple(catagories[catagories_index.get(i)])
         return(return_dict)
-    
-    
+
+
     def current_month_graph(self, column, title, blanks=False):
         """Writes bar/pareto pgfplot to graph.tex of current month values"""
         current_data, total_occurances = self.curr_month_values(column, blanks)
-    
+
         symbolic_xcoords = '\n'.join([str(i) + ',' for i \
                 in sorted(current_data, key=current_data.get, reverse=True)])
         coordinates = '\n'.join([str(i).replace("'",'') for i in current_data.most_common()])
-    
+
         # ytick distance must be set to 1 for values less than 6
         # or the ytick labels will be non whole numbers
         ticks_distance_flag = 0
@@ -406,12 +410,12 @@ class Grapher(object):
             if i > 5:
                 ticks_distance_flag = 1
                 break
-    
+
         pareto = list(itertools.accumulate(occurances))
         pareto = [round(x / total_occurances * 100) for x in pareto]
         pareto = '\n'.join(['(' + str(index) + ',' + str(percent) + ')'\
                 for index, percent in enumerate(pareto)])
-    
+
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
             graphs_file.write(r'\newpage\addsubsection{' + title + '}')
             graphs_file.write(bar_graph_tex[0])
@@ -427,8 +431,8 @@ class Grapher(object):
             graphs_file.write(bar_graph_tex[4])
             graphs_file.write(pareto)
             graphs_file.write(bar_graph_tex[5])
-    
-    
+
+
     #Uses line graph for one catagory over time
     def monthly_graph(self, column, title, months=12, blanks=False):
         """Writes line pgfplot to graph.tex for one catagory over time"""
@@ -436,30 +440,30 @@ class Grapher(object):
             graphs_file.write(r'\newpage\addsubsection{' + title + ' monthly graphs}\n')
 
         for catagory, month_count_tuple in sorted(self.values_by_month(column, months).items()):
-    
+
             if blanks == False and str(catagory) == 'None':
                 continue #this skips empty cells
-    
+
             symbolic_xcoords = []
             coordinates = []
             ticks_distance_flag = 0
-    
+
             # ytick distance must be set to 1 for values less than 6
             # or the ytick labels will be non whole numbers
             for relative_month, occurances in enumerate(month_count_tuple):
                 if int(occurances) > 5:
                     ticks_distance_flag = 1
-    
+
                 xcoord_month = self.relative_month_to_string(relative_month)
-    
+
                 #for use in LaTeX pgfplots package
                 symbolic_xcoords.insert(0, xcoord_month + ',')
                 coordinates.insert(0, '(' + xcoord_month + ',' + str(occurances) + ')')
-    
+
             #lists changed to str with newlines to avoid using a loop to append to tex file
             symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
             coordinates = '\n'.join([str(i) for i in coordinates])
-    
+
             with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
                 graphs_file.write(r'\addsubsubsection{' + catagory + '}')
                 graphs_file.write(line_graph_tex[0])
@@ -472,8 +476,8 @@ class Grapher(object):
                 graphs_file.write(line_graph_tex[3])
                 graphs_file.write(coordinates)
                 graphs_file.write(line_graph_tex[4])
-    
-    
+
+
     def column_has_data(self, column):
         """Returns true if any data is found in rows of a column"""
         try:
@@ -484,8 +488,8 @@ class Grapher(object):
         except:
             return False
         return False
-    
-    
+
+
     def compile(self):
         """Calls graph functions based on what is found in config file"""
 
@@ -494,42 +498,40 @@ class Grapher(object):
 
         print()
         print('\nLoaded config from ' + str(self.config_file) + ':\n')
-        
+
 
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as name_file:
             name_file.write(r'\newpage') #Without newpage the section name in header will be off by one
-            name_file.write(r'\addsection{' + self.config.get('document', 'name', fallback = self.doc_name.replace('_',' ')) + '}')
+            name_file.write(r'\addsection{' + self.config.get('document', 'name', fallback=self.doc_name.replace('_', ' ')) + '}')
 
         # Totals from date column
         if self.config.getboolean('document', 'show_totals', fallback=False):
             self.totals_by_month_graph(title =\
-                    self.config.get('document', 'totals_title', fallback = self.doc_name.replace('_',' ')))
+                    self.config.get('document', 'totals_title', fallback=self.doc_name.replace('_', ' ')))
 
         # Totals of date column compared to a total from adjacent column
         if self.config.getboolean('document', 'show_percent_totals', fallback=False):
             self.totals_by_month_percent_graph(title =\
-                    self.config.get('document', 'percent_totals_title', fallback = self.doc_name.replace('_',' ')))
+                    self.config.get('document', 'percent_totals_title', fallback=self.doc_name.replace('_', ' ')))
 
         for column in self.config.sections():
-    
+
             if str(column).lower() == 'document':
                 continue
-    
+
             if self.column_has_data(column):
-    
+
                 # Bar/Pareto graph for current month
                 if self.config.getboolean(column, 'current_month', fallback=False):
-                    self.current_month_graph(str(column), str(self.config.get(column, 'title', fallback = '')))
-    
+                    self.current_month_graph(str(column), str(self.config.get(column, 'title', fallback='')))
+
                 # Line graph for one catagory over time
                 if self.config.getboolean(column, 'monthly', fallback=False):
-                    self.monthly_graph(str(column), str(self.config.get(column, 'title', fallback = '')))
+                    self.monthly_graph(str(column), str(self.config.get(column, 'title', fallback='')))
             else:
-                print('UserWarning: Column '
-                        + '"'
+                print('UserWarning: Column "'
                         + str(column)
-                        + '"'
-                        + ' specified in '
+                        + '" specified in '
                         + str(self.config_file)
                         + ' does not contain valid data')
         return True
@@ -544,14 +546,14 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
     def __init__(self):
         QtWidgets.QDialog.__init__(self)
         self.setupUi(self)
-        self.process_0 = QtCore.QProcess(self)
-        self.process_0.setProcessChannelMode(QtCore.QProcess.MergedChannels)
-        self.process_0.readyRead.connect(self.stdout_and_err_Ready)
-        self.process_0.finished.connect(self.done_statement)
-        self.process_0.stateChanged.connect(self.menu_disable)
+        self.xelatex = QtCore.QProcess(self)
+        self.xelatex.setProcessChannelMode(QtCore.QProcess.MergedChannels)
+        self.xelatex.readyRead.connect(self.stdout_and_err_Ready)
+        self.xelatex.finished.connect(self.done_statement)
+        self.xelatex.stateChanged.connect(self.menu_disable)
         self.proc_count = 0 #Counter to run XeLaTeX four times (three for accurate TOC, fourth for other layout)
         self.xelatex_config()
-        self.buttonBox.button(QtWidgets.QDialogButtonBox.Abort).clicked.connect(self.process_0.kill)
+        self.buttonBox.button(QtWidgets.QDialogButtonBox.Abort).clicked.connect(self.xelatex.kill)
 
         self.outputbox_2.setMaximumBlockCount(50)
         self.outputbox.setReadOnly(True)
@@ -563,7 +565,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
 
     def menu_disable(self):
         """Disable menu and set running icon animation while XeLaTeX is running"""
-        if self.process_0.state() == 0:
+        if self.xelatex.state() == 0:
             trayIcon.menu.setEnabled(True)
             trayIcon.anim_icon.stop()
             trayIcon.setIcon(trayIcon.still_icon)
@@ -576,7 +578,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         """Show log if XeLaTeX exits with error
 
         XeLaTeX is called with '--halt-on-error' for this to work"""
-        if self.process_0.exitCode() == 0:
+        if self.xelatex.exitCode() == 0:
             return
         else:
             print('XeLaTeX Error!')
@@ -598,7 +600,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         def layout_name(work_dir, name, layout):
             new_name = output_folder + '/' + filename_noext(name) + ' ' + now.strftime('%b%y') + ' ' + layout + '.pdf'
 
-            if self.process_0.exitCode() == 0:
+            if self.xelatex.exitCode() == 0:
                 # After third and fourth runs, copy the file and print message
                 if self.proc_count in (2, 3):
                     os.replace(work_dir + '/present.pdf', new_name)
@@ -610,28 +612,28 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                 # if only ran twice, and toc takes two pages, the toc page numbers will be off by one
                 if self.proc_count in (1, 2):
                     log.compile_tex(work_dir, name, 'screen')
-                    log.process_0.finished.disconnect()
-                    log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'screen'))
+                    log.xelatex.finished.disconnect()
+                    log.xelatex.finished.connect(lambda: layout_name(work_dir, name, 'screen'))
 
                 # Fourth time for paper layout
                 elif self.proc_count == 3:
                     log.compile_tex(work_dir, name, 'paper')
-                    log.process_0.finished.disconnect()
-                    log.process_0.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
+                    log.xelatex.finished.disconnect()
+                    log.xelatex.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
                 else:
-                    self.proc_count = 0            
+                    self.proc_count = 0
                     if os.name == 'nt':
                         os.startfile('output_folder')
 
         with open(work_dir + '/layout.tex', 'w', encoding='utf-8') as layout_file:
             layout_file.write(self.layout_text.get(layout))
 
- 
-        self.process_0.setWorkingDirectory(work_dir)
-        self.process_0.start(self.xelatex_path, ['--halt-on-error', 'present'])
-        self.process_0.finished.disconnect()
-        self.process_0.finished.connect(self.done_statement)
-        self.process_0.finished.connect(lambda: layout_name(work_dir, name, 'screen'))
+
+        self.xelatex.setWorkingDirectory(work_dir)
+        self.xelatex.start(self.xelatex_path, ['--halt-on-error', 'present'])
+        self.xelatex.finished.disconnect()
+        self.xelatex.finished.connect(self.done_statement)
+        self.xelatex.finished.connect(lambda: layout_name(work_dir, name, 'screen'))
 
     def append(self, text):
         """Write stdout from XeLaTeX to outputbox"""
@@ -644,7 +646,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
 
     def stdout_and_err_Ready(self):
         """Feed stdout from XeLaTeX to self.append()"""
-        text = bytearray(self.process_0.readAll())
+        text = bytearray(self.xelatex.readAll())
         text = text.decode("UTF-8")
         self.append(text)
 
@@ -812,7 +814,7 @@ app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 output_folder = folder_check('output_folder')
 
 font_decrypt = font_load.Prompt()
-if font_decrypt.check_success() == False:
+if not font_decrypt.check_success():
     try:
         import Cryptodome
     except:
@@ -848,7 +850,7 @@ def choose_open_folder():
             if input_file.endswith('.xlsx'):
                 doc_name = input_file.split('/')
                 doc_name = doc_name[len(doc_name) - 1]
-                doc_nospace = doc_name.replace(' ','_')
+                doc_nospace = doc_name.replace(' ', '_')
                 try:
                     shutil.copyfile(input_folder + '/' + input_file, work_dir + '/' + doc_nospace)
                 except shutil.SameFileError:
@@ -856,5 +858,5 @@ def choose_open_folder():
                 Grapher(work_dir, doc_nospace, doc_name).compile()
         log.proc_count = 0
         log.compile_tex(work_dir, folder_name, 'screen')
-        
+
 sys.exit(app.exec_())
