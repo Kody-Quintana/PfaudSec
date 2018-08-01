@@ -1,3 +1,7 @@
+from openpyxl.utils import column_index_from_string, get_column_letter
+from PyQt5 import QtWidgets, QtCore, QtGui
+from openpyxl import load_workbook
+from collections import Counter
 #import Cryptodome (imported in a try statement below)
 import dateutil.relativedelta
 import configparser
@@ -13,11 +17,6 @@ import sys
 import io
 import os
 
-from openpyxl.utils import column_index_from_string, get_column_letter
-from PyQt5 import QtWidgets, QtCore, QtGui
-from openpyxl import load_workbook
-from collections import Counter
-
 import ini_storage # Stores example config
 import font_load   # Decrypt fonts
 import ini_edit    # Basic text editor for ini files
@@ -25,7 +24,7 @@ import date_set    # QDialog to change date
 import ui_log      # Log window
 
 #pgfplots tex file stored as list in a python file
-from texstorage import line_graph_tex, bar_graph_tex, percent_line_graph_tex
+from tex_storage import line_graph_tex, bar_graph_tex, percent_line_graph_tex
 
 if getattr(sys, 'frozen', False):
     """Chdir to exe if frozen with pyinstaller"""
@@ -483,7 +482,7 @@ class Grapher(object):
         try:
             for r in self.ws[column + '1' : column + str(len(self.ws[column]))]:
                 for cell in r:
-                    if cell.value != None:
+                    if cell.value is not None:
                         return True
         except:
             return False
@@ -493,7 +492,7 @@ class Grapher(object):
     def compile(self):
         """Calls graph functions based on what is found in config file"""
 
-        if self.ready == False:
+        if not self.ready:
             return
 
         print()
@@ -540,6 +539,7 @@ class Grapher(object):
 class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
     """Normally hidden log window, also "hosts" the QProcess for calling XeLaTeX"""
 
+    #For use as external tex file to compile with different layouts
     layout_text = {'paper' : r'\usepackage[paperwidth=8.27in, paperheight=11.69in, landscape]{geometry}',
             'screen' : r'\usepackage[paperwidth=7.5in, paperheight=13.33in, landscape]{geometry}'}
 
@@ -552,7 +552,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.xelatex.finished.connect(self.done_statement)
         self.xelatex.stateChanged.connect(self.menu_disable)
         self.proc_count = 0 #Counter to run XeLaTeX four times (three for accurate TOC, fourth for other layout)
-        self.xelatex_config()
+        self.xelatex_path_config()
         self.buttonBox.button(QtWidgets.QDialogButtonBox.Abort).clicked.connect(self.xelatex.kill)
 
         self.outputbox_2.setMaximumBlockCount(50)
@@ -585,7 +585,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             self.show()
             self.proc_count = 4
 
-    def xelatex_config(self):
+    def xelatex_path_config(self):
         """Set path to XeLaTeX based on what system is running"""
         if os.name == "nt":
             self.xelatex_path = 'texlive/bin/win32/xelatex.exe'
@@ -598,6 +598,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         self.outputbox.clear()
 
         def layout_name(work_dir, name, layout):
+            """Called after xelatex finishes, manages proc_count, and renames final output pdf"""
             new_name = output_folder + '/' + filename_noext(name) + ' ' + now.strftime('%b%y') + ' ' + layout + '.pdf'
 
             if self.xelatex.exitCode() == 0:
@@ -620,6 +621,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
                     log.compile_tex(work_dir, name, 'paper')
                     log.xelatex.finished.disconnect()
                     log.xelatex.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
+
                 else:
                     self.proc_count = 0
                     if os.name == 'nt':
@@ -797,10 +799,12 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
             self.click_timer.stop()
             self.double_click()
 
-    def double_click(self):
+    @staticmethod
+    def double_click():
         choose_open_folder()
 
-    def single_click(self):
+    @staticmethod
+    def single_click():
         if log.isVisible():
             log.hide()
         else:
@@ -813,6 +817,7 @@ app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
 
 output_folder = folder_check('output_folder')
 
+#Attempts to load fonts, if not found will prompt for password
 font_decrypt = font_load.Prompt()
 if not font_decrypt.check_success():
     try:
@@ -822,7 +827,8 @@ if not font_decrypt.check_success():
     if 'Cryptodome' in sys.modules:
         font_decrypt.show()
 
-now = datetime.date.today() #this will change if user sets a different month
+#This will change if user sets a different month
+now = datetime.date.today()
 
 icon = QtGui.QIcon('resource/logo.ico')
 trayIcon = SystemTrayIcon(icon)
@@ -832,6 +838,7 @@ log = LogWindow()
 
 
 def choose_open_folder():
+    """Input folder prompt"""
     input_folder = str(QtWidgets.QFileDialog.getExistingDirectory(None, "Select Job Documents Directory"))
     if input_folder:
         work_dir = folder_check('work_folder')
