@@ -358,7 +358,7 @@ class Grapher(object):
 
         for index, data in reversed(list(enumerate(months_counter))):
             xcoord_name = self.relative_month_to_string(index)
-            coordinates.append('(' + xcoord_name + ',' + str(data) + ')')
+            coordinates.append('(' + xcoord_name + ',' + format(data, '.2f') + ')')
             symbolic_xcoords.append(xcoord_name + ',')
 
         symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
