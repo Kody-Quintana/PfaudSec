@@ -11,6 +11,7 @@ ini_document = """
 ; <-- Comment character (all text after will be ignored)
 ;
 ; [document]        <-- document information section (only one per ini file)
+; months = 12       <-- override months for charts (default is 12)
 ; name = Name       <-- display name of document
 ; worksheet = 1     <-- which worksheet contains the information
 ; date_column = B   <-- which column has the entry dates
