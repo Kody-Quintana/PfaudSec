@@ -129,6 +129,7 @@ class Grapher(object):
         self.doc_name = filename_noext(doc_name)
         self.work_dir = work_dir
         self.work_file = work_file
+        #self.months = months
 
 
         #Config file is just name of file with ini extension
@@ -144,6 +145,8 @@ class Grapher(object):
                 edit_config.exec_() #Block until closed
                 try_config_read() #keep trying until the file exists and is read
         try_config_read()
+
+        self.months = int(self.config.get('document', 'months', fallback=12))
 
 
         # Worksheet number config
@@ -263,8 +266,10 @@ class Grapher(object):
                         months=int(relative_month)))
 
 
-    def totals_by_month_graph(self, title, months=12):
+    def totals_by_month_graph(self, title, months=None):
         """Writes line pgfplot to graph.tex of totals by month"""
+        if months == None:
+            months = self.months
         column = self.date_column
         months_counter = [0] * months
         symbolic_xcoords = [] # turns into string later
@@ -309,8 +314,10 @@ class Grapher(object):
             graphs_file.write(coordinates)
             graphs_file.write(line_graph_tex[4])
 
-    def totals_by_month_percent_graph(self, title, months=12):
+    def totals_by_month_percent_graph(self, title, months=None):
         """Writes percent line pgfplot to graph.tex of totals by month compared to a total from adjacent column"""
+        if months == None:
+            months = self.months
         column = self.date_column
         total_column = get_column_letter(column_index_from_string(self.date_column) + 1)
         months_counter = [0] * months
@@ -367,8 +374,10 @@ class Grapher(object):
             graphs_file.write(coordinates)
             graphs_file.write(percent_line_graph_tex[4])
 
-    def values_by_month(self, column, months=12):
+    def values_by_month(self, column, months=None):
         """returns dict of tuples, tuple index is how many months ago data is for"""
+        if months == None:
+            months = self.months
         catagories_index = {} #dict to get index from string for catagories
         catagories = []       #list of lists for each catagory
         return_dict = {}
@@ -433,11 +442,13 @@ class Grapher(object):
 
 
     #Uses line graph for one catagory over time
-    def monthly_graph(self, column, title, months=12, blanks=False):
+    def monthly_graph(self, column, title, months=None, blanks=False):
         """Writes line pgfplot to graph.tex for one catagory over time"""
         with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
             graphs_file.write(r'\newpage\addsubsection{' + title + ' monthly graphs}\n')
 
+        if months == None:
+            months = self.months
         for catagory, month_count_tuple in sorted(self.values_by_month(column, months).items()):
 
             if blanks == False and str(catagory) == 'None':
@@ -849,7 +860,7 @@ def choose_open_folder():
         with open(work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
             name_file.write(folder_name + r'\\' + '\n' + fy_date(now))
 
-        try:
+        try:#Delete old graph.tex if it exists
             os.remove(work_dir + '/graph.tex')
         except OSError:
             pass
@@ -862,6 +873,7 @@ def choose_open_folder():
                     shutil.copyfile(input_folder + '/' + input_file, work_dir + '/' + doc_nospace)
                 except shutil.SameFileError:
                     pass
+                #Append pgfplots tex text to graph.tex for each spreadsheet
                 Grapher(work_dir, doc_nospace, doc_name).compile()
         log.proc_count = 0
         log.compile_tex(work_dir, folder_name, 'screen')
