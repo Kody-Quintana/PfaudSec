@@ -5,6 +5,7 @@ r"""
 \begin{tikzpicture}[trim axis left, trim axis right]% Line graph, use for data over time
 	\begin{axis}
 		[ymin=0,
+                yticklabel style={/pgf/number format/precision=3, /pgf/number format/fixed},
 		%ytick distance=1,
 		title=\fontsize{25}{25}\selectfont\color{pfgrey}{
 """,
@@ -31,7 +32,7 @@ r"""nodes near coords,
 		nodes near coords align={vertical},
 		x tick label style={rotate=35, anchor=north east},]
 	\addplot [draw=pfblue,
-		nodes near coords={\pgfmathfloatifflags{\pgfplotspointmeta}{0}{}{\pgfmathprintnumber{\pgfplotspointmeta}}},
+		nodes near coords={\pgfmathfloatifflags{\pgfplotspointmeta}{0}{}{\pgfmathprintnumber[fixed]{\pgfplotspointmeta}}},
 		nodes near coords align={horizontal},
 		nodes near coords style={font=\Large,/pgf/number format/assume math mode}]
 		coordinates{
@@ -52,6 +53,7 @@ r"""
 \begin{tikzpicture}[trim axis left, trim axis right]% Line graph, use for data over time
 	\begin{axis}
 		[ymin=0,
+                yticklabel style={/pgf/number format/precision=3, /pgf/number format/fixed},
 		%ytick distance=1,
 		title=\fontsize{25}{25}\selectfont\color{pfgrey}{
 """,
@@ -72,15 +74,15 @@ r"""
 #Symbolic x coords go here
 r"""},
 		xtick=data,
-		yticklabel={\pgfmathprintnumber\tick\%},
+		yticklabel={\pgfmathprintnumber[fixed]\tick\%},
 """,
 #ytick distance here (must be set to 1 for values less than 6, otherwise non whole numbers will be used)
 r"""nodes near coords,
 		nodes near coords align={vertical},
 		x tick label style={rotate=35, anchor=north east},]
 	\addplot [draw=pfblue,
-		nodes near coords={\pgfmathfloatifflags{\pgfplotspointmeta}{0}{}{\pgfmathprintnumber{\pgfplotspointmeta}\%}},
-                %nodes near coords=\pgfmathprintnumber{\pgfplotspointmeta}\%
+		nodes near coords={\pgfmathfloatifflags{\pgfplotspointmeta}{0}{}{\pgfmathprintnumber[fixed]{\pgfplotspointmeta}\%}},
+                %nodes near coords=\pgfmathprintnumber[fixed]{\pgfplotspointmeta}\%
 		nodes near coords align={horizontal},
 		nodes near coords style={font=\Large,/pgf/number format/assume math mode}]
 		coordinates{
@@ -102,6 +104,7 @@ r"""
 \begin{tikzpicture}[trim axis left, trim axis right]% Bar graph, use for current month's values
 	\begin{axis}
 		[ybar,
+                yticklabel style={/pgf/number format/precision=3, /pgf/number format/fixed},
 		ymin=0,
 		title=\fontsize{25}{25}\selectfont\color{pfgrey}{
 """,
@@ -131,7 +134,7 @@ r"""nodes near coords,
 		nodes near coords={
 			\pgfmathfloatifflags
 			{\pgfplotspointmeta}{0}{}
-			{\pgfmathprintnumber{\pgfplotspointmeta}}},
+			{\pgfmathprintnumber[fixed]{\pgfplotspointmeta}}},
 		nodes near coords align={south},
 		nodes near coords style={font=\Large,/pgf/number format/assume math mode},
 		every node near coord/.append style={xshift=0pt,yshift=-24pt,anchor=south,font=\color{white}\Large}]
@@ -156,7 +159,7 @@ r"""
 		ylabel={},
 		xtick=data,
 		xticklabels={,,},
-		yticklabel={\pgfmathprintnumber\tick\%},
+		yticklabel={\pgfmathprintnumber[fixed]\tick\%},
 		xtick style={draw=none},
 		%nodes near coords,
 		%nodes near coords align={vertical},
