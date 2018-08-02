@@ -250,10 +250,13 @@ class Grapher(object):
             if blanks == False and str(value) == 'None':
                 continue #Skips blank cells
 
-            if date_cell.month == now.month\
-                    and date_cell.year == now.year:
-                this_month.append(value)
-                total_occurances += 1
+            try:
+                if date_cell.month == now.month\
+                        and date_cell.year == now.year:
+                    this_month.append(value)
+                    total_occurances += 1
+            except AttributeError:
+                continue
         return Counter(this_month), total_occurances
 
 
