@@ -662,8 +662,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
 
     def stdout_and_err_Ready(self):
         """Feed stdout from XeLaTeX to self.append()"""
-        text = bytearray(self.xelatex.readAll())
-        text = text.decode("UTF-8")
+        text = str(self.xelatex.readAll(), 'utf-8')
         self.append(text)
 
 

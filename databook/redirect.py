@@ -196,8 +196,7 @@ else:
     def stdout_and_err_Ready(self):
         text = ''
         ldict = locals()
-        exec('text = bytearray(self.process_' + str(self.proc_num)\
-                + '.readAll())',ldict)
+        exec('text = str(self.process_' + str(self.proc_num)\
+                + '.readAll(), "utf-8")',ldict)
         text = ldict['text']
-        text = text.decode("UTF-8")
         self.append(text)
