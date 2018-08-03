@@ -27,6 +27,12 @@
             pdfkeywords={},
             pdfproducer={},
             pdfcreator={}]{hyperref}
+\usepackage{everypage}
+\AddEverypageHook{\raisebox{1in}[0pt][0pt]{\hypertarget{pagetop.\thepage}{}}}
+
+\makeatletter
+\newcommand{\phantompageref}{\def\@currentHref{pagetop.\thepage}}
+\makeatother
 
 \usepackage{bookmark}
 
@@ -233,9 +239,9 @@ r}%
 %\newcommand{\sectiontitle}{}
 %\definecommand{setsectiontitle}[1]{\renewcommand{sectiontitle}{#1}}
 
-\newcommand\addsection[1]{\markright{#1}\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
-\newcommand\addsubsection[1]{\addtocounter{subsection}{1}\phantomsection\addcontentsline{toc}{subsection}{{} {#1}}}
-\newcommand\addsubsubsection[1]{\addtocounter{subsubsection}{1}\phantomsection\addcontentsline{toc}{subsubsection}{{} {#1}}}
+\newcommand\addsection[1]{\markright{#1}\addtocounter{section}{1}\phantompageref\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
+\newcommand\addsubsection[1]{\addtocounter{subsection}{1}\phantompageref\addcontentsline{toc}{subsection}{{} {#1}}}
+\newcommand\addsubsubsection[1]{\addtocounter{subsubsection}{1}\phantompageref\addcontentsline{toc}{subsubsection}{{} {#1}}}
 %-----------------------------------------%
 
 
