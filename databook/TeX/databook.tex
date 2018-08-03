@@ -23,6 +23,12 @@
             pdfproducer={},
             pdfcreator={}]{hyperref}
 \usepackage{bookmark}
+\usepackage{everypage}
+\AddEverypageHook{\raisebox{1in}[0pt][0pt]{\hypertarget{pagetop.\thepage}{}}}
+
+\makeatletter
+\newcommand{\phantompageref}{\def\@currentHref{pagetop.\thepage}}
+\makeatother
 
 
 
@@ -179,14 +185,14 @@ Website:&\href{www.pfaudler.com}{www.Pfaudler.com}
 \usepackage{pdfpages}
 
 %--newcommand for sections--%
-\newcommand\addsection[1]{\addtocounter{section}{1}\phantomsection\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
+\newcommand\addsection[1]{\addtocounter{section}{1}\phantompageref\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
 
 %--newcommand for subsections--%
 \newcommand\addpage[1]{%
 	\StrBefore[1]{#1}{.}[\temp]%-Display name must be stored in \temp because of expansion behavior in \includepdf
 	\IfSubStr{\temp}{/}{\StrBehind{\temp}{/}[\temp]}{}%
 	\StrSubstitute{\temp}{!}{ }[\temp]
-	\includepdf[scale=0.95,pages=-,addtotoc={1,subsection,1,\temp,\temp},pagecommand=\phantomsection]{#1}}
+	\includepdf[scale=0.95,pages=-,addtotoc={1,subsection,1,\temp,\temp},pagecommand=\phantompageref]{#1}}
 
 %---------------------------------------%
 
