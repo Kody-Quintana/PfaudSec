@@ -10,6 +10,7 @@ import traceback
 import functools
 import itertools
 import datetime
+import tempfile
 import pathlib
 import shutil
 import time
@@ -598,6 +599,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             print('XeLaTeX Error!')
             self.show()
             self.proc_count = 4
+            shutil.rmtree(self.work_dir)
 
     def xelatex_path_config(self):
         """Set path to XeLaTeX based on what system is running"""
@@ -610,6 +612,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
         """Called to run XeLaTeX if Grapher succesfully runs"""
 
         self.outputbox.clear()
+        self.work_dir = work_dir
 
         def layout_name(work_dir, name, layout):
             """Called after xelatex finishes, manages proc_count, and renames final output pdf"""
@@ -618,8 +621,10 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             if self.xelatex.exitCode() == 0:
                 # After third and fourth runs, copy the file and print message
                 if self.proc_count in (2, 3):
-                    os.replace(work_dir + '/present.pdf', new_name)
+                    shutil.copy(work_dir + '/present.pdf', new_name)
                     print('XeLaTeX: ' + ' ' + now.strftime('%B %Y') + ' "' + layout + '" done')
+                    if self.proc_count == 3:
+                        shutil.rmtree(work_dir)
 
                 self.proc_count += 1
 
@@ -827,8 +832,8 @@ sys.excepthook = except_box
 app = QtWidgets.QApplication(sys.argv)
 app.setQuitOnLastWindowClosed(False)
 app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-
 output_folder = folder_check('output_folder')
+
 
 #Attempts to load fonts, if not found will prompt for password
 font_decrypt = font_load.Prompt()
@@ -854,7 +859,18 @@ def choose_open_folder():
     """Input folder prompt"""
     input_folder = str(QtWidgets.QFileDialog.getExistingDirectory(None, "Select Job Documents Directory"))
     if input_folder:
-        work_dir = folder_check('work_folder')
+        work_dir = tempfile.mkdtemp(prefix='PfSpreadsheet_')
+        folder_check(work_dir)
+        template_dir = 'TeX'
+
+        try:
+            shutil.copytree(template_dir + '/font/', work_dir + '/font/')
+        except:
+            pass
+
+        for item in os.listdir(template_dir):
+            if item.endswith('.tex'):
+                shutil.copyfile(template_dir + '/' + item, work_dir + '/' + item)
 
         folder_name = input_folder.split('/')
         folder_name = folder_name[len(folder_name) - 1]
@@ -862,10 +878,6 @@ def choose_open_folder():
         with open(work_dir + '/name.tex', 'w', encoding='utf-8') as name_file:
             name_file.write(folder_name + r'\\' + '\n' + fy_date(now))
 
-        try:#Delete old graph.tex if it exists
-            os.remove(work_dir + '/graph.tex')
-        except OSError:
-            pass
         for input_file in os.listdir(input_folder):
             if input_file.endswith('.xlsx'):
                 doc_name = input_file.split('/')

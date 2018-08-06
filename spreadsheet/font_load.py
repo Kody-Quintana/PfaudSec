@@ -33,7 +33,7 @@ Fonts must be manually installed before PfaudSec will work.""")
         layout.addWidget(self.textPass)
         layout.addWidget(self.buttonLogin)
 
-        self.font_dir = 'work_folder/font/OTF/'
+        self.font_dir = 'TeX/font/OTF/'
 
 
     def check_success(self):
