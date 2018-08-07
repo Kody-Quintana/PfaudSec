@@ -97,6 +97,7 @@ class EditConfig(QtWidgets.QDialog, ini_edit.Ui_Dialog):
         self.textEdit.setFont(font)
         self.file_to_save = file_to_save
         self.buttonBox.button(QtWidgets.QDialogButtonBox.Save).clicked.connect(self.save_file)
+        self.setWindowTitle(self.file_to_save)
         def is_not_empty(item):
             try:
                 if os.path.getsize(item) > 0:
@@ -113,7 +114,7 @@ class EditConfig(QtWidgets.QDialog, ini_edit.Ui_Dialog):
         else:
             if mode == 'document':
                 self.textEdit.setText(ini_storage.ini_document)
-                pass
+                self.textEdit.append('; Config for: "' + str(self.file_to_save) + '"')
 
     def save_file(self):
         """Save file and rebuild menu"""
