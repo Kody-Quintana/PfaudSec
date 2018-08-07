@@ -113,8 +113,10 @@ class EditConfig(QtWidgets.QDialog, ini_edit.Ui_Dialog):
                 self.textEdit.setText(existing_file.read())
         else:
             if mode == 'document':
-                self.textEdit.setText(ini_storage.ini_document)
-                self.textEdit.append('; Config for: "' + str(self.file_to_save) + '"')
+                self.textEdit.setText('; "'
+                        + self.file_to_save
+                        + '"'
+                        + ini_storage.ini_document)
 
     def save_file(self):
         """Save file and rebuild menu"""
