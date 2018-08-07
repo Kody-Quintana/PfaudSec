@@ -15,11 +15,16 @@ from PyQt5 import QtGui, QtWidgets
 import redirect #name of interface file
 import fontload #decrypt fonts
 
+if os.name == "nt":
+    sep = '\\'
+elif os.name == "posix":
+    sep = '/'
+
 def except_box(excType, excValue, tracebackobj):
     """Exceptions from sys.excepthook displayed in a QMessageBox and saved to logfile"""
-    logFile = "PfaudSec_crash.log"
+    logFile = "PfaudSec_databook_crash.log"
     notice = 'An unhandled exception occured. Please report the problem via email to Quintana.Kody@gmail.com'\
-            + '\n\nPlease attach the log file PfaudSec_crash.log from the PfaudSec folder to the email.\n'
+            + '\n\nPlease attach the log file ' + logFile + ' from the PfaudSec databook folder to the email.\n'
     versionInfo = "0.0.1"
     timeString = time.strftime("%Y-%m-%d, %H:%M:%S")
 
@@ -43,7 +48,7 @@ def except_box(excType, excValue, tracebackobj):
     errorbox.exec_()
 
 if sys.platform.startswith("win"):
-    """Don't display the Windows GPF dialog if the invoked program dies."""
+    #Don't display the Windows GPF dialog if the invoked program dies.
     import ctypes
     SEM_NOGPFAULTERRORBOX = 0x0002 # From MSDN
     ctypes.windll.kernel32.SetErrorMode(SEM_NOGPFAULTERRORBOX);
@@ -87,11 +92,7 @@ class DataBook(object):
 
 
     def data_book_run(self):
-
-        global work_dir
-
         self.config = configparser.ConfigParser()
-
         self.config.read(self.config_file)
         pronk('Starting PfaudSec DataBook compiler.\nLoaded sections from '\
                 + str(self.config_file) + ':\n')
@@ -100,9 +101,8 @@ class DataBook(object):
         pronk('')
 
 
-        def get_file_list(self, dir):
+        def get_file_list(dir):
             """Scan PDF grab folder, return list of matches"""
-            global grab_dir
             pronk('\nLoading documents found in:\n"' + str(grab_dir) + '"\n')
             doc_pattern = re.compile("([^\s]+ \d+\.\d+\.pdf)")
             file_list = []
@@ -123,18 +123,16 @@ class DataBook(object):
             return sorted(file_list)
 
 
-        def pdf_rename(self):
+        def pdf_rename():
             """Rename PDF files to match names from section_config.ini"""
-            global grab_dir
-
             for l in range(len(self.config.sections())):
                 # -1 from actual length but configparser makes a DEFAULT section that is not used so the -1 is fine
                 self.nested_list_sections.append([])
 
-            def pdf_skip(self, skipped_pdf):
+            def pdf_skip(skipped_pdf):
                 pronk('\nSkipping PDF file: "' + str(skipped_pdf) + '" (is name malformed?)')
 
-            for i, k in enumerate((get_file_list(self, grab_dir))):
+            for i, k in enumerate((get_file_list(grab_dir))):
                 try:
                     #Split afer space, second part is compared to sections_config keys
                     doc_id_stage = k.split(' ')[1].replace('.pdf', '').split('.')
@@ -155,11 +153,11 @@ class DataBook(object):
 
                 #This should catch and skip anything not matching an entry in sections_config.ini
                 except KeyError:
-                    pdf_skip(self, k)
+                    pdf_skip(k)
                 except IndexError:
-                    pdf_skip(self, k)
+                    pdf_skip(k)
                 except FileExistsError:
-                    pdf_skip(self, k)
+                    pdf_skip(k)
 
 
             pronk('\n\nFound:')
@@ -184,16 +182,13 @@ class DataBook(object):
                           if unicodedata.category(c) != 'Mn')
 
 
-        def loose_files_stage(self, input_loose_name, path):
+        def loose_files_stage(input_loose_name, path):
             """Adds "loose" PDF files to LaTeX document, named as found (except accented characters)"""
-            global work_dir
-
             loose_embed_list = []
             loose_name = str(input_loose_name).replace(' ', '!')
             self.folder_check(work_dir + r'/' + loose_name)
 
             def try_copy(src, dest):
-                #this is not a good way, change later
                 try:
                     shutil.copyfile(src, dest)
                 except FileExistsError:
@@ -206,8 +201,8 @@ class DataBook(object):
             loose_embed_list.sort()
 
             for k, i in enumerate(loose_embed_list):
-                file_name = str(i.replace('/', '\\').split('\\')[len(i.replace('/', '\\').split('\\')) - 1])
-                try_copy(i, work_dir + r'/' + loose_name + '\\' + file_name)
+                file_name = str(i.replace('/', sep).split(sep)[len(i.replace('/', sep).split(sep)) - 1])
+                try_copy(i, work_dir + r'/' + loose_name + sep + file_name)
 
             for i in os.listdir(work_dir + '/' + loose_name):
                 if i.endswith('.pdf'):
@@ -236,7 +231,7 @@ class DataBook(object):
 
                 embed_list_file.close()
 
-        def template_stage(self, src, dest):
+        def template_stage(src, dest):
             """Copy fonts and tex files to working directory"""
             self.folder_check(dest)
             pronk('Working directory: ' + str(work_dir))
@@ -251,76 +246,74 @@ class DataBook(object):
                     shutil.copyfile(src + '/' + i, dest + '/' + i)
 
 
-        def job_info(self):
+        def job_info():
             """Create jobinfo.dat for use by LaTeX document to enter job information"""
-            data_file = ['mo = ' + str(win.job_entry_1.text()).replace('\\', ''),
-                    'serial = ' + str(win.job_entry_2.text()).replace('\\', ''),
-                    'customer = ' + str(win.job_entry_3.text()).replace('\\', ''),
-                    'equipment = ' + str(win.job_entry_4.text()).replace('\\', '')]
+            data_file = ['mo = ' + str(win.job_entry_1.text()).replace(sep, ''),
+                    'serial = ' + str(win.job_entry_2.text()).replace(sep, ''),
+                    'customer = ' + str(win.job_entry_3.text()).replace(sep, ''),
+                    'equipment = ' + str(win.job_entry_4.text()).replace(sep, '')]
 
             with open(work_dir + '/jobinfo.dat', 'w') as job_info_file:
                 for i in data_file:
                     job_info_file.write('%s\n' % i)
-            job_info_file.close()
 
 
 
-        template_stage(self, self.template_dir, work_dir)
-        pdf_rename(self)
-        job_info(self)
+        template_stage(self.template_dir, work_dir)
+        pdf_rename()
+        job_info()
 
 
-       # Runs loose files if checkboxes are checked
-
+        # Runs loose files if checkboxes are checked
         if win.checkBox_loose_0.isChecked() and win.lineEdit_loose_0.text() != '':
-            loose_files_stage(self, 'Pfaudler Brazil Data Book', win.lineEdit_loose_0.text())
+            loose_files_stage('Pfaudler Brazil Data Book', win.lineEdit_loose_0.text())
 
         if win.checkBox_loose_1.isChecked() and win.lineEdit_loose_1.text() != '':
-            loose_files_stage(self, 'Pfaudler Brazil Second Data Book', win.lineEdit_loose_1.text())
+            loose_files_stage('Pfaudler Brazil Second Data Book', win.lineEdit_loose_1.text())
 
         if win.checkBox_loose_2.isChecked() and win.lineEdit_loose_2.text() != '':
-            loose_files_stage(self, win.lineEdit_loose_name_2.text(), win.lineEdit_loose_2.text())
+            loose_files_stage(win.lineEdit_loose_name_2.text(), win.lineEdit_loose_2.text())
 
 
-        if True:
-            comp_level = {0 : '/prepress', 1 : '/printer', 2 : '/ebook', 3 : '/screen'}
-            pronk('Scanning and repairing PDF files (interface will hang during this process)\n(Compression level: '
-                    + comp_level.get(int(win.spinBox.value())).replace('/', '') + ')')
-            app.processEvents()
-            if os.name == "nt":
-                self.gs_path = os.path.dirname(os.path.realpath(__file__)) + '/Ghostscript/bin/gswin32c.exe'
-            elif os.name == "posix":
-                self.gs_path = 'gs'
-            print(os.path.dirname(os.path.realpath(__file__)))
-            for root, dirs, files in os.walk(work_dir):
-                for i in files:
-                    if i.endswith('.pdf'):
-                        self.folder_check(os.path.expandvars(root) + '\\repair\\')
-                        pronk('Working on ' + str(i).replace('!', ' '))
-                        app.processEvents()
-                        p = subprocess.Popen([self.gs_path,
-                            '-sOutputFile=' + str(os.path.expandvars(root) + '\\repair\\' + i),
-                            '-sDEVICE=pdfwrite',
-                            '-dPDFSETTINGS=' + comp_level.get(int(win.spinBox.value())),
-                            '-dBatch',
-                            '-dNOPAUSE',
-                            #'-dQUIET',
-                            str(os.path.expandvars(root) + '\\' + i)],
-                            cwd=os.path.dirname(os.path.realpath(__file__)),
-                            stdout=subprocess.PIPE,
-                            stdin=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            creationflags=subprocess_flags).communicate()[1]
+        # Runs all pdfs through ghostscript
+        comp_level = {0 : '/prepress', 1 : '/printer', 2 : '/ebook', 3 : '/screen'}
+        pronk('Scanning and repairing PDF files (interface will hang during this process)\n(Compression level: '
+                + comp_level.get(int(win.spinBox.value())).replace('/', '') + ')')
+        app.processEvents()
+        if os.name == "nt":
+            self.gs_path = os.path.dirname(os.path.realpath(__file__)) + '/Ghostscript/bin/gswin32c.exe'
+        elif os.name == "posix":
+            self.gs_path = 'gs'
+        for root, dirs, files in os.walk(work_dir):
+            for i in files:
+                if i.endswith('.pdf'):
+                    self.folder_check(os.path.expandvars(root) + sep + 'repair' + sep)
+                    pronk('Working on ' + str(i).replace('!', ' '))
+                    app.processEvents()
+                    p = subprocess.Popen([self.gs_path,
+                        '-sOutputFile=' + str(os.path.expandvars(root) + sep + 'repair' + sep + i),
+                        '-sDEVICE=pdfwrite',
+                        '-dPDFSETTINGS=' + comp_level.get(int(win.spinBox.value())),
+                        '-dBatch',
+                        '-dNOPAUSE',
+                        #'-dQUIET',
+                        str(os.path.expandvars(root) + sep + i)],
+                        cwd=os.path.dirname(os.path.realpath(__file__)),
+                        stdout=subprocess.PIPE,
+                        stdin=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        creationflags=subprocess_flags).communicate()[1]
 
-                        try:
-                            shutil.copyfile(root + '\\repair\\' + i, root + '\\' + i)
-                        except FileNotFoundError:
-                            print("Couldn't copy file")
-            pronk('Done')
+                    try:
+                        shutil.copyfile(root + sep + 'repair' + sep + i, root + sep + i)
+                    except FileNotFoundError:
+                        print("Couldn't copy file")
+        pronk('Ghostscript: Done')
 
         win.compile_tex(self.xelatex_path, work_dir)
 
-    def folder_check(self, folder):
+    @staticmethod
+    def folder_check(folder):
         """Create folder if it doesn't exist"""
         if not os.path.exists(folder):
             os.mkdir(folder)
@@ -339,12 +332,11 @@ class DataBook(object):
                     str(output_dir) + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
             self.reset()
 
-            #change to checkbox for open after compile option
-            if True:
-                if os.name == "nt":
-                    os.startfile(output_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
-                elif os.name == "posix":
-                    subprocess.call(["/usr/bin/xdg-open", output_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf'])
+            if os.name == "nt":
+                os.startfile(output_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf')
+            elif os.name == "posix":
+                subprocess.call(["/usr/bin/xdg-open", output_dir + '/Pfaudler Databook for ' + win.job_entry_2.text() + '.pdf'])
+
         except:
             pass
 
@@ -436,7 +428,6 @@ class Interface(redirect.MainWindow):
 
     def output_same_dir(self):
         """Make output folder same as grab folder if option checked"""
-        global grab_dir
         global output_dir
         if self.checkBox.isChecked():
             self.output_sel.setEnabled(False)
@@ -454,8 +445,7 @@ class Interface(redirect.MainWindow):
                 self, "Select PDF Output Directory"))
         if file:
             output_dir = file
-            self.output_display.clear()
-            self.output_display.append(str(file))
+            self.output_display.setText(str(file))
 
 
     def get_grab_dir(self):
@@ -466,13 +456,11 @@ class Interface(redirect.MainWindow):
                 self, "Select Job Documents Directory"))
         if file:
             grab_dir = file
-            self.grab_display.clear()
-            self.grab_display.append(str(file))
+            self.grab_display.setText(str(file))
 
             if win.checkBox.isChecked():
                 output_dir = file
-                self.output_display.clear()
-                self.output_display.append(str(file))
+                self.output_display.setText(str(file))
         print(str(output_dir))
 
 sys.excepthook = except_box
@@ -498,7 +486,5 @@ with tempfile.TemporaryDirectory(prefix='PfaudSec_') as work_dir:
     font.setPointSize(14)
     app.setFont(font)
 
-
-
     data_book = DataBook()
-sys.exit(app.exec_())
+    sys.exit(app.exec_())
