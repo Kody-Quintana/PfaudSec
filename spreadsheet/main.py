@@ -273,53 +273,6 @@ class Grapher(object):
                 - dateutil.relativedelta.relativedelta(\
                         months=int(relative_month)))
 
-    
-    def add_to_overview(self, title, months=None):
-        if months == None:
-            months = self.months
-        #column = self.date_column
-        #months_counter = [0] * months
-        #symbolic_xcoords = [] # turns into string later
-        #coordinates = []
-        #ticks_distance_flag = 0
-
-        #for index in range(int(self.cells_end), int(self.cells_start) - 1, -1):
-        #    column_value = self.ws[column + str(index)].value
-        #    try:
-        #        months_ago = self.diff_month(now, column_value)
-        #    except AttributeError:
-        #        continue
-        #    if months_ago > (months - 1):
-        #        break
-        #    if months_ago < 0:
-        #        continue
-        #    months_counter[months_ago] += 1
-
-        #for i in months_counter:
-        #    if i > 5:
-        #        ticks_distance_flag = 1
-        #        break
-
-        #for index, data in reversed(list(enumerate(months_counter))):
-        #    xcoord_name = self.relative_month_to_string(index)
-        #    coordinates.append('(' + xcoord_name + ',' + str(data) + ')')
-        #    symbolic_xcoords.append(xcoord_name + ',')
-
-        #symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
-        #coordinates = '\n'.join([str(i) for i in coordinates])
-
-        #with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
-        #    graphs_file.write(r'\newpage\addsubsection{' + title + '}')
-        #    graphs_file.write(line_graph_tex[0])
-        #    graphs_file.write(title + ' - ' + fy_date(now))
-        #    graphs_file.write(line_graph_tex[1])
-        #    graphs_file.write(symbolic_xcoords)
-        #    graphs_file.write(line_graph_tex[2])
-        #    if ticks_distance_flag == 0:
-        #        graphs_file.write('ytick distance=1,')
-        #    graphs_file.write(line_graph_tex[3])
-        #    graphs_file.write(coordinates)
-        #    graphs_file.write(line_graph_tex[4])
 
     def totals_by_month_graph(self, title, months=None):
         """Writes line pgfplot to graph.tex of totals by month"""
