@@ -20,8 +20,8 @@ import os
 
 import ini_storage # Stores example config
 import font_load   # Decrypt fonts
-import ini_edit    # Basic text editor for ini files
-import date_set    # QDialog to change date
+import ui_ini_edit    # Basic text editor for ini files
+import ui_date_set    # QDialog to change date
 import ui_log      # Log window
 
 #pgfplots tex file stored as list in a python file
@@ -84,7 +84,7 @@ def except_box(excType, excValue, tracebackobj):
     errorbox.setText(str(notice)+str(msg)+str(versionInfo))
     errorbox.exec_()
 
-class EditConfig(QtWidgets.QDialog, ini_edit.Ui_Dialog):
+class EditConfig(QtWidgets.QDialog, ui_ini_edit.Ui_Dialog):
     """Basic text editor for document ini files
 
     will open with an example config for any new documents without an ini file"""
@@ -98,6 +98,7 @@ class EditConfig(QtWidgets.QDialog, ini_edit.Ui_Dialog):
         self.file_to_save = file_to_save
         self.buttonBox.button(QtWidgets.QDialogButtonBox.Save).clicked.connect(self.save_file)
         self.setWindowTitle(self.file_to_save)
+
         def is_not_empty(item):
             try:
                 if os.path.getsize(item) > 0:
@@ -272,6 +273,53 @@ class Grapher(object):
                 - dateutil.relativedelta.relativedelta(\
                         months=int(relative_month)))
 
+    
+    def add_to_overview(self, title, months=None):
+        if months == None:
+            months = self.months
+        #column = self.date_column
+        #months_counter = [0] * months
+        #symbolic_xcoords = [] # turns into string later
+        #coordinates = []
+        #ticks_distance_flag = 0
+
+        #for index in range(int(self.cells_end), int(self.cells_start) - 1, -1):
+        #    column_value = self.ws[column + str(index)].value
+        #    try:
+        #        months_ago = self.diff_month(now, column_value)
+        #    except AttributeError:
+        #        continue
+        #    if months_ago > (months - 1):
+        #        break
+        #    if months_ago < 0:
+        #        continue
+        #    months_counter[months_ago] += 1
+
+        #for i in months_counter:
+        #    if i > 5:
+        #        ticks_distance_flag = 1
+        #        break
+
+        #for index, data in reversed(list(enumerate(months_counter))):
+        #    xcoord_name = self.relative_month_to_string(index)
+        #    coordinates.append('(' + xcoord_name + ',' + str(data) + ')')
+        #    symbolic_xcoords.append(xcoord_name + ',')
+
+        #symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
+        #coordinates = '\n'.join([str(i) for i in coordinates])
+
+        #with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
+        #    graphs_file.write(r'\newpage\addsubsection{' + title + '}')
+        #    graphs_file.write(line_graph_tex[0])
+        #    graphs_file.write(title + ' - ' + fy_date(now))
+        #    graphs_file.write(line_graph_tex[1])
+        #    graphs_file.write(symbolic_xcoords)
+        #    graphs_file.write(line_graph_tex[2])
+        #    if ticks_distance_flag == 0:
+        #        graphs_file.write('ytick distance=1,')
+        #    graphs_file.write(line_graph_tex[3])
+        #    graphs_file.write(coordinates)
+        #    graphs_file.write(line_graph_tex[4])
 
     def totals_by_month_graph(self, title, months=None):
         """Writes line pgfplot to graph.tex of totals by month"""
@@ -734,7 +782,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         """Get number as "months ago" for running a graph for the past
 
         "now" is global"""
-        class Prompt(QtWidgets.QDialog, date_set.Ui_Dialog):
+        class Prompt(QtWidgets.QDialog, ui_date_set.Ui_Dialog):
             def __init__(self):
                 super(Prompt, self).__init__()
                 self.setupUi(self)
