@@ -325,8 +325,8 @@ class Grapher(object):
             graphs_file.write(coordinates)
             graphs_file.write(line_graph_tex[4])
 
-    def totals_by_month_percent_manual_graph(self, title, months=None, column):
-        """Writes percent line pgfplot to graph.tex of totals by month compared to a total from adjacent column"""
+    def totals_by_month_percent_manual_graph(self, title, column, months=None):
+        """Writes percent line pgfplot to graph.tex of totals by month compared to a total from right adjacent column"""
         if months == None:
             months = self.months
         #column = column
@@ -357,17 +357,17 @@ class Grapher(object):
             if total_column_value is not None:
                 months_total_counter[months_ago] = total_column_value
 
-        for i in months_counter:
-            if i > 5:
-                ticks_distance_flag = 1
-                break
-
         for index, count in enumerate(months_counter):
             try:
                 months_counter[index] = float(count) / float(months_total_counter[index]) * 100
             except ZeroDivisionError:
                 months_counter[index] = 0
                 print('Warning: no total specified for ' + self.relative_month_to_string(index))
+
+        for i in months_counter:
+            if i > 5:
+                ticks_distance_flag = 1
+                break
 
         for index, data in reversed(list(enumerate(months_counter))):
             xcoord_name = self.relative_month_to_string(index)
@@ -611,7 +611,7 @@ class Grapher(object):
 
                 # Manual percentage line graph
                 if self.config.getboolean(column, 'show_percent_manual_totals', fallback=False):
-                    self.totals_by_month_manual_percent_graph(title =\
+                    self.totals_by_month_percent_manual_graph(title =\
                             self.config.get(column, 'percent_title', fallback=self.doc_name.replace('_', ' ')), column = column)
 
                 # Bar/Pareto graph for current month
