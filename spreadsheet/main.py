@@ -451,6 +451,73 @@ class Grapher(object):
             graphs_file.write(coordinates)
             graphs_file.write(percent_line_graph_tex[4])
 
+
+    def totals_by_month_manual_graph(self, title, column, months=None):
+        """Writes percent line pgfplot to graph.tex of totals by month compared to a total from right adjacent column"""
+        if months == None:
+            months = self.months
+        #column = column
+        #total_column = get_column_letter(column_index_from_string(column) + 1)
+        months_counter = [0] * months
+        #months_total_counter = [0] * months
+        symbolic_xcoords = [] # turns into string later
+        coordinates = []
+        ticks_distance_flag = 0
+
+        for index in range(int(self.cells_end), int(self.cells_start) - 1, -1):
+            date_column_value = self.ws[self.date_column + str(index)].value
+            compare_column_value = self.ws[column + str(index)].value
+            #total_column_value = self.ws[total_column + str(index)].value
+            try:
+                months_ago = self.diff_month(now, date_column_value)
+            except AttributeError:
+                continue
+            if months_ago > (months - 1):
+                break
+            if months_ago < 0:
+                continue
+            #months_counter[months_ago] += 1
+            if compare_column_value is not None:
+                # set months counter directly to newest value found in the column
+                # instead of counting instances of date in date column
+                months_counter[months_ago] = compare_column_value
+            #if total_column_value is not None:
+            #    months_total_counter[months_ago] = total_column_value
+
+        #for index, count in enumerate(months_counter):
+        #    try:
+        #        months_counter[index] = float(count) / float(months_total_counter[index]) * 100
+        #    except ZeroDivisionError:
+        #        months_counter[index] = 0
+        #        print('Warning: no total specified for ' + self.relative_month_to_string(index))
+
+        for i in months_counter:
+            if i > 5:
+                ticks_distance_flag = 1
+                break
+
+        for index, data in reversed(list(enumerate(months_counter))):
+            xcoord_name = self.relative_month_to_string(index)
+            coordinates.append('(' + xcoord_name + ',' + format(data, '.2f') + ')')
+            symbolic_xcoords.append(xcoord_name + ',')
+
+        symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
+        coordinates = '\n'.join([str(i) for i in coordinates])
+
+        with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
+            graphs_file.write(r'\newpage\addsubsection{' + title + '}')
+            graphs_file.write(line_graph_tex[0])
+            graphs_file.write(title + ' - ' + fy_date(now))
+            graphs_file.write(line_graph_tex[1])
+            graphs_file.write(symbolic_xcoords)
+            graphs_file.write(line_graph_tex[2])
+            if ticks_distance_flag == 0:
+                graphs_file.write('ytick distance=1,')
+            graphs_file.write(line_graph_tex[3])
+            graphs_file.write(coordinates)
+            graphs_file.write(line_graph_tex[4])
+
+
     def values_by_month(self, column, months=None):
         """returns dict of tuples, tuple index is how many months ago data is for"""
         if months == None:
@@ -613,6 +680,11 @@ class Grapher(object):
                 if self.config.getboolean(column, 'show_percent_manual_totals', fallback=False):
                     self.totals_by_month_percent_manual_graph(title =\
                             self.config.get(column, 'percent_title', fallback=self.doc_name.replace('_', ' ')), column = column)
+
+                # Manual monthly line graph
+                if self.config.getboolean(column, 'manual_monthly', fallback=False):
+                    self.totals_by_month_manual_graph(title =\
+                            self.config.get(column, 'manual_monthly_title', fallback=self.doc_name.replace('_', ' ')), column = column)
 
                 # Bar/Pareto graph for current month
                 if self.config.getboolean(column, 'current_month', fallback=False):
