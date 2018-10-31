@@ -770,24 +770,24 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             new_name = output_folder + '/' + filename_noext(name) + ' ' + now.strftime('%b%y') + ' ' + layout + '.pdf'
 
             if self.xelatex.exitCode() == 0:
-                # After third and fourth runs, copy the file and print message
-                if self.proc_count in (2, 3):
+                # After third and sixth runs, copy the file and print message
+                if self.proc_count in (2, 5):
                     shutil.copy(work_dir + '/present.pdf', new_name)
                     print('XeLaTeX: ' + ' ' + now.strftime('%B %Y') + ' "' + layout + '" done')
-                    if self.proc_count == 3:
+                    if self.proc_count == 5:
                         shutil.rmtree(work_dir)
 
                 self.proc_count += 1
 
-                # Run three times to build table of contents
-                # if only ran twice, and toc takes two pages, the toc page numbers will be off by one
+                # Must be ran three times for each layout
+                # Table of contents sometimes takes different amount of space
+                # between the layouts
                 if self.proc_count in (1, 2):
                     log.compile_tex(work_dir, name, 'screen')
                     log.xelatex.finished.disconnect()
                     log.xelatex.finished.connect(lambda: layout_name(work_dir, name, 'screen'))
 
-                # Fourth time for paper layout
-                elif self.proc_count == 3:
+                elif self.proc_count in (3, 4, 5):
                     log.compile_tex(work_dir, name, 'paper')
                     log.xelatex.finished.disconnect()
                     log.xelatex.finished.connect(lambda: layout_name(work_dir, name, 'paper'))
