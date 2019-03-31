@@ -189,17 +189,19 @@ class Grapher(object):
         last_date_cell = None
         first_date_cell = None
         last_date_counter = 0
+        print("Determining column: " + str(column))
 
         for row in self.ws[column + '1':\
                 column + str(len(self.ws[column]))]:
             for cell in row:
                 last_date_counter = last_date_counter + 1
+                #print(str(cell.value))
                 if cell.value is not None:
                     if isinstance(cell.value, datetime.datetime):
                         last_date_cell = last_date_counter
                         if first_date_cell == None:
                             first_date_cell = last_date_counter
-
+        print("Cells are: " + str(first_date_cell) + " " + str(last_date_cell))
         return(str(first_date_cell), str(last_date_cell))
 
 
@@ -245,7 +247,10 @@ class Grapher(object):
 
     def diff_month(self, date_1, date_2):
         """Returns how many months apart two dates are"""
-        return (date_1.year - date_2.year) * 12 + date_1.month - date_2.month
+        
+        #print("year calc: " + str(date_1.year - date_2.year) * 12 )
+        #print("month calc: " + str(date_1.month - date_2.month))
+        return int((date_1.year - date_2.year) * 12 + date_1.month - date_2.month)
 
 
     def curr_month_values(self, column, blanks=False):
@@ -292,10 +297,13 @@ class Grapher(object):
             try:
                 months_ago = self.diff_month(now, column_value)
             except AttributeError:
+                print("attribute error on:" + str(index) + " which is: " + str(type(column_value)))
                 continue
             if months_ago > (months - 1):
+                print("neg months on: " + str(months_ago) + " at: " + str(index))
                 break
             if months_ago < 0:
+                print("less than months")
                 continue
             months_counter[months_ago] += 1
 
@@ -530,10 +538,13 @@ class Grapher(object):
             try:
                 months_ago = self.diff_month(now, value)
             except AttributeError:
+                print("diff_month att error")
                 continue
             if months_ago > (months - 1):
+                print("month limit")
                 break
             if months_ago < 0:
+                print("neg months")
                 continue
             if column_value not in catagories_index:
                 catagories_index[column_value] = len(catagories_index)
@@ -607,6 +618,7 @@ class Grapher(object):
             for relative_month, occurances in enumerate(month_count_tuple):
                 if int(occurances) > 5:
                     ticks_distance_flag = 1
+                #print("rel month=" + str(relative_month) + " occ=" + str(occurances))
 
                 xcoord_month = self.relative_month_to_string(relative_month)
 
@@ -1002,7 +1014,7 @@ now = datetime.date.today()
 icon = QtGui.QIcon('resource/logo.ico')
 trayIcon = SystemTrayIcon(icon)
 trayIcon.show()
-sys.stdout = trayIcon
+#sys.stdout = trayIcon
 log = LogWindow()
 
 

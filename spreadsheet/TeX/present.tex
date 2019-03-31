@@ -1,247 +1,13 @@
 \documentclass{article}
-\usepackage{eso-pic}
-\usepackage{datetime}
-\usepackage{lastpage}           %-to identify last page
-\usepackage{xspace}             %-to force add a space
-\usepackage{tabularx}
-\usepackage{tikz}               %-to create Pfaudler logo
-	\usetikzlibrary{shapes.geometric} %-for creating hexagon
-	\usetikzlibrary{calc}
-\usepackage{pgfplots} 
-\pgfplotsset %-Global settings for pgfplots
-  {
-    compat = newest,
-    xtick style = {draw=none},
-    width = .92 \textwidth,
-    height = .75 \textheight
-  }
-
-\usepackage[linktoc=all,        %-for clickable links and pdf metadata
-            colorlinks=true,
-            linkcolor=black,
-            urlcolor=black,
-            citecolor=black,
-            pdfauthor={Pfaudler},
-            pdftitle={Quality Review},
-            pdfsubject={},
-            pdfkeywords={},
-            pdfproducer={},
-            pdfcreator={}]{hyperref}
-\usepackage{everypage}
-\AddEverypageHook{\raisebox{1in}[0pt][0pt]{\hypertarget{pagetop.\thepage}{}}}
-
-\makeatletter
-\newcommand{\phantompageref}{\def\@currentHref{pagetop.\thepage}}
-\makeatother
-
-\usepackage{bookmark}
-
-\newdateformat{monthyeardate}{%
-  \monthname[\THEMONTH], \THEYEAR}
-\newcommand*{\fyyear}{\Roman{year}}
-
-
-
-%-----Font configuration-----%
-\usepackage{fontspec}
-\defaultfontfeatures{Ligatures={NoCommon,TeX}}
-\setmainfont[
-  Path          = ./,
-  UprightFont   = font/OTF/Pfaudler-Book.otf,
-  BoldItalicFont= font/OTF/Pfaudler-BoldItalic.otf,
-  BoldFont      = font/OTF/Pfaudler-Bold.otf,
-  ItalicFont    = font/OTF/Pfaudler-BookItalic.otf
-]{Pfaudler}
-%----------------------------%
-
-
-
 %-----Margin formatting-----%
-
 %\usepackage[paperwidth=8.27in, paperheight=11.69in, landscape]{geometry}
 %\usepackage[paperwidth=7.5in, paperheight=13.33in, landscape]{geometry}
 \input{layout}%  ^one of these written to layout.tex by the Python script
 \geometry{top=0.9in, bottom=0.9in, left=0.5in, right=0.5in}
+
+\input{./pfstyle}
 %---------------------------%
 
-
-
-
-%-----Pfaudler colorscheme-----%
-\definecolor{pfblue}{RGB}{52,134,199}
-\definecolor{pfgrey}{RGB}{125,125,130}
-%------------------------------%
-
-
-
-%--------------Pfaudler logo (invoke with \pflogo)---------------%
-%---(Must be contained in one paragraph for use in the header)---%
-\newcommand\pflogo{%
-\raisebox{-9pt}{%
-\begin{tikzpicture}
-\node [right,scale=1,inner sep=1pt,outer sep=0pt, text=pfblue]
-at (0,0) {\fontsize{10.73}{5}\selectfont{%
-%
-%--Strapline--%
-Defining the Standard}};
-%
-\node [right,scale=1,inner sep=0pt,outer sep=0pt, text=pfgrey]
-at (0.01,0.70) {\addfontfeature{LetterSpace=0.0}\fontsize{30}{0}\selectfont{%
-%
-%--Manually kerned Main text--%
-\textbf{%
-P{\kern 0.0pt}%
-f{\kern-1.0pt}%
-a{\kern-1.1pt}%
-u{\kern-1.1pt}%
-d{\kern-1.1pt}%
-l{\kern-1.1pt}%
-e{\kern-1.1pt}%
-r}%
-}};
-%
-%--Pf hexagon--%
-\path (4.70,1.32) node [regular polygon,
-		regular polygon sides=6,
-		rounded corners=1.5pt,
-		inner sep=8.8pt,
-		fill = pfblue](hexagon){};
-%--Pf hexagon text--%
-\node [text=white, scale=1.1] at (4.70,1.32) {\large{\textbf{Pf}}};
-\end{tikzpicture}}}
-%----------------------------------------------------------------%
-\newcommand\pflogowhite{%
-\raisebox{-9pt}{%
-\begin{tikzpicture}
-\node [right,scale=1,inner sep=1pt,outer sep=0pt, text=white]
-at (0,0) {\fontsize{10.73}{5}\selectfont{%
-%
-%--Strapline--%
-Defining the Standard}};
-%
-\node [right,scale=1,inner sep=0pt,outer sep=0pt, text=white]
-at (0.01,0.70) {\addfontfeature{LetterSpace=0.0}\fontsize{30}{0}\selectfont{%
-%
-%--Manually kerned Main text--%
-\textbf{%
-P{\kern 0.0pt}%
-f{\kern-1.0pt}%
-a{\kern-1.1pt}%
-u{\kern-1.1pt}%
-d{\kern-1.1pt}%
-l{\kern-1.1pt}%
-e{\kern-1.1pt}%
-r}%
-}};
-%
-%--Pf hexagon--%
-\path (4.70,1.32) node [regular polygon,
-		regular polygon sides=6,
-		rounded corners=1.5pt,
-		inner sep=8.8pt,
-		fill = white](hexagon){};
-%--Pf hexagon text--%
-\node [text=pfblue, scale=1.1] at (4.70,1.32) {\large{\textbf{Pf}}};
-\end{tikzpicture}}}
-%----------------------------------------------------------------%
-
-
-
-
-%---------------------------------Header Formatting---------------------------------%
-\usepackage{fancyhdr}
-\pagestyle{fancy}
-
-%--First page header style--%
-\fancypagestyle{style1}{
-\fancyhf{}
-\fancyhead[L]{\pflogowhite}
-}
-
-%--Embedded documents overlay header--%
-\fancypagestyle{style2}{
-\fancyhf{}
-\fancyhead[R]{\fontsize{30}{30}\selectfont\color{pfblue}\textbf{\rightmark}}
-\fancyhead[L]{\fontsize{30}{30}\selectfont{\hypersetup{linkcolor=pfblue}\hyperref[sec:firstpage]{\textbf{\the\year \xspace QA}}}}
-}
-%-----------------------------------------------------------------------------------%
-
-
-
-%---------------Cover page tikz picture----------------%
-\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
-\newcommand{\pflogoart}{
-\begin{tikzpicture}[remember picture, overlay]
-\draw node[
-	fill=pfblue,
-	rounded corners=0.45in,
-	regular polygon,
-	regular polygon sides=6,
-	minimum size=14in,
-	text=white
-](inner) at (current page.west) {};
-\path  ($(inner.center)!0.44!(inner.east)$) node[text=white]{\fontsize{50}{50}\selectfont\textbf{
-\begin{tabular}{C{6in}}
-\input{name}
-\end{tabular}}};
-\path (current page.south east) node[outer xsep = 0.51in, outer ysep = 20.7pt, anchor=south east, text=black]{\input{pfroc}};
-\end{tikzpicture}}
-%------------------------------------------------------%
-
-
-\newcommand{\pflogoarttwo}{
-\begin{tikzpicture}[remember picture, overlay]
-\path (current page.south east) node[outer xsep = 0.5in, outer ysep = 20pt, anchor=south east, text=black]{\input{pfroc}};
-\end{tikzpicture}}
-
-
-%-----------Table of Contents Formatting-----------%
-%----(compiler must be ran twice to update TOC)----%
-\usepackage{titletoc}
-
-%--section toc format--%
-\titlecontents{section}
-[7in]% Indentation of section name
-{}
-{\contentslabel{2.3em}}
-{}
-{\titlerule*[0.7pc]{.}\contentspage}
-
-%--subsecion toc format--%
-\titlecontents{subsection}
-[7.3in]% Indentation of subsection name
-{\hangindent1em}
-{}%{\contentslabel{2.3em}}
-{}
-{\titlerule*[0.7pc]{.}\contentspage}
-
-%--subsubsecion toc format--%
-\titlecontents{subsubsection}
-[7.7in]% Indentation of subsubsection name
-{\hangindent1em}
-{}%{\contentslabel{2.3em}}
-{}
-{\titlerule*[0.7pc]{.}\contentspage}
-
-%--Page number formatting--%
-\makeatletter
-\renewcommand{\contentspage}[1][\thecontentspage]{\hb@xt@\@pnumwidth{#1\hfil}\hspace*{-\@pnumwidth}}
-\renewcommand{\@pnumwidth}{0.5in} %distance of page number from right margin
-\makeatother
-
-%--------------------------------------------------%
-
-
-\setlength{\parskip}{0pt}
-
-
-%--newcommand for sections & subsections--%
-%\newcommand{\sectiontitle}{}
-%\definecommand{setsectiontitle}[1]{\renewcommand{sectiontitle}{#1}}
-
-\newcommand\addsection[1]{\markright{#1}\addtocounter{section}{1}\phantompageref\addcontentsline{toc}{section}{{\arabic{section}.\xspace } {#1}}}
-\newcommand\addsubsection[1]{\addtocounter{subsection}{1}\phantompageref\addcontentsline{toc}{subsection}{{} {#1}}}
-\newcommand\addsubsubsection[1]{\addtocounter{subsubsection}{1}\phantompageref\addcontentsline{toc}{subsubsection}{{} {#1}}}
 %-----------------------------------------%
 
 
@@ -289,11 +55,12 @@ r}%
 
 
 %-----Begin Embedded Graphs-----%
+\cleardoublepage
 \newpage %page style1 doesnt work without this newpage for some reason
 \ClearShipoutPicture
 \AddToShipoutPictureBG{\pflogoarttwo}
-\pagestyle{style2}
 \setlength\headheight{1.5em}
+\pagestyle{style2}
 \renewcommand{\headrulewidth}{0pt}
 \include{graph}
 %----------------------------------%
