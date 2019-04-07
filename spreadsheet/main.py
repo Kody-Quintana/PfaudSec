@@ -1,4 +1,5 @@
 from openpyxl.utils import column_index_from_string, get_column_letter
+from pylatexenc.latexencode import utf8tolatex
 from PyQt5 import QtWidgets, QtCore, QtGui
 from openpyxl import load_workbook
 from collections import Counter
@@ -26,6 +27,7 @@ import ui_log      # Log window
 
 #pgfplots tex file stored as list in a python file
 from tex_storage import line_graph_tex, bar_graph_tex, percent_line_graph_tex
+from custom_page_tex import custom_page_tex
 
 if getattr(sys, 'frozen', False):
     """Chdir to exe if frozen with pyinstaller"""
@@ -643,8 +645,23 @@ class Grapher(object):
                 graphs_file.write(coordinates)
                 graphs_file.write(line_graph_tex[4])
 
-    def custom_page(self, file_path, title):
-        pass
+    def custom_page(self, file_path, title, count):
+        """Writes a custom page to graph.tex"""
+        if os.path.isfile(file_path):
+            file_name = os.path.basename(file_path)
+            file_ext = file_name.split(".")[ len(file_name.split("."))-1 ]
+            new_file_name = str(count) + "." + file_ext
+            shutil.copyfile(file_path, os.path.join(self.work_dir, new_file_name))
+
+            with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
+                graphs_file.write(r'\newpage\addsubsection{' + title + '}')
+                graphs_file.write(custom_page_tex[0])
+                graphs_file.write(title)
+                graphs_file.write(custom_page_tex[1])
+                graphs_file.write(new_file_name)
+                graphs_file.write(custom_page_tex[2])
+        else:
+            print("file not found")
 
 
     def totals_by_month_percent_manual_graph_with_goal(self, column, title):
@@ -679,6 +696,13 @@ class Grapher(object):
             table_data = {}
             for letter in column_list:
                 table_data[letter] = list(str(' ') * len(index_list))
+
+            for letter in column_list:
+                for loop_index, real_index in enumerate(index_list):
+                    this_cell = self.ws.cell(real_index, column_index_from_string(letter)).value
+                    #print(this_cell)
+                    if this_cell != None:
+                        table_data[letter][loop_index] = utf8tolatex(str(this_cell))
 
 
             for key, value in table_data.items() :
@@ -749,11 +773,12 @@ class Grapher(object):
                         custom_list.append(setting[0])
                 custom_list.sort()
 
-                for custom in custom_list:
+                for count, custom in enumerate(custom_list):
                     print(self.config.get(column, custom))
                     self.custom_page(
                             file_path = self.config.get(column, custom),
-                            title = self.config.get(column, custom + "_title", fallback=" ")
+                            title = self.config.get(column, custom + "_title", fallback=" "),
+                            count = count
                             )
 
             #Multi column graphs
