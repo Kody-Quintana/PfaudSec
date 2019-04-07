@@ -197,7 +197,7 @@
 		y tick label style={},
 		x tick label style={},]
 	\addplot [draw=red,
-		smooth,
+		%smooth,
 		nodes near coords={
 			\pgfmathfloatifflags
 			{\pgfplotspointmeta}{0}{}
@@ -233,7 +233,7 @@
 	\end{axis}
 	\begin{axis}[ axis x line=none, axis y line=none,
 		legend style={
-			at={(0.5,-0.25)},
+			at={(0.5,-0.20)},
 			anchor=north,
 			legend columns=-1},
 		] % Hide the plot
@@ -316,7 +316,7 @@
 		y tick label style={},
 		x tick label style={},]
 	\addplot [draw=red,
-		smooth,
+		%smooth,
 		nodes near coords={
 			\pgfmathfloatifflags
 			{\pgfplotspointmeta}{0}{}
@@ -352,7 +352,7 @@
 	\end{axis}
 	\begin{axis}[ axis x line=none, axis y line=none,
 		legend style={
-			at={(0.5,-0.25)},
+			at={(0.5,-0.2)},
 			anchor=north,
 			legend columns=-1},
 		] % Hide the plot
@@ -366,33 +366,30 @@
 
 
 \newpage
-\renewcommand{\baselinestretch}{1.04}
+\renewcommand{\baselinestretch}{1.05}
 \begin{center}
 \LARGE
 \keepXColumns
-%\setlength\LTpre{1in}
-%\setlength\LTpost{1in}
-{\fontsize{25}{25}\selectfont\color{pfgrey}{Warranties Claims - \monthyeardate\today}}
-
+\newcolumntype{s}{>{\hsize=.7\hsize}X}%TODO do this in python
 \begin{tabularx}{\textwidth}
-{| Y@{} | Y@{} | Y@{} | Y@{} | Y@{} | Y@{} |}
-\multicolumn{5}{c}{TEST}\\
+{| Y@{} | s@{} | Y@{} | Y@{} | Y@{} | Y@{} |}
+\multicolumn{5}{c}{\fontsize{25}{25}\selectfont\color{pfgrey}{Warranties Claims - \monthyeardate\today}}\\
 \hline
 \textbf{Label1} &\textbf{Label2} &\textbf{Label3} &\textbf{Label4} &\textbf{Label5}\\
 \hline
-\endfirsthead % all the lines above this will be repeated on every page
-\multicolumn{5}{c}{TEST cont}\\
+\endfirsthead% all the lines above this will be repeated on every page
+\multicolumn{5}{c}{\fontsize{25}{25}\selectfont\color{pfgrey}{Warranties Claims - \monthyeardate\today (cont.)}}\\
 \hline
 \textbf{Label1} &\textbf{Label2} &\textbf{Label3} &\textbf{Label4} &\textbf{Label5}\\
 \hline
-\endhead % all the lines above this will be repeated on every page
+\endhead% all the lines above this will be repeated on every page
 Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
 \hline
 Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
 \hline
 Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
 \hline
-Color Cell & Color Cell & someting ksfkjh djhsdfkjh 343 4kj dfsdfkjh  & asdfkjh & \\
+Color Cell & Color Cell & ksfkjh djhsdfkjh 343 4kj dfsdfkjh  & asdfkjh & \\
 \hline
 Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
 \hline
@@ -447,7 +444,21 @@ Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
 \end{tabularx}
 \end{center}
 
+%-----Custom PDF insert-----%
 \newpage
-test
+\begin{figure}[H]
+	\centering
+	{\fontsize{25}{25}\selectfont\color{pfgrey}{Warranties Claims - \monthyeardate\today}}
+
+	\includegraphics[width=.8\textwidth]{insert.pdf}
+\end{figure}
+%-----Custom PDF insert-----%
+\newpage
+\begin{figure}[H]
+	\centering
+	{\fontsize{25}{25}\selectfont\color{pfgrey}{Warranties Claims - \monthyeardate\today}}
+
+	\includegraphics[width=.8\textwidth]{insert.pdf}
+\end{figure}
 
 \end{document}

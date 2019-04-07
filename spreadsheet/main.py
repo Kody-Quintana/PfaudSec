@@ -643,6 +643,63 @@ class Grapher(object):
                 graphs_file.write(coordinates)
                 graphs_file.write(line_graph_tex[4])
 
+    def custom_page(self, file_path, title):
+        pass
+
+
+    def totals_by_month_percent_manual_graph_with_goal(self, column, title):
+        print("goal percent line")
+
+    def month_table(self, column, title, labels):
+        print("month table called here")
+        column_list = column.split(',')
+        print(column_list)
+
+        label_list = column_list.copy()
+        for index, label in enumerate(labels.split(",")):
+            try:
+                label_list[index] = label
+            except IndexError:
+                print("UserWarning: more labels than columns for table: " + column)
+        print(label_list)
+
+
+        index_list = []
+        for index in range(int(self.cells_start), int(self.cells_end)+1):
+            date_cell = self.ws.cell(index, column_index_from_string(self.date_column)).value
+
+            try:
+                if date_cell.month == now.month\
+                        and date_cell.year == now.year:
+                    index_list.append(index)
+            except AttributeError:
+                continue
+
+        if len(index_list) != 0:
+            table_data = {}
+            for letter in column_list:
+                table_data[letter] = list(str(' ') * len(index_list))
+
+
+            for key, value in table_data.items() :
+                print (key, value)
+
+            def intersperse(lst, item):
+                result = [item] * (len(lst) * 2 - 1)
+                result[0::2] = lst
+                result.append(" \\")
+                return result
+            
+            print( intersperse(table_data[column_list[0]], " & ") )
+
+            # Re-arrange column lists to row lists to print
+            for index in range(len(index_list)):
+                row_list = []
+                for letter in column_list:
+                    row_list.append(table_data[letter][index])
+                print(intersperse(row_list, " & "))
+
+
 
     def column_has_data(self, column):
         """Returns true if any data is found in rows of a column"""
@@ -684,33 +741,59 @@ class Grapher(object):
         for column in self.config.sections():
 
             if str(column).lower() == 'document':
-                continue
 
-            if self.column_has_data(column):
+                #Get list of keys for any custom pages
+                custom_list = []
+                for setting in list(self.config.items('document')):
+                    if 'custom' in setting[0]:
+                        custom_list.append(setting[0])
+                custom_list.sort()
 
-                # Manual percentage line graph
-                if self.config.getboolean(column, 'show_percent_manual_totals', fallback=False):
-                    self.totals_by_month_percent_manual_graph(title =\
-                            self.config.get(column, 'percent_title', fallback=self.doc_name.replace('_', ' ')), column = column)
+                for custom in custom_list:
+                    print(self.config.get(column, custom))
+                    self.custom_page(
+                            file_path = self.config.get(column, custom),
+                            title = self.config.get(column, custom + "_title", fallback=" ")
+                            )
 
-                # Manual monthly line graph
-                if self.config.getboolean(column, 'manual_monthly', fallback=False):
-                    self.totals_by_month_manual_graph(title =\
-                            self.config.get(column, 'manual_monthly_title', fallback=self.doc_name.replace('_', ' ')), column = column)
+            #Multi column graphs
+            elif ',' in column:
 
-                # Bar/Pareto graph for current month
-                if self.config.getboolean(column, 'current_month', fallback=False):
-                    self.current_month_graph(str(column), str(self.config.get(column, 'title', fallback='')))
+                # Current month table
+                if self.config.getboolean(column, 'month_table', fallback=False):
+                    self.month_table(\
+                            title = self.config.get(column, 'table_title', fallback=self.doc_name.replace('_', ' ')),
+                            column = column,
+                            labels = self.config.get(column, 'labels', fallback=column)
+                            )
 
-                # Line graph for one catagory over time
-                if self.config.getboolean(column, 'monthly', fallback=False):
-                    self.monthly_graph(str(column), str(self.config.get(column, 'title', fallback='')))
+            #Single column graphs (some graphs are defined by only one column but use data from an adjacent one)
             else:
-                print('UserWarning: Column "'
-                        + str(column)
-                        + '" specified in '
-                        + str(self.config_file)
-                        + ' does not contain valid data')
+                if self.column_has_data(column) and ',' not in column:
+
+                    # Manual percentage line graph
+                    if self.config.getboolean(column, 'show_percent_manual_totals', fallback=False):
+                        self.totals_by_month_percent_manual_graph(title =\
+                                self.config.get(column, 'percent_title', fallback=self.doc_name.replace('_', ' ')), column = column)
+
+                    # Manual monthly line graph
+                    if self.config.getboolean(column, 'manual_monthly', fallback=False):
+                        self.totals_by_month_manual_graph(title =\
+                                self.config.get(column, 'manual_monthly_title', fallback=self.doc_name.replace('_', ' ')), column = column)
+
+                    # Bar/Pareto graph for current month
+                    if self.config.getboolean(column, 'current_month', fallback=False):
+                        self.current_month_graph(str(column), str(self.config.get(column, 'title', fallback='')))
+
+                    # Line graph for one catagory over time
+                    if self.config.getboolean(column, 'monthly', fallback=False):
+                        self.monthly_graph(str(column), str(self.config.get(column, 'title', fallback='')))
+                else:
+                    print('UserWarning: Column "'
+                            + str(column)
+                            + '" specified in '
+                            + str(self.config_file)
+                            + ' does not contain valid data')
         return True
         #This true triggers XeLaTeX to be called
 
