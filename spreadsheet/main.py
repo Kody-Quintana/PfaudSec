@@ -661,16 +661,15 @@ class Grapher(object):
                 graphs_file.write(new_file_name)
                 graphs_file.write(custom_page_tex[2])
         else:
-            print("file not found")
+            print('UserWarning: "' + file_path + '" not found')
 
 
     def totals_by_month_percent_manual_graph_with_goal(self, column, title):
         print("goal percent line")
 
     def month_table(self, column, title, labels):
-        print("month table called here")
+        #print("month table called here")
         column_list = column.split(',')
-        print(column_list)
 
         label_list = column_list.copy()
         for index, label in enumerate(labels.split(",")):
@@ -678,7 +677,7 @@ class Grapher(object):
                 label_list[index] = label
             except IndexError:
                 print("UserWarning: more labels than columns for table: " + column)
-        print(label_list)
+        #print(label_list)
 
 
         index_list = []
@@ -704,24 +703,30 @@ class Grapher(object):
                     if this_cell != None:
                         table_data[letter][loop_index] = utf8tolatex(str(this_cell))
 
+            #for key, value in table_data.items() :
+            #    print (key, value)
 
-            for key, value in table_data.items() :
-                print (key, value)
-
-            def intersperse(lst, item):
+            def intersperse(lst, item, begin=None, end=None):
                 result = [item] * (len(lst) * 2 - 1)
                 result[0::2] = lst
-                result.append(" \\")
+                if end != None:
+                    result.append(end)
+                if begin != None:
+                    result.insert(0, begin)
                 return result
             
-            print( intersperse(table_data[column_list[0]], " & ") )
+            #print( intersperse(table_data[column_list[0]], " & ") )
 
             # Re-arrange column lists to row lists to print
+            table_string = [] #Will be cast to string later
             for index in range(len(index_list)):
                 row_list = []
                 for letter in column_list:
                     row_list.append(table_data[letter][index])
-                print(intersperse(row_list, " & "))
+                table_string.append(''.join(intersperse(row_list, " & ", end=r" \\")))
+
+            table_string = ''.join(intersperse(table_string, "\n\\hline\n", end="\n\\hline"))
+            print(table_string)
 
 
 
@@ -770,7 +775,8 @@ class Grapher(object):
                 custom_list = []
                 for setting in list(self.config.items('document')):
                     if 'custom' in setting[0]:
-                        custom_list.append(setting[0])
+                        if 'title' not in setting[0]:
+                            custom_list.append(setting[0])
                 custom_list.sort()
 
                 for count, custom in enumerate(custom_list):

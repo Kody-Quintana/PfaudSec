@@ -179,3 +179,55 @@ r"""};
 \end{center}
 """
 ]
+
+
+
+
+table = [
+r"""\renewcommand{\baselinestretch}{1.05}
+\begin{center}
+\LARGE
+\keepXColumns
+%\newcolumntype{s}{>{\hsize=.7\hsize}X}%TODO do this in python
+\begin{tabularx}{\textwidth}{""",
+#| Y@{} | s@{} | Y@{} | Y@{} | Y@{} | Y@{} |
+r"""}
+\multicolumn{""",
+#columns
+r"""}{c}{\fontsize{25}{25}\selectfont\color{pfgrey}{""",
+#Warranties Claims - \monthyeardate\today
+r"""}}\\
+\hline"""
+#\textbf{Label1} &\textbf{Label2} &\textbf{Label3} &\textbf{Label4} &\textbf{Label5}
+r"""\\
+\hline
+\endfirsthead% all the lines above this will be repeated on every page
+\multicolumn{""",
+#columns
+r"""}{c}{\fontsize{25}{25}\selectfont\color{pfgrey}{""",
+#Warranties Claims - \monthyeardate\today (cont.)
+r"""}}\\
+\hline"""
+#\textbf{Label1} &\textbf{Label2} &\textbf{Label3} &\textbf{Label4} &\textbf{Label5}\\
+r"""\hline
+\endhead% all the lines above this will be repeated on every page
+""",
+#Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
+#\hline
+#Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
+#\hline
+#Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
+#\hline
+#Color Cell & Color Cell & ksfkjh djhsdfkjh 343 4kj dfsdfkjh  & asdfkjh & \\
+#\hline
+#Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
+#\hline
+#Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
+#\hline
+#Color Cell & slfkjsal;kdfj kdjflksj dsfj  &sdfkjh  & asdfkjh & \\
+#\hline
+#Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
+#\hline
+r"""\end{tabularx}
+\end{center}"""
+]
