@@ -183,7 +183,7 @@ r"""};
 
 
 
-table = [
+latex_table = [
 r"""\renewcommand{\baselinestretch}{1.05}
 \begin{center}
 \LARGE
@@ -193,23 +193,25 @@ r"""\renewcommand{\baselinestretch}{1.05}
 #| Y@{} | s@{} | Y@{} | Y@{} | Y@{} | Y@{} |
 r"""}
 \multicolumn{""",
-#columns
+#num columns
 r"""}{c}{\fontsize{25}{25}\selectfont\color{pfgrey}{""",
 #Warranties Claims - \monthyeardate\today
 r"""}}\\
-\hline"""
+\hline""",
 #\textbf{Label1} &\textbf{Label2} &\textbf{Label3} &\textbf{Label4} &\textbf{Label5}
 r"""\\
 \hline
 \endfirsthead% all the lines above this will be repeated on every page
 \multicolumn{""",
-#columns
+#num columns
 r"""}{c}{\fontsize{25}{25}\selectfont\color{pfgrey}{""",
 #Warranties Claims - \monthyeardate\today (cont.)
 r"""}}\\
-\hline"""
-#\textbf{Label1} &\textbf{Label2} &\textbf{Label3} &\textbf{Label4} &\textbf{Label5}\\
-r"""\hline
+\hline
+""",
+#\textbf{Label1} &\textbf{Label2} &\textbf{Label3} &\textbf{Label4} &\textbf{Label5}
+r"""\\
+\hline
 \endhead% all the lines above this will be repeated on every page
 """,
 #Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
@@ -228,6 +230,8 @@ r"""\hline
 #\hline
 #Color Cell & Color Cell &sdfkjh  & asdfkjh & \\
 #\hline
-r"""\end{tabularx}
-\end{center}"""
+r"""
+\end{tabularx}
+\end{center}
+"""
 ]

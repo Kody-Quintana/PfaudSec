@@ -26,8 +26,17 @@ import ui_date_set    # QDialog to change date
 import ui_log      # Log window
 
 #pgfplots tex file stored as list in a python file
-from tex_storage import line_graph_tex, bar_graph_tex, percent_line_graph_tex
+from tex_storage import line_graph_tex, bar_graph_tex, percent_line_graph_tex, latex_table
 from custom_page_tex import custom_page_tex
+
+def intersperse(lst, item, begin=None, end=None):
+    result = [item] * (len(lst) * 2 - 1)
+    result[0::2] = lst
+    if end != None:
+        result.append(end)
+    if begin != None:
+        result.insert(0, begin)
+    return result
 
 if getattr(sys, 'frozen', False):
     """Chdir to exe if frozen with pyinstaller"""
@@ -667,9 +676,10 @@ class Grapher(object):
     def totals_by_month_percent_manual_graph_with_goal(self, column, title):
         print("goal percent line")
 
-    def month_table(self, column, title, labels):
+    def month_table(self, column, title, labels, column_widths):
         #print("month table called here")
         column_list = column.split(',')
+        num_columns = len(column_list)
 
         label_list = column_list.copy()
         for index, label in enumerate(labels.split(",")):
@@ -677,13 +687,25 @@ class Grapher(object):
                 label_list[index] = label
             except IndexError:
                 print("UserWarning: more labels than columns for table: " + column)
-        #print(label_list)
+        label_config = ''.join(intersperse([r"\textbf{" + x + "}" for x in label_list], " & "))
+        print(label_config)
 
+        width_list = ["Y"] * num_columns
+        for index, width in enumerate(column_widths.split(",")):
+            try:
+                if width.upper() in ("S", "M", "L"):
+                    width_list[index] = width
+            except IndexError:
+                print("UserWarning: more table widths than columns for table: " + column)
+        for i in range(len(width_list)):
+            width_list[i] += "@{}"
+        width_list = intersperse(width_list, "|", begin="|", end="|")
+        tabular_config = ''.join(width_list)
+        print(tabular_config)
 
         index_list = []
         for index in range(int(self.cells_start), int(self.cells_end)+1):
             date_cell = self.ws.cell(index, column_index_from_string(self.date_column)).value
-
             try:
                 if date_cell.month == now.month\
                         and date_cell.year == now.year:
@@ -703,20 +725,7 @@ class Grapher(object):
                     if this_cell != None:
                         table_data[letter][loop_index] = utf8tolatex(str(this_cell))
 
-            #for key, value in table_data.items() :
-            #    print (key, value)
-
-            def intersperse(lst, item, begin=None, end=None):
-                result = [item] * (len(lst) * 2 - 1)
-                result[0::2] = lst
-                if end != None:
-                    result.append(end)
-                if begin != None:
-                    result.insert(0, begin)
-                return result
             
-            #print( intersperse(table_data[column_list[0]], " & ") )
-
             # Re-arrange column lists to row lists to print
             table_string = [] #Will be cast to string later
             for index in range(len(index_list)):
@@ -725,9 +734,28 @@ class Grapher(object):
                     row_list.append(table_data[letter][index])
                 table_string.append(''.join(intersperse(row_list, " & ", end=r" \\")))
 
-            table_string = ''.join(intersperse(table_string, "\n\\hline\n", end="\n\\hline"))
+            table_string = ''.join(intersperse(table_string, "\n\\hline\n", end="\n\\hline\n"))
             print(table_string)
 
+            with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
+                graphs_file.write(r'\newpage\addsubsection{' + title + '}')
+                graphs_file.write(latex_table[0])
+                graphs_file.write(tabular_config)
+                graphs_file.write(latex_table[1])
+                graphs_file.write(str(num_columns))
+                graphs_file.write(latex_table[2])
+                graphs_file.write(title)
+                graphs_file.write(latex_table[3])
+                graphs_file.write(label_config)
+                graphs_file.write(latex_table[4])
+                graphs_file.write(str(num_columns))
+                graphs_file.write(latex_table[5])
+                graphs_file.write(title)
+                graphs_file.write(latex_table[6])
+                graphs_file.write(label_config)
+                graphs_file.write(latex_table[7])
+                graphs_file.write(table_string)
+                graphs_file.write(latex_table[8])
 
 
     def column_has_data(self, column):
@@ -795,7 +823,8 @@ class Grapher(object):
                     self.month_table(\
                             title = self.config.get(column, 'table_title', fallback=self.doc_name.replace('_', ' ')),
                             column = column,
-                            labels = self.config.get(column, 'labels', fallback=column)
+                            labels = self.config.get(column, 'labels', fallback=column),
+                            column_widths = self.config.get(column, 'column_widths', fallback=" ")
                             )
 
             #Single column graphs (some graphs are defined by only one column but use data from an adjacent one)
@@ -876,7 +905,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             print('XeLaTeX Error!')
             self.show()
             self.proc_count = 4
-            shutil.rmtree(self.work_dir)
+            #shutil.rmtree(self.work_dir)
 
     def xelatex_path_config(self):
         """Set path to XeLaTeX based on what system is running"""
@@ -980,7 +1009,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
         self.menu.clear()
 
-        open_xlsx = self.menu.addAction('Open spreadsheet file')
+        open_xlsx = self.menu.addAction('Open spreadsheets folder')
         open_xlsx.triggered.connect(lambda: choose_open_folder())
         self.menu.addSeparator()
         for item in os.listdir('resource'):
