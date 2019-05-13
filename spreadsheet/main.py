@@ -308,13 +308,13 @@ class Grapher(object):
             try:
                 months_ago = self.diff_month(now, column_value)
             except AttributeError:
-                print("attribute error on:" + str(index) + " which is: " + str(type(column_value)))
+                #print("attribute error on:" + str(index) + " which is: " + str(type(column_value)))
                 continue
             if months_ago > (months - 1):
-                print("neg months on: " + str(months_ago) + " at: " + str(index))
+                #print("neg months on: " + str(months_ago) + " at: " + str(index))
                 break
             if months_ago < 0:
-                print("less than months")
+                #print("less than months")
                 continue
             months_counter[months_ago] += 1
 
@@ -674,7 +674,7 @@ class Grapher(object):
 
 
     def totals_by_month_percent_manual_graph_with_goal(self, column, title, goal=1.0, avg=3, months=None, legend_labels=None):
-        print("goal percent line")
+        #print("goal percent line")
         column = column.split(',')
         if len(column) == 2:
             #use just two columns because 1st should be date column
@@ -703,13 +703,13 @@ class Grapher(object):
             try:
                 months_ago = self.diff_month(now, date_value)
             except AttributeError:
-                print("attribute error on:" + str(index) + " which is: " + str(type(this_cost_value)))
+                #print("attribute error on:" + str(index) + " which is: " + str(type(this_cost_value)))
                 continue
             if months_ago > (months - 1 + (avg-1)): #Extra months for the look back
-                print("neg months on: " + str(months_ago) + " at: " + str(index))
+                #print("neg months on: " + str(months_ago) + " at: " + str(index))
                 break
             if months_ago < 0:
-                print("less than months")
+                #print("less than months")
                 continue
             if cost_counter[months_ago] == None:
                 if this_cost_value != None:
@@ -722,13 +722,13 @@ class Grapher(object):
             try:
                 months_ago = self.diff_month(now, date_value)
             except AttributeError:
-                print("attribute error on:" + str(index) + " which is: " + str(type(this_cost_value)))
+                #print("attribute error on:" + str(index) + " which is: " + str(type(this_cost_value)))
                 continue
             if months_ago > (months - 1 + (avg-1)): #Extra months for the look back
-                print("neg months on: " + str(months_ago) + " at: " + str(index))
+                #print("neg months on: " + str(months_ago) + " at: " + str(index))
                 break
             if months_ago < 0:
-                print("less than months")
+                #print("less than months")
                 continue
             if total_cost_counter[months_ago] == None:
                 if this_cost_value != None:
@@ -757,13 +757,13 @@ class Grapher(object):
             try:
                 months_ago = self.diff_month(now, column_value)
             except AttributeError:
-                print("attribute error on:" + str(index) + " which is: " + str(type(column_value)))
+                #print("attribute error on:" + str(index) + " which is: " + str(type(column_value)))
                 continue
             if months_ago > (months - 1):
-                print("neg months on: " + str(months_ago) + " at: " + str(index))
+                #print("neg months on: " + str(months_ago) + " at: " + str(index))
                 break
             if months_ago < 0:
-                print("less than months")
+                #print("less than months")
                 continue
             months_counter[months_ago] += 1
 
@@ -830,7 +830,7 @@ class Grapher(object):
             except IndexError:
                 print("UserWarning: more labels than columns for table: " + column)
         label_config = ''.join(intersperse([r"\textbf{" + x + "}" for x in label_list], " & "))
-        print(label_config)
+        #print(label_config)
 
         width_list = ["Y"] * num_columns
         column_widths = "".join(column_widths.split())
@@ -844,7 +844,7 @@ class Grapher(object):
             width_list[i] += "@{}"
         width_list = intersperse(width_list, "|", begin="|", end="|")
         tabular_config = ''.join(width_list)
-        print(tabular_config)
+        #print(tabular_config)
 
         index_list = []
         for index in range(int(self.cells_start), int(self.cells_end)+1):
@@ -878,7 +878,7 @@ class Grapher(object):
                 table_string.append(''.join(intersperse(row_list, " & ", end=r" \\")))
 
             table_string = ''.join(intersperse(table_string, "\n\\hline\n", end="\n\\hline\n"))
-            print(table_string)
+            #print(table_string)
 
             with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
                 graphs_file.write(r'\newpage\addsubsection{' + title + '}')
@@ -951,7 +951,7 @@ class Grapher(object):
                 custom_list.sort()
 
                 for count, custom in enumerate(custom_list):
-                    print(self.config.get(column, custom))
+                    #print(self.config.get(column, custom))
                     self.custom_page(
                             file_path = self.config.get(column, custom),
                             title = self.config.get(column, custom + "_title", fallback=" "),
@@ -972,6 +972,7 @@ class Grapher(object):
                     self.totals_by_month_percent_manual_graph_with_goal(\
                             title = self.config.get(column, 'count_with_goal_title', fallback=self.doc_name.replace('_', ' ')),
                             column = column,
+                            goal = self.config.get(column, 'goal', fallback=1.0),
                             legend_labels = self.config.get(column, 'legend_labels', fallback=None)
                             )
 
@@ -1055,7 +1056,7 @@ class LogWindow(QtWidgets.QDialog,ui_log.Ui_Dialog):#, UI.MainUI.Ui_MainWindow):
             print('XeLaTeX Error!')
             self.show()
             self.proc_count = 4
-            #shutil.rmtree(self.work_dir)
+            shutil.rmtree(self.work_dir)
 
     def xelatex_path_config(self):
         """Set path to XeLaTeX based on what system is running"""
@@ -1307,7 +1308,7 @@ now = datetime.date.today()
 icon = QtGui.QIcon('resource/logo.ico')
 trayIcon = SystemTrayIcon(icon)
 trayIcon.show()
-#sys.stdout = trayIcon
+sys.stdout = trayIcon
 log = LogWindow()
 
 

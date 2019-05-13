@@ -243,7 +243,7 @@ cost_avg_graph = [
 r"""
 \Large
 \begin{center}
-\begin{tikzpicture}% Bar graph, use for current month's values
+\begin{tikzpicture}[trim axis left, trim axis right]
 	\begin{axis}
 		[ybar,
 		ymin=0,
@@ -340,7 +340,7 @@ r"""			};
 r"""		};
 		\label{plot_two}%label for legend
 		%\addlegendentry{plot 2}
-	\addplot [draw=orange,
+	\addplot [draw=orange,opacity=0.5,
 		nodes near coords={}
 		]
 		coordinates{%Just need first and last for the goal line
