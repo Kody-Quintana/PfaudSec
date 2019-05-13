@@ -26,7 +26,7 @@ import ui_date_set    # QDialog to change date
 import ui_log      # Log window
 
 #pgfplots tex file stored as list in a python file
-from tex_storage import line_graph_tex, bar_graph_tex, percent_line_graph_tex, latex_table
+from tex_storage import line_graph_tex, bar_graph_tex, percent_line_graph_tex, latex_table, cost_avg_graph
 from custom_page_tex import custom_page_tex
 
 def intersperse(lst, item, begin=None, end=None):
@@ -472,7 +472,7 @@ class Grapher(object):
 
 
     def totals_by_month_manual_graph(self, title, column, months=None):
-        """Writes percent line pgfplot to graph.tex of totals by month compared to a total from right adjacent column"""
+        """Writes percent line pgfplot to graph.tex of totals taken directly from column"""
         if months == None:
             months = self.months
         #column = column
@@ -549,13 +549,13 @@ class Grapher(object):
             try:
                 months_ago = self.diff_month(now, value)
             except AttributeError:
-                print("diff_month att error")
+                #print("diff_month att error")
                 continue
             if months_ago > (months - 1):
-                print("month limit")
+                #print("month limit")
                 break
             if months_ago < 0:
-                print("neg months")
+                #print("neg months")
                 continue
             if column_value not in catagories_index:
                 catagories_index[column_value] = len(catagories_index)
@@ -673,8 +673,150 @@ class Grapher(object):
             print('UserWarning: "' + file_path + '" not found')
 
 
-    def totals_by_month_percent_manual_graph_with_goal(self, column, title):
+    def totals_by_month_percent_manual_graph_with_goal(self, column, title, goal=1.0, avg=3, months=None, legend_labels=None):
         print("goal percent line")
+        column = column.split(',')
+        if len(column) == 2:
+            #use just two columns because 1st should be date column
+            #count_column = column[0]
+            cost_column = column[0]
+            total_cost_column = column[1]
+        else:
+            print("totals_by_month_percent_manual_graph_with_goal requires 3 columns")
+            for i in column:
+                print(i)
+
+        if months == None:
+            months = self.months
+        column = self.date_column
+        months_counter = [0] * months #Count of date occurances in each month
+        total_cost_counter = [None] * (months + (avg-1)) #Total cost for each month (must be averaged after)
+        cost_counter = [None] * (months + (avg-1)) #WA cost for each month
+        symbolic_xcoords = [] # turns into string later
+        coordinates = []
+        ticks_distance_flag = 0
+
+        #Fill list of WA costs
+        for index in range(int(self.cells_end), int(self.cells_start) - 1, -1):
+            this_cost_value = self.ws[cost_column + str(index)].value
+            date_value = self.ws[column + str(index)].value
+            try:
+                months_ago = self.diff_month(now, date_value)
+            except AttributeError:
+                print("attribute error on:" + str(index) + " which is: " + str(type(this_cost_value)))
+                continue
+            if months_ago > (months - 1 + (avg-1)): #Extra months for the look back
+                print("neg months on: " + str(months_ago) + " at: " + str(index))
+                break
+            if months_ago < 0:
+                print("less than months")
+                continue
+            if cost_counter[months_ago] == None:
+                if this_cost_value != None:
+                    cost_counter[months_ago] = this_cost_value
+
+        #Fill list of total costs
+        for index in range(int(self.cells_end), int(self.cells_start) - 1, -1):
+            this_cost_value = self.ws[total_cost_column + str(index)].value
+            date_value = self.ws[column + str(index)].value
+            try:
+                months_ago = self.diff_month(now, date_value)
+            except AttributeError:
+                print("attribute error on:" + str(index) + " which is: " + str(type(this_cost_value)))
+                continue
+            if months_ago > (months - 1 + (avg-1)): #Extra months for the look back
+                print("neg months on: " + str(months_ago) + " at: " + str(index))
+                break
+            if months_ago < 0:
+                print("less than months")
+                continue
+            if total_cost_counter[months_ago] == None:
+                if this_cost_value != None:
+                    total_cost_counter[months_ago] = this_cost_value
+
+        for index in range(len(cost_counter)):
+            if cost_counter[index] == None:
+                cost_counter[index] = 0.0
+        for index in range(len(total_cost_counter)):
+            if total_cost_counter[index] == None:
+                total_cost_counter[index] = 0.0
+
+        #Find percent with avg look back
+        avg_cost_percent = [0.0] * months
+        for months_ago in range(months):
+            averaged_total_cost = 0.0
+            averaged_cost = 0.0
+            for look_back in range(avg):
+                averaged_total_cost += total_cost_counter[months_ago + look_back]
+                averaged_cost += cost_counter[months_ago + look_back]
+            avg_cost_percent[months_ago] = (averaged_cost / averaged_total_cost) * 100.0
+
+        #Fill occurances based on dates entered
+        for index in range(int(self.cells_end), int(self.cells_start) - 1, -1):
+            column_value = self.ws[column + str(index)].value
+            try:
+                months_ago = self.diff_month(now, column_value)
+            except AttributeError:
+                print("attribute error on:" + str(index) + " which is: " + str(type(column_value)))
+                continue
+            if months_ago > (months - 1):
+                print("neg months on: " + str(months_ago) + " at: " + str(index))
+                break
+            if months_ago < 0:
+                print("less than months")
+                continue
+            months_counter[months_ago] += 1
+
+        for i in months_counter:
+            if i > 5:
+                ticks_distance_flag = 1
+                break
+
+        #Format coordinates and symbolic xcoords for LaTeX
+        for index, data in reversed(list(enumerate(months_counter))):
+            xcoord_name = self.relative_month_to_string(index)
+            coordinates.append('(' + xcoord_name + ',' + str(data) + ')')
+            symbolic_xcoords.append(xcoord_name + ',')
+        symbolic_xcoords = '\n'.join([str(i) for i in symbolic_xcoords])
+        coordinates = '\n'.join([str(i) for i in coordinates])
+
+        cost_coordinates = []
+        xcoord_name = 0
+        for index, data in reversed(list(enumerate(avg_cost_percent))):
+            cost_coordinates.append( '(' + str(xcoord_name) + ',' + str(data) + ')')
+            xcoord_name += 1
+        cost_coordinates = '\n'.join( [str(i) for i in cost_coordinates] )
+
+        goal_coordinates = []
+        goal_coordinates.append( '(0,' + str(goal) + ')' )
+        goal_coordinates.append( '(' + str(months-1) + ',' + str(goal) + ')' )
+        goal_coordinates = '\n'.join( [str(i) for i in goal_coordinates] )
+
+        #legend_labels = "".join(legend_labels.split())
+        legend_labels = legend_labels.split(',')
+
+        with open(self.work_dir + '/graph.tex', 'a', encoding='utf-8') as graphs_file:
+            graphs_file.write(r'\newpage\addsubsection{' + title + '}')
+            graphs_file.write(cost_avg_graph[0])
+            graphs_file.write(title + ' - ' + fy_date(now))
+            graphs_file.write(cost_avg_graph[1])
+            graphs_file.write(symbolic_xcoords)
+            graphs_file.write(cost_avg_graph[2])
+            if ticks_distance_flag == 0:
+                graphs_file.write('ytick distance=1,')
+            graphs_file.write(cost_avg_graph[3])
+            graphs_file.write(coordinates)
+            graphs_file.write(cost_avg_graph[4])
+            graphs_file.write(cost_coordinates)
+            graphs_file.write(cost_avg_graph[5])
+            graphs_file.write(goal_coordinates)
+            graphs_file.write(cost_avg_graph[6])
+            if legend_labels is not None:
+                if len(legend_labels) == 3:
+                    graphs_file.write(legend_labels[0] + ',' + legend_labels[1] + ',' + legend_labels[2])
+            else:
+                graphs_file.write(title + ',' + "test" + ',' + "goal")
+            graphs_file.write(cost_avg_graph[7])
 
     def month_table(self, column, title, labels, column_widths):
         #print("month table called here")
@@ -691,10 +833,11 @@ class Grapher(object):
         print(label_config)
 
         width_list = ["Y"] * num_columns
+        column_widths = "".join(column_widths.split())
         for index, width in enumerate(column_widths.split(",")):
             try:
                 if width.upper() in ("S", "M", "L"):
-                    width_list[index] = width
+                    width_list[index] = width.lower()
             except IndexError:
                 print("UserWarning: more table widths than columns for table: " + column)
         for i in range(len(width_list)):
@@ -750,7 +893,7 @@ class Grapher(object):
                 graphs_file.write(latex_table[4])
                 graphs_file.write(str(num_columns))
                 graphs_file.write(latex_table[5])
-                graphs_file.write(title)
+                graphs_file.write(title + "(cont.)")
                 graphs_file.write(latex_table[6])
                 graphs_file.write(label_config)
                 graphs_file.write(latex_table[7])
@@ -812,8 +955,7 @@ class Grapher(object):
                     self.custom_page(
                             file_path = self.config.get(column, custom),
                             title = self.config.get(column, custom + "_title", fallback=" "),
-                            count = count
-                            )
+                            count = count)
 
             #Multi column graphs
             elif ',' in column:
@@ -824,22 +966,30 @@ class Grapher(object):
                             title = self.config.get(column, 'table_title', fallback=self.doc_name.replace('_', ' ')),
                             column = column,
                             labels = self.config.get(column, 'labels', fallback=column),
-                            column_widths = self.config.get(column, 'column_widths', fallback=" ")
+                            column_widths = self.config.get(column, 'column_widths', fallback=" "))
+
+                if self.config.getboolean(column, 'show_count_with_goal', fallback=False):
+                    self.totals_by_month_percent_manual_graph_with_goal(\
+                            title = self.config.get(column, 'count_with_goal_title', fallback=self.doc_name.replace('_', ' ')),
+                            column = column,
+                            legend_labels = self.config.get(column, 'legend_labels', fallback=None)
                             )
 
             #Single column graphs (some graphs are defined by only one column but use data from an adjacent one)
             else:
-                if self.column_has_data(column) and ',' not in column:
+                if self.column_has_data(column):
 
                     # Manual percentage line graph
                     if self.config.getboolean(column, 'show_percent_manual_totals', fallback=False):
-                        self.totals_by_month_percent_manual_graph(title =\
-                                self.config.get(column, 'percent_title', fallback=self.doc_name.replace('_', ' ')), column = column)
+                        self.totals_by_month_percent_manual_graph(
+                                title = self.config.get(column, 'percent_title', fallback=self.doc_name.replace('_', ' ')),
+                                column = column)
 
                     # Manual monthly line graph
                     if self.config.getboolean(column, 'manual_monthly', fallback=False):
-                        self.totals_by_month_manual_graph(title =\
-                                self.config.get(column, 'manual_monthly_title', fallback=self.doc_name.replace('_', ' ')), column = column)
+                        self.totals_by_month_manual_graph(
+                                title = self.config.get(column, 'manual_monthly_title', fallback=self.doc_name.replace('_', ' ')),
+                                column = column)
 
                     # Bar/Pareto graph for current month
                     if self.config.getboolean(column, 'current_month', fallback=False):
