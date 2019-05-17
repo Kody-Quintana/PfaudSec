@@ -15,13 +15,26 @@
 	\usetikzlibrary{calc}
 	\usetikzlibrary{matrix}
 \usepackage{pgfplots} 
-\pgfplotsset %-Global settings for pgfplots
-  {
-    compat = newest,
-    xtick style = {draw=none},
-    width = .92 \textwidth,
-    height = .75 \textheight
-  }
+
+\pgfplotsset{
+	compat = newest,
+	xtick style = {draw=none},
+	width = .84 \textwidth,
+	height = .75 \textheight
+}
+
+
+\pgfplotsset{
+	pfbar/.style ={
+		enlarge x limits=0.025,
+	}
+}
+
+\pgfplotsset{
+	pfline/.style ={
+		enlarge x limits=0,
+	}
+}
 
 \usepackage[linktoc=all,        %-for clickable links and pdf metadata
             colorlinks=true,

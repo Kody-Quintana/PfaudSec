@@ -3,6 +3,9 @@ r"""
 \Large
 \begin{center}
 \begin{tikzpicture}[trim axis left, trim axis right]% Line graph, use for data over time
+     \pgfplotsset{
+            every axis/.append style={pfline,}
+     }
 	\begin{axis}
 		[ymin=0,
                 yticklabel style={/pgf/number format/precision=3, /pgf/number format/fixed},
@@ -51,6 +54,9 @@ r"""
 \Large
 \begin{center}
 \begin{tikzpicture}[trim axis left, trim axis right]% Line graph, use for data over time
+     \pgfplotsset{
+            every axis/.append style={pfline,}
+     }
 	\begin{axis}
 		[ymin=0,
                 yticklabel style={/pgf/number format/precision=3, /pgf/number format/fixed},
@@ -102,6 +108,9 @@ r"""
 \Large
 \begin{center}
 \begin{tikzpicture}[trim axis left, trim axis right]% Bar graph, use for current month's values
+     \pgfplotsset{
+            every axis/.append style={pfbar,}
+     }
 	\begin{axis}
 		[ybar,
                 yticklabel style={/pgf/number format/precision=3, /pgf/number format/fixed},
@@ -186,12 +195,12 @@ r"""};
 latex_table = [
 r"""\renewcommand{\baselinestretch}{1.05}
 \begin{center}
-\LARGE
+\large
 \keepXColumns
-\newcolumntype{s}{>{\hsize=.7\hsize}Y}%TODO do this in python
-\newcolumntype{m}{>{\hsize=\hsize}Y}%TODO do this in python
-\newcolumntype{l}{>{\hsize=1.3\hsize}Y}%TODO do this in python
-\begin{tabularx}{\textwidth}{""",
+\newcolumntype{s}{>{\hsize=.5\hsize}Y}%TODO do this in python
+\newcolumntype{m}{>{\hsize=0.8\hsize}Y}%TODO do this in python
+\newcolumntype{l}{>{\hsize=1.8\hsize}Y}%TODO do this in python
+\begin{tabularx}{0.92\textwidth}{""",
 #| Y@{} | s@{} | Y@{} | Y@{} | Y@{} | Y@{} |
 r"""}
 \multicolumn{""",
@@ -243,7 +252,10 @@ cost_avg_graph = [
 r"""
 \Large
 \begin{center}
-\begin{tikzpicture}[trim axis left, trim axis right]
+\begin{tikzpicture}[trim axis left, trim axis right,]
+     \pgfplotsset{
+            every axis/.append style={pfbar,}
+     }
 	\begin{axis}
 		[ybar,
 		ymin=0,

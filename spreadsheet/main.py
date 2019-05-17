@@ -745,10 +745,11 @@ class Grapher(object):
         avg_cost_percent = [0.0] * months
         for months_ago in range(months):
             averaged_total_cost = 0.0
-            averaged_cost = 0.0
+            averaged_cost = cost_counter[months_ago]
             for look_back in range(avg):
                 averaged_total_cost += total_cost_counter[months_ago + look_back]
-                averaged_cost += cost_counter[months_ago + look_back]
+                #averaged_cost += cost_counter[months_ago + look_back]
+            averaged_total_cost /= avg
             avg_cost_percent[months_ago] = (averaged_cost / averaged_total_cost) * 100.0
 
         #Fill occurances based on dates entered
